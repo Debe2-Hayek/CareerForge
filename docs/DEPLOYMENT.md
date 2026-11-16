@@ -28,6 +28,12 @@ Prisma client generation does not connect to a database. Keep `DATABASE_URL` and
 database checks and other connection-based tools; do not upload them to Vercel.
 The production database-health endpoint remains disabled.
 
+For a new Vercel project, the first deployment must use its Production slot.
+Configure the three public values for that hosting environment before the first
+build. That provider label does not turn an isolated testing database into a
+production backend. The current hosted MVP preview and verification limits are
+recorded in [PREVIEW_DEPLOYMENT_2026_11_16.md](PREVIEW_DEPLOYMENT_2026_11_16.md).
+
 Use a separate non-production Supabase project for preview/testing. Do not copy
 production credentials into previews. No LLM or service-role key is required by
 the present MVP. Configure a stable preview alias/domain as `APP_ORIGIN`; random

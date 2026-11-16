@@ -1,6 +1,6 @@
 # CareerForge implementation roadmap
 
-## Isolated hosted preview preparation — 16 November 2026
+## Isolated hosted preview deployed — 16 November 2026
 
 Reviewed all remote branches and PRs. Preview PR #1 was already merged; synchronized
 local `main` to `7ff15ac`, including the later profile, CV and Auth improvements.
@@ -19,9 +19,25 @@ applied all seven checksum-tracked migrations and verified RLS on all eight publ
 tables. Set only its HTTPS Site URL and exact callback; email confirmation and
 undeclared Auth settings were preserved. Vercel preview settings contain only the
 three public client/origin values; no direct URLs or privileged keys were uploaded.
-Frankfurt functions match the new backend region. Hosting verification is still
-pending; this entry does not claim a successful deployment. Resource identities,
-approval-review outcomes and verification limits:
+Frankfurt functions match the new backend region. Published the CI-verified source
+commit `5b29201` at **https://careerforge-phi.vercel.app**. Vercel required its first
+deployment in the Production slot; both hosting slots use only the isolated test
+backend. The corrected deployment is `dpl_2EtzAhw1iGTusp2Tu3q2JLc6mE6h` (READY).
+GitHub CI passed all checks, including 98 unit and 38 desktop/mobile browser cases.
+
+Live HTTPS checks passed: guest/API protection, secure HttpOnly login sessions,
+profile/history persistence, precise GPA, revision/idempotency behavior, saved CV,
+tracker saves/status/removal, cross-user API/direct-RLS isolation, password update,
+old-password rejection, logout and actual desktop/mobile sign-in/layout. All
+temporary confirmed QA users were deleted and cleanup confirmed. Reviewed the
+actual hosted desktop/mobile screenshots. An initial key-selection helper chose
+the display prefix; selected the actual public `api_key`, validated it against
+Auth settings and rebuilt without cache before the passing live run.
+
+Email confirmation remains enabled. Real inbox delivery was not tested; the new
+backend uses Supabase's default team-only test mailer. Custom SMTP is required for
+public confirmation/reset delivery. Existing local accounts are not copied into
+the preview. Resource identities, approval-review outcomes and verification limits:
 [PREVIEW_DEPLOYMENT_2026_11_16.md](PREVIEW_DEPLOYMENT_2026_11_16.md).
 
 ## AUTH.UX2 - Smooth account-mode transitions - Verified locally, 11 November 2026

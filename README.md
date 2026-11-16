@@ -66,12 +66,13 @@ The public URL and publishable key are available in the Supabase dashboard under
 **Project Settings → Database → Connection string**.
 
 Set `NEXT_PUBLIC_SUPABASE_URL` and
-`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for the SSR clients. Set `DATABASE_URL`
-to the pooled connection string for runtime Prisma queries and `DIRECT_URL` to
-the direct/session connection string for Prisma migrations. Prisma 7 reads
-`DIRECT_URL` through `prisma.config.ts`, which explicitly loads `.env` via
-`dotenv/config`; Next.js loads `.env.local` automatically. Do not commit either
-local environment file, passwords, service-role keys, or other secrets.
+`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for the SSR clients. The hosted MVP uses
+verified user sessions and Supabase RLS; it needs no direct database credentials.
+Keep `DATABASE_URL`/`DIRECT_URL` local for the reviewed migration/RLS tools and
+development diagnostics. Prisma client generation works without either URL;
+commands that connect through Prisma still need `DIRECT_URL`. `prisma.config.ts`
+loads `.env` via `dotenv/config`; Next.js loads `.env.local` automatically. Do not
+commit either local environment file, passwords, service-role keys, or other secrets.
 
 For real accounts, configure the public Supabase values and apply the reviewed
 profile and jobs/tracker migrations to the shared **development** database:

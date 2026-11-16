@@ -9,10 +9,18 @@ test("deployment preflight accepts shaped config without contacting services", (
   assert.deepEqual(deploymentConfigErrors({ ...fixture, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: anon }), []);
 });
 test("deployment preflight rejects missing values, unsafe origins and privileged public keys", () => {
-  assert.equal(deploymentConfigErrors({}).length, 5);
+  assert.equal(deploymentConfigErrors({}).length, 3);
   for (const APP_ORIGIN of ["http://careerforge.test", "https://user:pass@careerforge.test", "https://careerforge.test/path", "https://careerforge.test?q=private", "https://careerforge.example.com"]) assert.ok(deploymentConfigErrors({ ...fixture, APP_ORIGIN }).length);
   for (const key of ["sb_secret_private", `header.${Buffer.from(JSON.stringify({ role: "service_role" })).toString("base64url")}.sig`]) assert.ok(deploymentConfigErrors({ ...fixture, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: key }).length);
   assert.ok(deploymentConfigErrors({ ...fixture, NEXT_PUBLIC_OPENAI_API_KEY: "secret" }).length);
+});
+
+test("hosted deployment needs no direct database credentials but validates optional local URLs", () => {
+  const publicOnly = { APP_ORIGIN: fixture.APP_ORIGIN, NEXT_PUBLIC_SUPABASE_URL: fixture.NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: fixture.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY };
+  assert.deepEqual(deploymentConfigErrors(publicOnly), []);
+  for (const name of ["DATABASE_URL", "DIRECT_URL"]) {
+    assert.ok(deploymentConfigErrors({ ...publicOnly, [name]: "not-a-database-connection" }).some(error => error.startsWith(`${name}:`)));
+  }
 });
 test("deployment preflight never includes supplied values in diagnostic output", () => {
   const errors = deploymentConfigErrors({ ...fixture, APP_ORIGIN: "https://private-user:private-password@host.test", DATABASE_URL: "private-database", NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "private-key" });

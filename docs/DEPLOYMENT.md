@@ -20,8 +20,13 @@ Set each environment explicitly in Vercel:
 | `APP_ORIGIN` | Exact HTTPS origin users will open, without path/credentials. Auth rejects other hosts. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Target Supabase HTTPS origin, set before build. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable/legacy anon key; never service-role/secret. |
-| `DATABASE_URL` | Server-only target runtime PostgreSQL connection. |
-| `DIRECT_URL` | Server-only connection needed by Prisma config/generation and reviewed DB tooling. |
+
+The current hosted MVP needs only those three values. Private data operations use
+the public Supabase client with the authenticated user's session and database RLS.
+Prisma client generation does not connect to a database. Keep `DATABASE_URL` and
+`DIRECT_URL` in the local administration environment for reviewed migrations,
+database checks and other connection-based tools; do not upload them to Vercel.
+The production database-health endpoint remains disabled.
 
 Use a separate non-production Supabase project for preview/testing. Do not copy
 production credentials into previews. No LLM or service-role key is required by

@@ -10,5 +10,8 @@ src/generated/
 coverage/
 test-results/
 playwright-report/
+supabase/.temp/
+.vercel/
+.deployment/
 *.tsbuildinfo
 .DS_Store

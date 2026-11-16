@@ -1,5 +1,29 @@
 # CareerForge implementation roadmap
 
+## Isolated hosted preview preparation — 16 November 2026
+
+Reviewed all remote branches and PRs. Preview PR #1 was already merged; synchronized
+local `main` to `7ff15ac`, including the later profile, CV and Auth improvements.
+Connected the official Vercel/Supabase CLIs after owner authorization. Created the
+Vercel Hobby project `careerforge` and reserved `careerforge-phi.vercel.app`.
+
+The hosted MVP uses Supabase user sessions/RLS and does not need privileged
+PostgreSQL URLs. Removed their deployment/generation requirement while retaining
+local administration tooling. CI explicitly blanks both connection URLs. All 98
+unit tests, lint and the actual deployment build/TypeScript pass without them.
+Local build initially found stale generated Auth route types from October; cleared
+only that generated cache and the rerun passed.
+
+Created a separate Free organization and empty `CareerForge Preview` backend,
+applied all seven checksum-tracked migrations and verified RLS on all eight public
+tables. Set only its HTTPS Site URL and exact callback; email confirmation and
+undeclared Auth settings were preserved. Vercel preview settings contain only the
+three public client/origin values; no direct URLs or privileged keys were uploaded.
+Frankfurt functions match the new backend region. Hosting verification is still
+pending; this entry does not claim a successful deployment. Resource identities,
+approval-review outcomes and verification limits:
+[PREVIEW_DEPLOYMENT_2026_11_16.md](PREVIEW_DEPLOYMENT_2026_11_16.md).
+
 ## AUTH.UX2 - Smooth account-mode transitions - Verified locally, 11 November 2026
 
 Owner requests animation between Sign in and Create account. Root cause: the

@@ -13,8 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # Client generation reads Prisma config but does not connect to this URL.
-      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/careerforge
+      # Client generation and the hosted app need no privileged connection URL.
+      DATABASE_URL: ""
+      DIRECT_URL: ""
       NEXT_TELEMETRY_DISABLED: "1"
       # Offline build/smoke coverage must never depend on account credentials.
       NEXT_PUBLIC_SUPABASE_URL: ""

@@ -1,12 +1,12 @@
 import "dotenv/config";
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations"
   },
-  datasource: {
-    url: env("DIRECT_URL")
-  }
+  // Client generation needs the schema, not privileged database credentials.
+  // Commands that connect to Postgres still require an explicitly configured URL.
+  datasource: process.env.DIRECT_URL ? { url: process.env.DIRECT_URL } : undefined
 });

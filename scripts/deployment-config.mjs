@@ -12,8 +12,11 @@ export function deploymentConfigErrors(env) {
   };
   url("APP_ORIGIN", ["https:"], true);
   url("NEXT_PUBLIC_SUPABASE_URL", ["https:"], true);
-  url("DATABASE_URL", ["postgres:", "postgresql:"]);
-  url("DIRECT_URL", ["postgres:", "postgresql:"]);
+  // Hosted private APIs use the public Supabase client with the verified user's
+  // session and RLS. Direct connection credentials are optional local-tool config.
+  for (const name of ["DATABASE_URL", "DIRECT_URL"]) {
+    if (env[name]) url(name, ["postgres:", "postgresql:"]);
+  }
   const key = env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
   let anonJwt = false;
   try { anonJwt = JSON.parse(Buffer.from(key.split(".")[1] ?? "", "base64url").toString()).role === "anon"; } catch { /* Not a legacy key. */ }

@@ -39,6 +39,30 @@ boards in `src/lib/jobs/sources.ts` after checking the board is public.
   demo data. Closed/expired rows are deleted unless a user saved them; saved
   ones stay visible only to that owner's tracker, labeled "No longer active",
   without an Apply link.
+- **Open to Lebanon (19 November feedback).** Himalayas tags many US-, LATAM-
+  or Europe-only roles as worldwide. At import, a remote listing is excluded when
+  its title ("(U.S. Based…)", "(LATAM)", "(…, DE, 64625)", "… - Europe") or text
+  restricts applicants elsewhere ("seeks US-based attorneys", "must be located in
+  the United States", "authorized to work in the US", "Location: Remote within
+  Europe", "experts based in Latin America", US citizenship/clearance/veterans),
+  or its time zones exclude UTC+2/+3. Phrases next to EMEA/Middle East/Lebanon/
+  worldwide are kept, as are company descriptions ("a US-based company") and
+  privacy notices. Gulf roles reserved for other nationals ("(Emirati National)")
+  are excluded on every source. Exclusions are counted in the import log
+  (`--verbose` lists them).
+- **Experience level.** Stored as `experience_level` (internship, entry, mid,
+  senior, lead) with a short label. The title's own words decide (Intern,
+  Junior, Intermediate, Senior/Lead/Leader/Architect, Director/Head/Chief/
+  Engineering Manager); otherwise the source's tag (Himalayas seniority,
+  Workable experience), raised (never lowered) by explicitly requested years
+  (≥5 senior, 3–4 mid). Years above 15 are treated as company history. The page
+  has an Experience level filter; demo roles are entry level.
+- **Removed jobs.** Himalayas search pages only cover recent jobs, so each stored
+  Himalayas job missing from them is looked up by title within its company (about
+  1 request/second). Found and still open → refreshed; found but now restricted
+  → closed; search complete without it → closed as removed. Failed or truncated
+  lookups change nothing. (Himalayas' website blocks automated page checks, so
+  the API is the evidence.)
 - RLS (`careerforge_job_is_current`) shows a live row only while active,
   unexpired and refreshed within 7 days; students cannot write the catalog; the
   save trigger refuses expired/stale listings.
@@ -63,7 +87,22 @@ boards in `src/lib/jobs/sources.ts` after checking the board is public.
   apply link, saving a live listing, no horizontal overflow at 320/768/1440 px
   and no browser errors. Screenshots reviewed.
 
+Feedback fix, 19 November 2026: 116 unit tests (restriction, level and recheck
+rules built from real listings, including cases that must be kept); `test:rls`
+level constraint; three `test:jobs:live` passes with the level filter, no
+senior-titled role stored or listed as entry level, and loaded 320/768/1440
+layouts. Real import: 177 listings (Himalayas 95, Workable 45, Greenhouse 37);
+14 Himalayas and 2 Tamara listings excluded as not open to Lebanon; 6 stored
+Himalayas jobs confirmed removed and closed (API search, with and without the
+Lebanon filter); no restricted titles remain active.
+
 ## Limitations and next steps
+
+- Restriction and level detection are text heuristics. Unusual wording can still
+  slip through (for example "experience at a US-based law firm" is kept); the
+  role dialog asks students to confirm location and work-permit requirements.
+- Region "Middle East & North Africa" lists on-site roles in other countries
+  (UAE, Saudi Arabia); they may require relocation and a work visa.
 
 - Ingestion is manual; there is no scheduled refresh yet. Listings disappear
   from view 7 days after the last import. A scheduled job needs a server-side
@@ -71,8 +110,8 @@ boards in `src/lib/jobs/sources.ts` after checking the board is public.
 - The hosted preview uses a separate database and has not been migrated or
   ingested.
 - Only four employer boards are configured for on-site Lebanon/MENA roles.
-- Skill detection is a keyword heuristic; 95 of 191 listings had no detected
-  skills. Seniority and work mode are often unspecified by the sources.
+- Skill detection is a keyword heuristic; many listings have no detected
+  skills. Work mode is often unspecified, and 7 listings state no level.
 - The pre-existing `/cv/saved` 320/1440 overflow assertion in
   `test:account:live` fails on the unmodified baseline as well; that suite
   therefore did not reach its jobs stage.

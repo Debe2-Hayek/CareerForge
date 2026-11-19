@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
-  clip, companyStyle, dateOrNull, detectSkills, employmentType, htmlToText, liveJobId, regionOfPlace,
-  regionOfRestrictions, remoteLocationLabel, safeHttpsUrl, salaryText, workModeFrom, type LiveJob
+  clip, companyStyle, dateOrNull, detectSkills, employmentType, htmlToText, inferExperience, lebanonRestriction, liveJobId, nationalityRestriction,
+  regionOfPlace, regionOfRestrictions, remoteLocationLabel, safeHttpsUrl, salaryText, workModeFrom, type LiveJob
 } from "./normalize";
 
 /**
@@ -35,14 +35,16 @@ export const employerBoards = [
   { source: "greenhouse", board: "tamara" }
 ] as const satisfies readonly { source: "workable" | "greenhouse"; board: string }[];
 
-export type ParseResult = { jobs: LiveJob[]; skipped: number };
+/** `skipped` = malformed or unsafe items; `excluded` = valid jobs not open to applicants in Lebanon (with reasons for the log). */
+export type Exclusion = { externalId: string; reason: string };
+export type ParseResult = { jobs: LiveJob[]; skipped: number; excluded: number; exclusions: Exclusion[] };
 const text = (max: number) => z.string().trim().min(1).max(max);
 
 const himalayasJob = z.object({
   title: text(300), companyName: text(200), guid: text(2000), applicationLink: text(2000),
   excerpt: z.string().max(5000).nullish(), description: z.string().max(400_000).nullish(),
   employmentType: z.string().max(80).nullish(), seniority: z.array(z.string().max(60)).max(10).nullish(),
-  locationRestrictions: z.array(z.string().max(120)).max(300).nullish(),
+  locationRestrictions: z.array(z.string().max(120)).max(300).nullish(), timezoneRestrictions: z.array(z.number()).max(100).nullish(),
   categories: z.array(z.string().max(120)).max(60).nullish(),
   minSalary: z.number().nullish(), maxSalary: z.number().nullish(), currency: z.string().max(8).nullish(), salaryPeriod: z.string().max(20).nullish(),
   pubDate: z.number().nullish(), expiryDate: z.number().nullish()
@@ -51,7 +53,7 @@ export const himalayasPage = z.object({ jobs: z.array(z.unknown()).max(100), tot
 
 export function parseHimalayas(payload: unknown): ParseResult {
   const page = himalayasPage.parse(payload);
-  const jobs: LiveJob[] = [];
+  const jobs: LiveJob[] = [], exclusions: Exclusion[] = [];
   let skipped = 0;
   for (const raw of page.jobs) {
     const parsed = himalayasJob.safeParse(raw);
@@ -60,21 +62,25 @@ export function parseHimalayas(payload: unknown): ParseResult {
     const applyUrl = job && safeHttpsUrl(job.applicationLink, sourceHosts.himalayas);
     if (!job || !sourceUrl || !applyUrl) { skipped++; continue; }
     const restrictions = job.locationRestrictions ?? [];
-    const description = htmlToText(job.description || job.excerpt || "", 900) || clip(job.title, 900);
+    const fullText = htmlToText(job.description || job.excerpt || "", 30_000);
+    // Himalayas tags many US/LATAM/Europe-only roles as worldwide; the employer's own wording decides.
+    const restricted = lebanonRestriction(job.title, fullText, job.timezoneRestrictions ?? []);
+    if (restricted) { exclusions.push({ externalId: job.guid, reason: `${clip(job.title, 60)} — ${restricted}` }); continue; }
+    const description = clip(fullText, 900) || clip(job.title, 900);
+    const experience = inferExperience(job.title, fullText, job.seniority ?? []);
     const company = clip(job.companyName, 160);
     jobs.push({
       id: liveJobId("himalayas", job.guid), source: "himalayas", sourceBoard: null, externalId: job.guid,
       title: clip(job.title, 160), company, ...companyStyle(company),
       location: remoteLocationLabel(restrictions), workMode: "Remote", employmentType: employmentType(job.employmentType),
       region: regionOfRestrictions(restrictions),
-      skills: detectSkills(job.title, (job.categories ?? []).join(" ").replace(/-/g, " "), htmlToText(job.description ?? "", 20_000)),
-      description, sourceUrl, applyUrl,
-      seniority: job.seniority?.length ? clip(job.seniority.join(", "), 120) : null,
+      skills: detectSkills(job.title, (job.categories ?? []).join(" ").replace(/-/g, " "), fullText),
+      description, sourceUrl, applyUrl, seniority: experience.label, experienceLevel: experience.level,
       salaryText: salaryText(job.minSalary, job.maxSalary, job.currency, job.salaryPeriod),
       publishedAt: dateOrNull(job.pubDate), expiresAt: dateOrNull(job.expiryDate)
     });
   }
-  return { jobs, skipped };
+  return { jobs, skipped, excluded: exclusions.length, exclusions };
 }
 
 const greenhouseJob = z.object({
@@ -88,7 +94,7 @@ export const greenhouseBoard = z.object({ jobs: z.array(z.unknown()).max(2000) }
 /** Keeps only roles located in Lebanon or MENA. Metadata (which can include staff emails) is never read. */
 export function parseGreenhouse(board: string, payload: unknown): ParseResult {
   const data = greenhouseBoard.parse(payload);
-  const jobs: LiveJob[] = [];
+  const jobs: LiveJob[] = [], exclusions: Exclusion[] = [];
   let skipped = 0;
   for (const raw of data.jobs) {
     const parsed = greenhouseJob.safeParse(raw);
@@ -100,16 +106,23 @@ export function parseGreenhouse(board: string, payload: unknown): ParseResult {
     if (!region) continue; // Outside the configured geography; not an error.
     const company = clip(job.company_name || board, 160);
     const body = htmlToText(job.content ?? "", 20_000);
+    const restricted = nationalityRestriction(job.title, body);
+    if (restricted) { exclusions.push({ externalId: `${board}:${job.id}`, reason: `${clip(job.title, 60)} — ${restricted}` }); continue; }
     jobs.push({
       id: liveJobId("greenhouse", `${board}:${job.id}`), source: "greenhouse", sourceBoard: board, externalId: `${board}:${job.id}`,
       title: clip(job.title, 160), company, ...companyStyle(company), location: place || "Location not specified",
       workMode: workModeFrom(`${place} ${job.title}`), employmentType: employmentType(/intern/i.test(job.title) ? "intern" : body.match(/\b(full[- ]time|part[- ]time|internship|contract)\b/i)?.[0]),
       region, skills: detectSkills(job.title, body), description: clip(body, 900) || clip(job.title, 900),
-      sourceUrl: url, applyUrl: url, seniority: null, salaryText: null,
+      sourceUrl: url, applyUrl: url, ...experienceFields(job.title, body), salaryText: null,
       publishedAt: dateOrNull(job.first_published) ?? dateOrNull(job.updated_at), expiresAt: dateOrNull(job.application_deadline)
     });
   }
-  return { jobs, skipped };
+  return { jobs, skipped, excluded: exclusions.length, exclusions };
+}
+
+function experienceFields(title: string, text: string, labels: string[] = []) {
+  const { level, label } = inferExperience(title, text, labels);
+  return { seniority: label, experienceLevel: level };
 }
 
 const workableLocation = z.object({ country: z.string().max(120).nullish(), city: z.string().max(120).nullish(), region: z.string().max(120).nullish() });
@@ -125,7 +138,7 @@ export const workableBoard = z.object({ name: z.string().max(200).nullish(), job
 export function parseWorkable(board: string, payload: unknown): ParseResult {
   const data = workableBoard.parse(payload);
   const company = clip(data.name || board, 160);
-  const jobs: LiveJob[] = [];
+  const jobs: LiveJob[] = [], exclusions: Exclusion[] = [];
   let skipped = 0;
   for (const raw of data.jobs) {
     const parsed = workableJob.safeParse(raw);
@@ -138,6 +151,8 @@ export function parseWorkable(board: string, payload: unknown): ParseResult {
     const regionsFound = places.map(regionOfPlace);
     const region = regionsFound.includes("lebanon") ? "lebanon" : regionsFound.includes("mena") ? "mena" : null;
     if (!region) continue;
+    const restricted = nationalityRestriction(job.title, "");
+    if (restricted) { exclusions.push({ externalId: `${board}:${job.shortcode}`, reason: `${clip(job.title, 60)} — ${restricted}` }); continue; }
     const local = places.filter(place => regionOfPlace(place) === region);
     const facts = [["Department", job.department], ["Function", job.function], ["Industry", job.industry], ["Experience", job.experience], ["Education", job.education]]
       .filter(([, value]) => value).map(([label, value]) => `${label}: ${value}.`).join(" ");
@@ -147,9 +162,9 @@ export function parseWorkable(board: string, payload: unknown): ParseResult {
       workMode: job.telecommuting ? "Remote" : "Not specified", employmentType: employmentType(job.employment_type), region,
       skills: detectSkills(job.title, job.function ?? "", job.department ?? ""),
       description: clip(facts ? `${facts} The employer's page has the full description.` : "The employer's page has the full description.", 900),
-      sourceUrl, applyUrl, seniority: job.experience ? clip(job.experience, 120) : null, salaryText: null,
+      sourceUrl, applyUrl, ...experienceFields(job.title, "", job.experience ? [job.experience] : []), salaryText: null,
       publishedAt: dateOrNull(job.published_on) ?? dateOrNull(job.created_at), expiresAt: null
     });
   }
-  return { jobs, skipped };
+  return { jobs, skipped, excluded: exclusions.length, exclusions };
 }

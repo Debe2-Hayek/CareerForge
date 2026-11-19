@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { levelLabels, type LevelKey } from "./display";
 
 export const liveSources = ["himalayas", "greenhouse", "workable"] as const;
 export type LiveSource = (typeof liveSources)[number];
@@ -27,7 +28,9 @@ export type LiveJob = {
   color: string;
   sourceUrl: string;
   applyUrl: string;
+  /** Display label, e.g. "Senior · 5+ years asked". */
   seniority: string | null;
+  experienceLevel: ExperienceLevel | null;
   salaryText: string | null;
   publishedAt: Date | null;
   expiresAt: Date | null;
@@ -169,6 +172,148 @@ const vocabulary: [string, RegExp][] = ([
 export function detectSkills(...texts: string[]): string[] {
   const text = texts.join(" \n ").slice(0, 50_000);
   return vocabulary.filter(([, pattern]) => pattern.test(text)).map(([name]) => name).slice(0, 25);
+}
+
+export const experienceLevels = Object.keys(levelLabels) as LevelKey[];
+export type ExperienceLevel = LevelKey;
+const experienceLabels: Record<ExperienceLevel, string> = levelLabels;
+const rank = (level: ExperienceLevel) => experienceLevels.indexOf(level);
+
+/**
+ * Minimum years of experience a listing explicitly asks for, or null. Values
+ * above 15 are ignored because they almost always describe the company
+ * ("18 years of experience delivering…"), not the candidate.
+ */
+export function requiredYears(text: string): number | null {
+  const found: number[] = [];
+  const keep = (value: string) => { const years = Number(value); if (years <= 15) found.push(years); return " "; };
+  // Ranges ("4-6 years") count by their lower bound and are removed so "6 years of experience" is not re-read.
+  const sample = text.slice(0, 30_000).replace(/\b(\d{1,2})\s*(?:-|–|to)\s*\d{1,2}\s*(?:years?|yrs?)\b/gi, (_, low: string) => keep(low));
+  const patterns = [
+    /\b(?:at least|minimum(?: of)?|min\.?|over|more than)\s+(\d{1,2})\+?\s*(?:years?|yrs?)\b/gi,
+    /\b(\d{1,2})\s*(?:\+|plus)\s*(?:years?|yrs?)\b/gi,
+    /\b(\d{1,2})\s*(?:years?|yrs?)\s+(?:of\s+)?(?:[\w-]+\s+){0,4}?experience\b/gi
+  ];
+  for (const pattern of patterns) for (const match of sample.matchAll(pattern)) keep(match[1]);
+  return found.length ? Math.max(...found) : null;
+}
+
+/** Level stated by the job title itself; titles are the employer's own words and override source tags. */
+function titleLevel(title: string): ExperienceLevel | null {
+  if (/\bintern(ship)?\b|\btrainee\b|\bapprentice(ship)?\b/i.test(title)) return "internship";
+  if (/\b(head of|chief|vice president|vp|director|cto|ceo|coo|cfo|cmo|principal|engineering manager)\b|^head\b/i.test(title)) return "lead";
+  if (/\b(senior|sr\.?|staff|architect|leader)\b|\blead\b(?!\s*gen)/i.test(title)) return "senior";
+  if (/\b(intermediate|mid[- ]level)\b/i.test(title)) return "mid";
+  if (/\b(junior|jr\.?|entry[- ]level|graduate|new grad)\b/i.test(title)) return "entry";
+  return null;
+}
+
+/** Maps a source's own seniority vocabulary (Himalayas tags, Workable experience). */
+function sourceLevel(label: string): ExperienceLevel | null {
+  const text = label.toLowerCase();
+  if (/intern/.test(text)) return "internship";
+  if (/entry|junior/.test(text)) return "entry";
+  if (/associate|mid/.test(text)) return "mid";
+  if (/senior/.test(text)) return "senior";
+  if (/director|executive|manager|lead/.test(text)) return "lead";
+  return null;
+}
+
+/**
+ * Deterministic experience level that errs towards the more experienced
+ * reading, so a senior role is never presented as junior:
+ * - the title's own words decide when present (an "Intern" title is always an
+ *   internship), raised further if the text asks for more years;
+ * - otherwise the source tag's lowest level, raised (never lowered) by the
+ *   years the text explicitly asks for, because a small number is usually a
+ *   sub-requirement ("1+ years with Adobe");
+ * - null when nothing states a level.
+ * Returns the level used for filtering plus a short display label.
+ */
+export function inferExperience(title: string, text: string, sourceLabels: readonly string[] = []):
+  { level: ExperienceLevel | null; label: string | null } {
+  const fromTitle = titleLevel(title);
+  const years = requiredYears(`${title} . ${text}`);
+  const fromYears: ExperienceLevel | null = years === null ? null : years >= 5 ? "senior" : years >= 3 ? "mid" : "entry";
+  const tagged = [...new Set(sourceLabels.flatMap(label => (/mid[- ]?senior/i.test(label) ? ["mid", "senior"] : [label])).map(sourceLevel).filter((level): level is ExperienceLevel => !!level))].sort((a, b) => rank(a) - rank(b));
+  // The years are shown only when they are what set the level, so a label never reads "Senior · 1+ years asked".
+  const yearsNote = (level: ExperienceLevel) => (years && level === fromYears ? ` · ${years}+ years asked` : "");
+  if (fromTitle === "internship") return { level: "internship", label: experienceLabels.internship };
+  const higher = (a: ExperienceLevel, b: ExperienceLevel | null) => (b && rank(b) > rank(a) ? b : a);
+  if (fromTitle) { const level = higher(fromTitle, fromYears); return { level, label: `${experienceLabels[level]}${yearsNote(level)}` }; }
+  if (!tagged.length) return fromYears ? { level: fromYears, label: `${experienceLabels[fromYears]}${yearsNote(fromYears)}` } : { level: null, label: null };
+  const low = tagged[0], high = tagged[tagged.length - 1];
+  const level = higher(low, fromYears);
+  const range = level === low && low !== high ? `${experienceLabels[low]} to ${experienceLabels[high].toLowerCase()}` : experienceLabels[level];
+  return { level, label: `${range}${yearsNote(level)}` };
+}
+
+/** Places that, when a listing restricts applicants to them, exclude someone living in Lebanon. */
+const elsewhere = String.raw`(?:the\s+)?(?:U\.S\.A\.?|U\.S\.?|USA|US|United States(?: of America)?|North America|Americas|America|Canada|Mexico|LATAM|LatAm|Latin America|South America|Central America|Caribbean|U\.K\.?|UK|United Kingdom|Great Britain|England|Ireland|E\.U\.|EU|EEA|European Union|Europe|Germany|France|Spain|Portugal|Italy|Netherlands|Poland|Romania|Brazil|Argentina|Colombia|Chile|Peru|India|Pakistan|Philippines|Indonesia|Vietnam|Southeast Asia|South Asia|East Asia|APAC|Australia|New Zealand|Singapore|Japan|South Africa|Nigeria|Kenya|Africa)\b`;
+const either = (word: string) => `[${word[0].toUpperCase()}${word[0]}]${word.slice(1)}`;
+const people = String.raw`(?:candidates?|applicants?|professionals?|attorneys?|lawyers?|practitioners?|experts?|talent|individuals?|freelancers?|contractors?|engineers?|developers?|specialists?|residents?|writers?|editors?|tutors?|people|workers?|hires?|team members?|employees?|roles?|positions?|only|remote)`;
+// Case-sensitive on purpose: "US"/"UK"/"EU" must not match the words "us" or "eu".
+const restrictionPatterns = [
+  new RegExp(String.raw`\b${elsewhere}[- ]based,?\s+${people}`),
+  new RegExp(String.raw`\b(?:${["seeks", "seeking", "for", "ideal for", "tailored for", "open to", "hiring", "looking for", "only", "must be", "you are", "be"].map(either).join("|")})\s+(?:an?\s+)?${elsewhere}[- ]based`),
+  new RegExp(String.raw`\b(?:${["must", "should", "need to", "needs to", "required to", "have to"].map(either).join("|")})\s+(?:be\s+)?(?:currently\s+|physically\s+|legally\s+)?(?:based|located|living|residing|reside|live)\s+(?:in|within)\s+${elsewhere}`),
+  new RegExp(String.raw`\b(?:${["candidates?", "applicants?", "experts?", "contractors?", "professionals?", "freelancers?", "you", "talent", "individuals?"].map(either).join("|")})\s+(?:must be\s+|are\s+|who are\s+|currently\s+)?(?:based|located|residing|living)\s+(?:in|within)\s+${elsewhere}`),
+  new RegExp(String.raw`\b(?:authori[sz]ed|eligible|eligibility|legally (?:able|permitted|allowed)|right|permission)\s+to\s+work\s+(?:in|for|within)\s+${elsewhere}`, "i"),
+  /\b(?:U\.?S\.?|American|Canadian|UK|British|EU) (?:citizens?|citizenship|persons?|work authori[sz]ation|residency|nationals?|work permit|(?:military )?veterans?)\b|\bsecurity clearance\b/,
+  new RegExp(String.raw`\b${elsewhere}\s*[-(]?\s*(?:[Oo]nly|ONLY)\b`),
+  // Residency as a requirement ("open only to residents of", "must be a citizen of"), not privacy notices ("applying as a resident of the EU").
+  new RegExp(String.raw`\b(?:open|available|limited|restricted)\s+(?:only\s+)?to\s+(?:candidates\s+|applicants\s+)?(?:who are\s+)?(?:residents?|citizens?|nationals?)\s+of\s+${elsewhere}`, "i"),
+  new RegExp(String.raw`\b(?:must|need to|should)\s+be\s+(?:a\s+)?(?:legal\s+|permanent\s+)?(?:residents?|citizens?)\s+of\s+${elsewhere}`, "i"),
+  new RegExp(String.raw`\b${either("looking for")}[:\s•·-]+(?:someone\s+|candidates?\s+)?(?:who is\s+|who are\s+)?[Bb]ased in ${elsewhere}`),
+  // "Location: Remote — Europe", "Location: Remote within Europe", "Location Remote. US, Europe or Latin America"
+  new RegExp(String.raw`\bLocation\s*:?\s*(?:Remote\s*(?:within|in|only)?\s*[-–—,(/:.]?\s*)?${elsewhere}`),
+  new RegExp(String.raw`\b(?:[Yy]ou(?:'|’)re|[Yy]ou are|[Yy]ou(?:'|’)ll be)\s+(?:currently\s+)?(?:based|located|living)\s+in\s+${elsewhere}`),
+  new RegExp(String.raw`\b(?:remotely|working|operating)\s+(?:from\s+|with)?in\s+${elsewhere}`),
+  new RegExp(String.raw`\b(?:ideally|preferably)\s+(?:be\s+)?(?:based|located)\s+in\s+${elsewhere}`)
+];
+/** Title segments such as "(U.S. Based, …)", "(LATAM)", "(Calw, BW, DE, 64625)", "Remote - USA" or "… - Europe". */
+const titleRestriction = new RegExp(String.raw`\([^)]*(?:\b${elsewhere}|,\s*(?:DE|FR|ES|IT|NL|PL|BR|PH|AU|CA|IN)\b)[^)]*\)|\b[Rr]emote\s*[-–—,/(]\s*${elsewhere}|\s[-–—|]\s*${elsewhere}(?:\s+\w+)?\s*$`);
+const lebanonStillOpen = /\b(EMEA|Middle East|MENA|Lebanon|worldwide|world-wide|globally)\b|\banywhere\b(?!\s+(?:in|within)\s+(?!the world))/i;
+
+const nationals = String.raw`(?:Emirati|Saudi|Qatari|Kuwaiti|Omani|Bahraini|UAE|GCC|KSA)\s+(?:nationals?|citizens?)`;
+const nationalityPatterns = [
+  new RegExp(String.raw`\b(?:only|exclusively)\s+(?:open\s+to\s+|available\s+to\s+|to\s+|for\s+)?${nationals}`, "i"),
+  new RegExp(String.raw`\b${nationals}\s+only\b`, "i"),
+  /\b(?:Saudization|Emiratization|Emiratisation)\s+(?:role|position|program(?:me)?)\b/i
+];
+/**
+ * Roles reserved for nationals of another country (common for Gulf
+ * localization programmes, e.g. "(Emirati National)"), which applicants from
+ * Lebanon cannot take. Titles decide; text only when it says "only".
+ */
+export function nationalityRestriction(title: string, text: string): string | null {
+  const inTitle = new RegExp(String.raw`\b${nationals}\b|\b(?:Emirati|Saudi|Qatari|Kuwaiti|Omani|Bahraini)\s+National\b`, "i").exec(title);
+  if (inTitle) return clip(`title: ${inTitle[0]}`, 120);
+  const sample = text.slice(0, 30_000);
+  for (const pattern of nationalityPatterns) { const match = pattern.exec(sample); if (match) return clip(match[0], 120); }
+  return null;
+}
+
+/**
+ * Detects remote listings that, despite a source's country tag, restrict
+ * applicants to places that exclude Lebanon. Returns the matched phrase (for
+ * the ingestion log) or null when nothing restrictive was found. Conservative:
+ * a listing that also names EMEA/the Middle East/Lebanon/worldwide nearby is kept.
+ */
+export function lebanonRestriction(title: string, text: string, timezones: readonly number[] = []): string | null {
+  if (timezones.length && !timezones.some(offset => offset >= 2 && offset <= 3)) return "time zones exclude Lebanon (UTC+2/+3)";
+  const nationality = nationalityRestriction(title, text);
+  if (nationality) return nationality;
+  const titleMatch = titleRestriction.exec(title);
+  if (titleMatch && !lebanonStillOpen.test(titleMatch[0])) return clip(`title: ${titleMatch[0]}`, 120);
+  const sample = text.slice(0, 30_000);
+  for (const pattern of restrictionPatterns) {
+    const match = pattern.exec(sample);
+    if (!match) continue;
+    const nearby = sample.slice(Math.max(0, match.index - 40), match.index + match[0].length + 80);
+    if (!lebanonStillOpen.test(nearby)) return clip(match[0], 120);
+  }
+  return null;
 }
 
 export function dateOrNull(value: unknown): Date | null {

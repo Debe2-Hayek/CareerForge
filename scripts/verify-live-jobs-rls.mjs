@@ -27,6 +27,11 @@ export async function verifyLiveJobsRls(client, asUser, denied) {
     await client.query("rollback to savepoint bad_row");
   }
   await denied(`insert into public.job_postings (id,title,company,initials,location,work_mode,employment_type,skills,description,color) values ('rls-nos','x','x','x','x','Remote','Full-time','{}','x','mint')`, [], "23514");
+  // Experience level accepts only the fixed vocabulary used by the level filter.
+  await client.query("savepoint bad_level");
+  await assert.rejects(client.query("update public.job_postings set experience_level='expert' where id='rls-live-current'"), error => error.code === "23514", "unknown experience level rejected");
+  await client.query("rollback to savepoint bad_level");
+  assert.equal((await client.query("update public.job_postings set experience_level='senior' where id='rls-live-current'")).rowCount, 1);
 
   await asUser(c);
   const visible = (await client.query("select id from public.job_postings where id like 'rls-live-%' order by id")).rows.map(r => r.id);

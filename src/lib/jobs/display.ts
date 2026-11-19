@@ -8,6 +8,16 @@ export const regionLabels = {
 } as const;
 export type RegionKey = keyof typeof regionLabels;
 
+/** Experience levels, lowest first. Demo roles are entry level. */
+export const levelLabels = {
+  internship: "Internship",
+  entry: "Entry level",
+  mid: "Mid level",
+  senior: "Senior",
+  lead: "Lead / executive"
+} as const;
+export type LevelKey = keyof typeof levelLabels;
+
 export const sourceLabels: Record<string, string> = { himalayas: "Himalayas", greenhouse: "Greenhouse", workable: "Workable", fictional: "Demo" };
 
 /** Live rows stop counting as current after expiry or 7 days without a refresh (mirrors the database policy). */

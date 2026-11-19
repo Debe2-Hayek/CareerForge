@@ -19,6 +19,19 @@ fails at the pre-existing `/cv/saved` overflow assertion, reproduced on the
 unmodified baseline. Development database only; not pushed or deployed; hosted
 preview not migrated. No scheduled refresh yet.
 
+Owner feedback fix (same day): senior roles shown as junior, "remote" roles that
+were US/LATAM/Europe-only, and Himalayas links whose job was gone. Levels are now
+inferred deterministically (title, explicitly requested years, then source tag;
+never lowered below the tag) and stored in `experience_level` (migration
+`202611190002`) with a level filter. Remote listings whose title or text limits
+applicants to other countries, and Gulf roles reserved for other nationals, are
+excluded at import. Stored Himalayas jobs missing from recent pages are looked up
+by title within their company and closed when removed or restricted. Evidence:
+116 unit tests (rules built from real listings), lint, TypeScript, production
+build, `test:rls` (level constraint), three `test:jobs:live` passes (level filter,
+no senior-titled entry roles, layouts); real import: 177 listings, 16 restricted
+excluded, 6 removed jobs closed. Text heuristics can still miss unusual wording.
+
 ## Isolated hosted preview deployed — 16 November 2026
 
 Reviewed all remote branches and PRs. Preview PR #1 was already merged; synchronized
@@ -615,7 +628,7 @@ mark the current release or planned destinations complete:
 | ID | Status | Requirement / acceptance reference | Dependencies and next action |
 | --- | --- | --- | --- |
 | R1 | Partial: timed checks and portfolio snapshots implemented | Source-grounded portfolio with claim-specific validation, reviewed timed skill assessments, degree evidence and scoped language assessment; helper R1 | React/SQL lifecycle and profile-derived portfolio templates/publication work. Practical tasks, bank review, normalized claim/evidence records and degree/language validation remain; no proof of identity/mastery. |
-| R2 | Partial: live ingestion delivered locally | Real jobs through free permitted APIs or permitted public HTTP/HTML ingestion; helper R2 | Himalayas (free key), Workable and Greenhouse public boards ingested through bounded server-side adapters with dedupe, freshness/expiry and per-source failure isolation; 191 real listings in development. Scheduled refresh, hosted-preview migration/ingestion and more Lebanon employer boards remain. [LIVE_JOBS.md](LIVE_JOBS.md). |
+| R2 | Partial: live ingestion delivered locally | Real jobs through free permitted APIs or permitted public HTTP/HTML ingestion; helper R2 | Himalayas (free key), Workable and Greenhouse public boards ingested through bounded server-side adapters with dedupe, freshness/expiry and per-source failure isolation; 177 real listings in development after excluding roles not open to Lebanon; inferred experience levels and removed-job rechecks. Scheduled refresh, hosted-preview migration/ingestion and more Lebanon employer boards remain. [LIVE_JOBS.md](LIVE_JOBS.md). |
 | R3 | Partial: learning pilot delivered | Concrete roadmap.sh-linked gap suggestions and tangible exercises; helper R3 | Saved-profile/catalog gaps now produce original tasks, review criteria and source links. Target remains in URL. Persisted targets/progress and adaptive schedules remain open; no imported content or partnership. |
 | R4 | Open | Trainer agreements, workshops and verifiable scoped certificates; helper R4 | Establish trainer/admin permissions and completion evidence before issuing certificates; support minimal verification, revocation and privacy. No trainer contacted or agreement executed. |
 

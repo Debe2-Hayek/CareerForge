@@ -48,20 +48,34 @@ try {
 
   stage = "region and listing filters";
   for (const [region, label] of [["lebanon", "Lebanon"], ["mena", "Middle East & North Africa"], ["worldwide", "Worldwide remote"]]) {
-    await page.getByLabel("Region").selectOption(region);
+    await page.getByLabel("Region", { exact: true }).selectOption(region);
     const expected = (await db.query("select count(*)::int n from public.job_postings where source <> 'fictional' and is_active and region=$1", [region])).rows[0].n;
     await expect(page.locator(".results-heading > span").first()).toContainText(`${expected} opportunities`);
     if (expected) await expect(page.locator(".job-card").first().locator(".tag", { hasText: label })).toBeVisible();
   }
-  await page.getByLabel("Region").selectOption("lebanon");
-  await page.getByLabel("Listing type").selectOption("demo");
+  stage = "experience level filter";
+  await page.getByLabel("Region", { exact: true }).selectOption("all");
+  const levelCount = async level => (await db.query("select count(*)::int n from public.job_postings where is_active and experience_level=$1 and (source='fictional' or (fetched_at > now() - interval '7 days' and (expires_at is null or expires_at > now())))", [level])).rows[0].n;
+  for (const [level, label] of [["entry", "Entry level"], ["senior", "Senior"]]) {
+    await page.getByLabel("Experience level", { exact: true }).selectOption(level);
+    await expect(page.locator(".results-heading > span").first()).toContainText(`${await levelCount(level)} opportunities`);
+    await expect(page.locator(".job-card").first().locator(".tag", { hasText: label })).toBeVisible();
+  }
+  await page.getByLabel("Experience level", { exact: true }).selectOption("entry");
+  const entryTitles = await page.locator(".job-card button.job-title").allTextContents();
+  assert.ok(entryTitles.every(title => !/\b(senior|sr\.?|lead|principal|head of|director)\b/i.test(title)), `no senior-titled role under Entry level: ${entryTitles.filter(title => /senior|lead|director/i.test(title)).join(" | ")}`);
+  assert.equal((await db.query("select count(*)::int n from public.job_postings where is_active and source <> 'fictional' and title ~* '\\m(senior|sr|principal|director|head of)\\M' and experience_level in ('entry','internship')")).rows[0].n, 0, "no senior-titled listing stored as entry level");
+  await page.getByLabel("Experience level", { exact: true }).selectOption("all");
+
+  await page.getByLabel("Region", { exact: true }).selectOption("lebanon");
+  await page.getByLabel("Listing type", { exact: true }).selectOption("demo");
   await expect(page.locator(".empty-state")).toContainText("No opportunities found");
   await page.getByRole("button", { name: "Clear filters" }).click();
-  await page.getByLabel("Listing type").selectOption("live");
+  await page.getByLabel("Listing type", { exact: true }).selectOption("live");
   await expect(page.locator(".job-card small", { hasText: "Fictional company" })).toHaveCount(0);
 
   stage = "live dialog attribution and apply link";
-  await page.getByLabel("Region").selectOption("worldwide");
+  await page.getByLabel("Region", { exact: true }).selectOption("worldwide");
   const card = page.locator(".job-card").first();
   await expect(card.locator(".job-company small")).toHaveText("Live listing · via Himalayas");
   await card.locator("button.job-title").click();
@@ -88,12 +102,14 @@ try {
   await page.goto("/jobs");
   for (const width of [320, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
+    await expect(page.locator(".job-card").first()).toBeVisible({ timeout: 20000 });
+    await expect(page.getByLabel("Experience level", { exact: true })).toBeVisible();
     const wide = await page.evaluate(() => [...document.querySelectorAll("main *")].filter(el => el.getBoundingClientRect().right > innerWidth + 0.5).slice(0, 5).map(el => `${el.tagName}.${el.className} ${Math.round(el.getBoundingClientRect().right)}`));
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `no horizontal overflow at ${width}px: ${wide.join(" | ")}`);
     await page.screenshot({ path: `test-results/live-jobs-${width}.png`, fullPage: false, animations: "disabled", caret: "initial" });
   }
   if (errors.length) { for (const error of errors) console.error(error); throw new Error(`${errors.length} browser error(s) logged`); }
-  console.log(`PASS: ${live} live listings, counts/paging, region+listing filters, attribution, unchanged apply links, tracker save, 320/768/1440 layouts`);
+  console.log(`PASS: ${live} live listings, counts/paging, region+level+listing filters, attribution, unchanged apply links, tracker save, 320/768/1440 layouts`);
 } catch (error) {
   console.error("Live jobs UI verification failed at", stage, ":", error.message?.split("\n").slice(0, 6).join("\n"));
   process.exitCode = 1;

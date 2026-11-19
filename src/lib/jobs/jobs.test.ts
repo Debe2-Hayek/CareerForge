@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { boundedFetchJson, SourceError } from "./fetch";
-import { collectLiveJobs, writeLiveJobs, type Queryable } from "./ingest";
-import { detectSkills, htmlToText, liveJobId, regionOfPlace, regionOfRestrictions, safeHttpsUrl, salaryText } from "./normalize";
+import { collectLiveJobs, recheckHimalayas, writeLiveJobs, type Queryable, type SourceResult } from "./ingest";
+import { detectSkills, htmlToText, inferExperience, lebanonRestriction, liveJobId, nationalityRestriction, requiredYears, regionOfPlace, regionOfRestrictions, safeHttpsUrl, salaryText } from "./normalize";
 import { parseGreenhouse, parseHimalayas, parseWorkable } from "./sources";
 
 const himalayasJob = {
@@ -138,9 +138,9 @@ test("writer skips failed sources, closes absent board jobs and rolls back on wr
   const db: Queryable = { query: async (sql) => { log.push(sql.trim().split(/\s+/).slice(0, 3).join(" ")); if (sql.includes("insert into") && log.filter(l => l.startsWith("insert")).length === 2) throw Object.assign(new Error("x"), { code: "23514" }); return { rowCount: 0, rows: [] }; } };
   const [job] = parseHimalayas({ jobs: [himalayasJob] }).jobs;
   const summaries = await writeLiveJobs(db, [
-    { source: "workable", board: "b", label: "board", complete: true, ok: true, jobs: [{ ...job, source: "workable", sourceBoard: "b" }], skipped: 0 },
-    { source: "greenhouse", board: "g", label: "failed", complete: false, ok: false, jobs: [], skipped: 0, error: "TIMEOUT: x" },
-    { source: "himalayas", board: null, label: "partial", complete: false, ok: true, jobs: [job], skipped: 0 }
+    { source: "workable", board: "b", label: "board", complete: true, ok: true, jobs: [{ ...job, source: "workable", sourceBoard: "b" }], skipped: 0, exclusions: [], closeIds: [] },
+    { source: "greenhouse", board: "g", label: "failed", complete: false, ok: false, jobs: [], skipped: 0, error: "TIMEOUT: x", exclusions: [], closeIds: [] },
+    { source: "himalayas", board: null, label: "partial", complete: false, ok: true, jobs: [job], skipped: 0, exclusions: [], closeIds: [] }
   ], new Date("2026-11-19T00:00:00Z"));
   assert.deepEqual(summaries.map(s => s.error ?? "ok"), ["ok", "TIMEOUT: x", "WRITE_FAILED: 23514"]);
   assert.ok(log.includes("rollback"));
@@ -151,4 +151,119 @@ test("writer skips failed sources, closes absent board jobs and rolls back on wr
 test("ambiguous English words are not detected as skills", () => {
   assert.deepEqual(detectSkills("Provide swift resolution, react quickly to customers and excel at communication."), []);
   assert.deepEqual(detectSkills("Build iOS apps in Swift; dashboards in Microsoft Excel; UI in React."), ["React", "Swift", "Excel"]);
+});
+
+// Titles and phrases below mirror real Himalayas listings tagged as open to Lebanon (19 November 2026).
+test("experience level follows the title and requested years, not a conflicting source tag", () => {
+  assert.deepEqual(inferExperience("Telesales", "Minimum 6 years of experience in telesales.", ["Entry-level"]), { level: "senior", label: "Senior · 6+ years asked" });
+  assert.deepEqual(inferExperience("Senior Go Developer (Blockchain & Ledger)", "Join us.", ["Entry-level"]), { level: "senior", label: "Senior" });
+  assert.equal(inferExperience("Junior Machine Learning Engineer", "", ["Entry-level"]).level, "entry");
+  assert.equal(inferExperience("Full Stack Developer Intern", "3+ years preferred", []).level, "internship");
+  assert.equal(inferExperience("Chief Operating Officer (COO)", "", ["Mid-level"]).level, "lead");
+  assert.deepEqual(inferExperience("Remote B2B Lead Generation Specialist", "2+ years in outbound", []), { level: "entry", label: "Entry level · 2+ years asked" }, "lead generation is not a lead role");
+  assert.equal(inferExperience("CRM Email Marketing Manager", "2+ years with Klaviyo", ["Mid-level"]).level, "mid", "a small years figure never lowers the source level");
+  assert.equal(inferExperience("Data Architect (Adobe Analytics)", "1+ years with Adobe", ["Mid-level"]).level, "senior");
+  assert.equal(inferExperience("Telesales", "Our branch is top 1 for the past 6 years.", ["Entry-level"]).level, "entry", "company history is not a requirement");
+  assert.deepEqual(inferExperience("People Operations Coordinator", "", ["Entry-level", "Mid-level"]), { level: "entry", label: "Entry level to mid level" });
+  assert.deepEqual(inferExperience("Analyst", "", []), { level: null, label: null });
+  assert.equal(inferExperience("Team Leader, Customer Care", "1+ years in customer care", []).level, "senior");
+  assert.equal(inferExperience("AI Engineering Manager - ANJU", "", ["Entry level"]).level, "lead");
+  assert.equal(inferExperience("Intermediate Software Developer - Vpay", "", ["Executive"]).level, "mid", "the title outranks a conflicting tag; 'Vpay' is not 'VP'");
+  assert.deepEqual(inferExperience("Data Analyst - CLS", "", ["Mid-Senior level"]), { level: "mid", label: "Mid level to senior" });
+  assert.equal(requiredYears("Wire IT has 18 years of experience delivering projects."), null, "company history is ignored");
+  assert.equal(requiredYears("Requirements: 4-6 years of experience; 2+ years with SQL."), 4);
+});
+
+test("remote listings restricted to other countries are detected; Lebanon-compatible ones are kept", () => {
+  for (const [title, text] of [
+    ["Web Developer: WordPress & HubSpot (U.S. Based, Remote Contractor)", ""],
+    ["Video Data Entry Specialist (LATAM)", ""],
+    ["Senior Manager (m/f/d) - EHS (Calw, BW, DE, 64625)", ""],
+    ["Legal Expert (Copyright Law)", "This engagement is tailored for US-based copyright attorneys with a passion for AI."],
+    ["Legal Expert (Property Law)", "This unique engagement seeks US-based property lawyers to review data."],
+    ["At-Home Video Recorder", "Location: Remote - experts based in Latin America and the Caribbean."],
+    ["AI Agent Tester", "Who we’re looking for Based in Europe, with a bachelor’s degree."],
+    ["Support Agent", "Candidates must be located in the United States."],
+    ["Engineer", "You must be authorized to work in the US without sponsorship."],
+    ["Analyst", "This role requires US citizenship and an active security clearance."],
+    ["Writer", "Open to UK residents only (UK only)."],
+    ["Tutor", "This position is open only to residents of the United States."],
+    ["Agent", "Applicants must be a citizen of Canada."],
+    ["Technical Analyst – External Data Transfer", "Client: Global Pharmaceutical Company in Prague • Location: Remote within Europe • Start: ASAP"],
+    ["AI Agent Tester", "Role Type: Contractor Location: Remote — Europe Opportunity Snapshot"],
+    ["AI Agent Tester", "Who we’re looking for • Based in Europe, with a bachelor’s degree"],
+    ["Creative Strategist", "Location Remote. US, Europe or Latin America, with a working day that overlaps US Eastern hours."],
+    ["Veterans Legal and Human Rights Expert", "Location: Remote micro1 is engaging U.S. military veterans with expertise in military law."],
+    ["Reservation and Sales Coordinator", "A home-based position operating remotely within the Asia time zone, ideally located in Southeast Asia."],
+    ["Customer Support Agent (Spanish & English) - Europe", ""]
+  ]) assert.ok(lebanonRestriction(title, text), `expected a restriction for: ${title} ${text}`);
+  for (const [title, text] of [
+    ["Hands-on Engineering Manager DevOps (GCP/Kubernetes)", "Miaplaza is a US-based education company, which means we do things differently."],
+    ["Talent Acquisition Specialist", "You can work from home and be located anywhere in the UK or EMEA region."],
+    ["Data Architect (Adobe Campaign Classic to Adobe Journey Optimizer) (EMEA Only)", ""],
+    ["Senior Go Developer", "Remote-first company: work from anywhere in the world."],
+    ["Manager, EMEA Support", "You are based in EMEA, with the flexibility to work across time zones."],
+    ["Customer Support", "Let us know how we can help us grow; tell us about yourself."],
+    ["Junior Performance Marketing Specialist", "Benefits • Fully remote working arrangement from Europe or Asia."],
+    ["Senior Cloud Engineer (SA)", "Location: Middle East / Africa | Travel: Regional & International"],
+    ["Paid Media Operator", "At least 3 hours a day overlapping 1pm to 6pm UK time, and some overlap with US Eastern time."],
+    ["Design Engineer", "If you are applying as a resident of California, please read our CCPA notice. If you are applying as a resident of the EU, please read our GDPR notice here."]
+  ]) assert.equal(lebanonRestriction(title, text), null, `unexpected restriction for: ${title} ${text}`);
+  assert.ok(lebanonRestriction("Role", "", [-8, -7, -6, -5]), "time zones excluding UTC+2/+3");
+  assert.equal(lebanonRestriction("Role", "", [-10, 0, 2, 3]), null);
+});
+
+test("Himalayas parsing excludes restricted listings and labels the inferred level", () => {
+  const usOnly = { ...himalayasJob, guid: "https://himalayas.app/companies/acme/jobs/us-only", title: "Legal Expert", description: "<p>Ideal for US-based attorneys.</p>" };
+  const result = parseHimalayas({ jobs: [himalayasJob, usOnly] });
+  assert.equal(result.jobs.length, 1);
+  assert.deepEqual(result.exclusions.map(item => item.externalId), [usOnly.guid]);
+  assert.equal(result.jobs[0].experienceLevel, "entry");
+  assert.equal(result.jobs[0].seniority, "Entry level");
+});
+
+test("stored Himalayas jobs missing from recent pages are rechecked; only confirmed removals close", async () => {
+  const guid = (slug: string) => `https://himalayas.app/companies/acme/jobs/${slug}`;
+  const stored = ["still", "gone", "restricted", "busy", "unknown"].map(slug => ({ externalId: guid(slug), title: `🌍 Role ${slug}` }));
+  const urls: string[] = [];
+  const fetchJson = async (url: string) => {
+    urls.push(url);
+    const q = new URL(url).searchParams.get("q") ?? "";
+    if (q.endsWith("still")) return { totalCount: 1, jobs: [{ ...himalayasJob, guid: guid("still"), title: "Role still" }] };
+    if (q.endsWith("gone")) return { totalCount: 1, jobs: [{ ...himalayasJob, guid: guid("other"), title: "Other" }] };
+    if (q.endsWith("restricted")) return { totalCount: 1, jobs: [{ ...himalayasJob, guid: guid("restricted"), title: "Role (USA only)" }] };
+    if (q.endsWith("busy")) return { totalCount: 80, jobs: [{ ...himalayasJob, guid: guid("x1") }] };
+    throw new SourceError("RATE_LIMITED", "429");
+  };
+  const result: SourceResult = { source: "himalayas", board: null, label: "h", complete: false, ok: true, jobs: [], skipped: 0, exclusions: [], closeIds: [] };
+  await recheckHimalayas(result, stored, { fetchers: { himalayas: fetchJson }, pause: async () => {} });
+  assert.deepEqual(result.recheck, { still: 1, gone: 1, excluded: 1, inconclusive: 2 });
+  assert.deepEqual(result.jobs.map(job => job.externalId), [guid("still")]);
+  assert.deepEqual(result.closeIds.sort(), [guid("gone"), guid("restricted")]);
+  assert.match(result.error ?? "", /recheck stopped/);
+  assert.equal(new URL(urls[0]).searchParams.get("company"), "acme");
+  assert.equal(new URL(urls[0]).searchParams.get("q"), "Role still", "emoji are stripped from the search");
+});
+
+test("writer closes confirmed removals and exclusions for partial sources", async () => {
+  const calls: { sql: string; params?: unknown[] }[] = [];
+  const db: Queryable = { query: async (sql, params) => { calls.push({ sql, params }); return { rowCount: 1, rows: [] }; } };
+  await writeLiveJobs(db, [{ source: "himalayas", board: null, label: "h", complete: false, ok: true, jobs: [], skipped: 0,
+    exclusions: [{ externalId: "https://himalayas.app/companies/a/jobs/x", reason: "r" }], closeIds: ["https://himalayas.app/companies/a/jobs/y"] }], new Date("2026-11-19T00:00:00Z"));
+  const close = calls.find(call => call.sql.includes("external_id = any"));
+  assert.deepEqual(close?.params?.[2], ["https://himalayas.app/companies/a/jobs/y", "https://himalayas.app/companies/a/jobs/x"]);
+});
+
+test("roles reserved for other nationalities are excluded from employer boards", () => {
+  assert.ok(nationalityRestriction("Government Compliance Advisor (Emirati National)", ""));
+  assert.ok(nationalityRestriction("Associate Data Scientist - Builders Program - (Emirati National)", ""));
+  assert.ok(nationalityRestriction("Compliance Officer", "This role is open only to UAE nationals."));
+  assert.equal(nationalityRestriction("Compliance Officer", "We support Emiratization and welcome all applicants, including UAE nationals and expats."), null);
+  const board = { jobs: [
+    { id: 1, title: "Government Compliance Advisor (Emirati National)", absolute_url: "https://job-boards.greenhouse.io/tamara/jobs/1", location: { name: "Dubai, UAE" } },
+    { id: 2, title: "Copy Writer", absolute_url: "https://job-boards.greenhouse.io/tamara/jobs/2", location: { name: "Riyadh, Saudi Arabia" } }
+  ] };
+  const parsed = parseGreenhouse("tamara", board);
+  assert.deepEqual(parsed.jobs.map(job => job.title), ["Copy Writer"]);
+  assert.deepEqual(parsed.exclusions.map(item => item.externalId), ["tamara:1"]);
 });

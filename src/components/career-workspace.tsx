@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAccountTracker } from "./use-account-tracker";
 import type { CatalogJob, TrackerData } from "@/lib/tracker/schemas";
-import { isCurrentListing, regionLabels, relativeDays, sourceLabels, type RegionKey } from "@/lib/jobs/display";
+import { isCurrentListing, levelLabels, regionLabels, relativeDays, sourceLabels, type LevelKey, type RegionKey } from "@/lib/jobs/display";
 import type { AccountProfile } from "@/lib/account/schemas";
 import { AppShell } from "./app-shell";
 import { CareerLaunchpad, ProfileIdentity } from "./career-visuals";
@@ -21,6 +21,8 @@ function snapshot(key: string) { try { return localStorage.getItem(key); } catch
 function serverSnapshot() { return null; }
 type AnyJob = Job & Partial<CatalogJob>;
 const isLive = (job: AnyJob) => !!job.source && job.source !== "fictional";
+/** Demo roles are entry level; live listings carry the level inferred at import (null when nothing states it). */
+const levelOf = (job: AnyJob): LevelKey | null => job.level ?? (isLive(job) ? null : "entry");
 const isCurrentFor = (job: AnyJob) => !isLive(job) || isCurrentListing({ isActive: job.isActive ?? false, isFictional: false, expiresAt: job.expiresAt, fetchedAt: job.fetchedAt });
 const pageSize = 24;
 function postedLabel(job: AnyJob) {
@@ -44,6 +46,7 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
   const [savedOnly, setSavedOnly] = useState(false);
   const [region, setRegion] = useState<"all" | RegionKey>("all");
   const [listing, setListing] = useState<"all" | "live" | "demo">("all");
+  const [level, setLevel] = useState<"all" | "unstated" | LevelKey>("all");
   const [visible, setVisible] = useState(pageSize);
   const [selected, setSelected] = useState<AnyJob | null>(null);
   const [roleOpen, setRoleOpen] = useState(false);
@@ -66,7 +69,8 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
     .sort((a, b) => b.rank.matched - a.rank.matched || b.rank.score - a.rank.score || (b.job.publishedAt ?? "").localeCompare(a.job.publishedAt ?? ""))
     .map(({ job }) => job);
   const filtered = ranked.filter(job => `${job.title} ${job.company} ${job.location} ${job.skills.join(" ")}`.toLowerCase().includes(query.toLowerCase()) && (mode === "All work modes" || mode === job.mode) && (!savedOnly || !!workspace.applications[job.id])
-    && (region === "all" || job.region === region) && (listing === "all" || (listing === "live") === isLive(job)));
+    && (region === "all" || job.region === region) && (listing === "all" || (listing === "live") === isLive(job))
+    && (level === "all" || (level === "unstated" ? levelOf(job) === null : levelOf(job) === level)));
   const shown = filtered.slice(0, visible);
   function resetPaging<T>(set: (value: T) => void) { return (value: T) => { set(value); setVisible(pageSize); }; }
   const completion = Math.round([profile.name, profile.headline, profile.location, profile.bio, profile.education, profile.project, profile.skills.length].filter(Boolean).length / 7 * 100);
@@ -114,8 +118,9 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
   }
   function jobTags(job: AnyJob) {
     const live = isLive(job);
-    return [job.mode, job.type, live ? job.seniority : "Entry level", job.region ? regionLabels[job.region] : null]
-      .filter((tag): tag is string => !!tag && tag !== "Not specified");
+    // A set: an internship's type and level are both "Internship".
+    return [...new Set([job.mode, job.type, live ? job.seniority : "Entry level", job.region ? regionLabels[job.region] : null]
+      .filter((tag): tag is string => !!tag && tag !== "Not specified"))];
   }
   function jobCard(job: AnyJob) {
     const match = matchSkills(profile.skills, job.skills);
@@ -151,11 +156,11 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
         {view === "jobs" && <>
           <div className="page-heading"><div><p className="eyebrow">FIND YOUR DIRECTION</p><h1>Good things ahead<span>.</span></h1><p>Explore real openings in Lebanon, the region and remote roles open to Lebanon, and see where your skills connect.</p></div><span className="outline-label">{liveCount} live · {catalog.length - liveCount} demo</span></div>
           {account && !liveCount && <div className="notice">No live listings are available right now. They appear after the next successful import from the job sources; only demo roles are shown meanwhile.</div>}
-          <div className="filter-bar"><label className="search-input"><span aria-hidden="true">⌕</span><input aria-label="Search opportunities" placeholder="Search a role, skill, or location" value={query} onChange={e => resetPaging(setQuery)(e.target.value)} /></label><select aria-label="Region" value={region} onChange={e => resetPaging(setRegion)(e.target.value as "all" | RegionKey)}><option value="all">All regions</option>{(Object.keys(regionLabels) as RegionKey[]).map(key => <option key={key} value={key}>{regionLabels[key]}</option>)}</select><select aria-label="Listing type" value={listing} onChange={e => resetPaging(setListing)(e.target.value as "all" | "live" | "demo")}><option value="all">Live and demo</option><option value="live">Live listings</option><option value="demo">Demo roles</option></select><select aria-label="Work mode" value={mode} onChange={e => resetPaging(setMode)(e.target.value)}>{["All work modes", "Remote", "Hybrid", "On-site"].map(m => <option key={m}>{m}</option>)}</select><label className="checkbox-label"><input type="checkbox" checked={savedOnly} onChange={e => resetPaging(setSavedOnly)(e.target.checked)} />Saved only</label></div>
+          <div className="filter-bar"><label className="search-input"><span aria-hidden="true">⌕</span><input aria-label="Search opportunities" placeholder="Search a role, skill, or location" value={query} onChange={e => resetPaging(setQuery)(e.target.value)} /></label><select aria-label="Region" value={region} onChange={e => resetPaging(setRegion)(e.target.value as "all" | RegionKey)}><option value="all">All regions</option>{(Object.keys(regionLabels) as RegionKey[]).map(key => <option key={key} value={key}>{regionLabels[key]}</option>)}</select><select aria-label="Listing type" value={listing} onChange={e => resetPaging(setListing)(e.target.value as "all" | "live" | "demo")}><option value="all">Live and demo</option><option value="live">Live listings</option><option value="demo">Demo roles</option></select><select aria-label="Experience level" value={level} onChange={e => resetPaging(setLevel)(e.target.value as "all" | "unstated" | LevelKey)}><option value="all">All levels</option>{(Object.keys(levelLabels) as LevelKey[]).map(key => <option key={key} value={key}>{levelLabels[key]}</option>)}<option value="unstated">Level not stated</option></select><select aria-label="Work mode" value={mode} onChange={e => resetPaging(setMode)(e.target.value)}>{["All work modes", "Remote", "Hybrid", "On-site"].map(m => <option key={m}>{m}</option>)}</select><label className="checkbox-label"><input type="checkbox" checked={savedOnly} onChange={e => resetPaging(setSavedOnly)(e.target.checked)} />Saved only</label></div>
           <div className="results-heading"><span aria-live="polite" aria-atomic="true">{filtered.length} opportunities{filtered.length > shown.length ? ` · showing ${shown.length}` : ""}</span><span>Sorted by skill match</span></div><div className="job-grid">{shown.map(jobCard)}</div>
           {filtered.length > shown.length && <div className="show-more"><button className="button" onClick={() => setVisible(count => count + pageSize)}>Show {Math.min(pageSize, filtered.length - shown.length)} more</button></div>}
-          {!filtered.length && <div className="empty-state"><h2>No opportunities found</h2><p>Try a different search, region or listing type, or save a role to see it here.</p><button className="button primary" onClick={() => { setQuery(""); setMode("All work modes"); setSavedOnly(false); setRegion("all"); setListing("all"); setVisible(pageSize); }}>Clear filters</button></div>}
-          <p className="muted-note">Skill match = matched skills ÷ skills listed for the role. For live listings, skills are detected from the posting text by keyword and may be incomplete. This is a comparison with your self-reported skills, not a hiring prediction. Listings are removed after they expire or go 7 days without a refresh; always confirm details on the original posting.</p>
+          {!filtered.length && <div className="empty-state"><h2>No opportunities found</h2><p>Try a different search, region, level or listing type, or save a role to see it here.</p><button className="button primary" onClick={() => { setQuery(""); setMode("All work modes"); setSavedOnly(false); setRegion("all"); setListing("all"); setLevel("all"); setVisible(pageSize); }}>Clear filters</button></div>}
+          <p className="muted-note">Skill match = matched skills ÷ skills listed for the role. For live listings, skills are detected from the posting text by keyword and may be incomplete. This is a comparison with your self-reported skills, not a hiring prediction. Experience level comes from the job title and the years of experience the posting asks for, then the source’s own tag. Remote listings that limit applicants to other countries are left out. Listings are removed after they expire, are taken down at the source, or go 7 days without a refresh; always confirm details on the original posting.</p>
         </>}
         {view === "profile" && <>
           <div className="page-heading"><div><p className="eyebrow">YOUR STORY, TAKING SHAPE</p><h1>Start with you<span>.</span></h1><p>Bring your experience, curiosity, and skills into one place.</p></div><span className="outline-label">{completion}% complete</span></div>
@@ -172,7 +177,7 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
       {isLive(selected) && <p className="muted-note role-provenance">{[postedLabel(selected), selected.salaryText && `Salary listed: ${selected.salaryText}`, selected.expiresAt && `Listed until ${new Date(selected.expiresAt).toLocaleDateString()}`].filter(Boolean).join(" · ")}{!isCurrentFor(selected) && " · This listing is no longer active."}</p>}
       <h3>About the role</h3><p>{selected.description}</p>{isLive(selected) && <p className="muted-note">Excerpt from the listing. Read the full description on the original posting.</p>}
       <h3>Your skill connection</h3>{selected.skills.length ? <><p>{matchSkills(profile.skills, selected.skills).score}% of {isLive(selected) ? "skills detected in this posting" : "listed skills"} match your self-reported profile.</p><div className="tag-row">{selected.skills.map(skill => <span key={skill} className={`tag ${matchSkills(profile.skills, [skill]).score ? "skill-have" : "skill-missing"}`}>{matchSkills(profile.skills, [skill]).score ? "✓ " : "+ "}{skill}</span>)}</div><p className="muted-note">Green skills are in your profile. Other skills are gaps to explore.{isLive(selected) ? " Skills are detected by keyword and may be incomplete." : " No live vacancy or application submission is available."}</p></> : <p className="muted-note">No skills were detected in this posting’s text, so no match score is shown. Check the original posting for its requirements.</p>}
-      {isLive(selected) && isCurrentFor(selected) && selected.applyUrl && selected.sourceUrl && <div className="role-source"><a className="button primary" href={selected.applyUrl} target="_blank" rel="noopener noreferrer">Apply on {selected.source === "himalayas" ? "Himalayas" : `${selected.company}'s page`} <span className="sr-only">(opens in a new tab)</span><span aria-hidden="true">↗</span></a><p className="muted-note">Listing from <a href={selected.sourceUrl} target="_blank" rel="noopener noreferrer">{sourceLabels[selected.source!] ?? selected.source}<span className="sr-only"> (opens in a new tab)</span></a>. Applying opens the original site; CareerForge does not submit applications or share your profile.</p></div>}
+      {isLive(selected) && isCurrentFor(selected) && selected.applyUrl && selected.sourceUrl && <div className="role-source"><a className="button primary" href={selected.applyUrl} target="_blank" rel="noopener noreferrer">Apply on {selected.source === "himalayas" ? "Himalayas" : `${selected.company}'s page`} <span className="sr-only">(opens in a new tab)</span><span aria-hidden="true">↗</span></a><p className="muted-note">Listing from <a href={selected.sourceUrl} target="_blank" rel="noopener noreferrer">{sourceLabels[selected.source!] ?? selected.source}<span className="sr-only"> (opens in a new tab)</span></a>. Applying opens the original site; CareerForge does not submit applications or share your profile.{selected.source === "himalayas" && " Himalayas lists this remote role as open to applicants in Lebanon, and its text names no other country restriction CareerForge could detect. Check the location and work-permit requirements on the posting before applying."}</p></div>}
       {account && catalog.some(job => job.id === selected.id) && selected.skills.length > 0 && <Link className="text-button role-learning-link" href={`/learning-roadmap?target=${encodeURIComponent(selected.id)}`} onClick={closeRole}>Build a learning plan for this role ↗</Link>}<button className="button primary" disabled={busy(selected.id)} onClick={() => toggleSaved(selected)}>{workspace.applications[selected.id] ? "Remove from tracker" : "Save opportunity"}</button></>}</dialog>
   </AppShell>;
 }

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import nextEnv from "@next/env";
 import { Client } from "pg";
 import { verifyTrackerRls } from "./verify-tracker-rls.mjs";
+import { verifyLiveJobsRls } from "./verify-live-jobs-rls.mjs";
 
 nextEnv.loadEnvConfig(process.cwd());
 const client = new Client({ connectionString: process.env.DATABASE_URL ?? process.env.DIRECT_URL, connectionTimeoutMillis: 15000, statement_timeout: 15000 });
@@ -47,6 +48,7 @@ try {
   await denied("select id from public.profiles");
   console.log("PASS: profile trigger, owner CRUD, two-way isolation, role/id protection, anonymous denial");
   await verifyTrackerRls(client, asUser, denied, a, b);
+  await verifyLiveJobsRls(client, asUser, denied);
 } catch (error) {
   console.error("RLS verification failed:", error.code ?? error.name);
   process.exitCode = 1;

@@ -23,7 +23,9 @@
     "build:deploy": "npm run check:deployment && npm run prisma:generate && next build",
     "test:skill-checks": "node scripts/test-skill-checks.mjs",
     "test:portfolios": "node scripts/test-portfolios.mjs",
-    "test:portfolio-appearance": "node scripts/test-portfolio-appearance.mjs"
+    "test:portfolio-appearance": "node scripts/test-portfolio-appearance.mjs",
+    "jobs:ingest": "node --import tsx scripts/ingest-jobs.ts",
+    "test:jobs:live": "node scripts/verify-live-jobs-ui.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",

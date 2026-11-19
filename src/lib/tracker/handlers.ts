@@ -42,7 +42,9 @@ export function trackerHandlers(authorize: () => Promise<TrackerAccess | null>, 
       const parsed = filtersSchema.safeParse(Object.fromEntries(new URL(request.url).searchParams));
       if (!parsed.success) return invalid();
       const search = parsed.data.search?.toLowerCase() ?? "";
-      const jobs = (await access.jobs()).filter(job => (!parsed.data.mode || parsed.data.mode === job.mode) &&
+      const { mode, region, source } = parsed.data;
+      const jobs = (await access.jobs()).filter(job => (!mode || mode === job.mode) && (!region || region === job.region) &&
+        (!source || (source === "demo") === job.isFictional) &&
         `${job.title} ${job.company} ${job.location} ${job.skills.join(" ")}`.toLowerCase().includes(search));
       return json({ jobs });
     }),

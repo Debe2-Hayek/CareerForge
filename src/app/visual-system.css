@@ -255,3 +255,15 @@ button:disabled, select:disabled { opacity: .55; cursor: wait; }
 @media (max-width: 900px) { .profile-setup ol { grid-template-columns: 1fr; }.profile-setup { padding: 20px; } }
 
 @media (pointer: coarse) { .text-button, .job-title, .page-footer button, .checkbox-label { min-height: 44px; } }
+
+/* Live job listings: provenance, missing-skill state, paging and attribution. */
+.filter-bar { flex-wrap: wrap; }.search-input { flex: 1 1 260px; }
+.job-card.is-live { border-color: #3f5233; }.job-card.is-live .job-company small { color: #b5d48d; }
+.job-posted { color: #92a180; font-size: inherit; }
+.job-no-skills { margin-top: 18px; color: #92a180; font-size: 10px; line-height: 1.6; }
+.show-more { display: flex; justify-content: center; margin-top: 26px; }
+.role-dialog .role-provenance { margin: 4px 0 0; font-size: 11px; }
+.role-source { margin-top: 26px; padding-top: 18px; border-top: 1px solid #3b482f; }.role-source .button { margin-top: 0; }.role-source a:not(.button) { color: #c5ed85; text-decoration: underline; text-underline-offset: 3px; }
+
+.results-heading { flex-wrap: wrap; row-gap: 6px; }
+.job-company { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }

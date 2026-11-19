@@ -4,7 +4,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LearningRoadmap } from "./learning-roadmap";
 import { emptyProfile } from "@/lib/account/schemas";
 import { jobs } from "@/lib/demo-workspace";
-const catalog = jobs.map(job => ({ ...job, isActive: true, isFictional: true }));
+import { demoListingFields, type CatalogJob } from "@/lib/tracker/schemas";
+const catalog: CatalogJob[] = jobs.map(job => ({ ...job, isActive: true, isFictional: true, ...demoListingFields }));
 
 test("roadmap requires an explicit target and never assumes a role for a new profile", () => {
   const html = renderToStaticMarkup(<LearningRoadmap profile={emptyProfile} jobs={catalog} />);

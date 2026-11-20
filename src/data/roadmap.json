@@ -1,10 +1,10 @@
 {
   "$schema": "./roadmap.schema.json",
   "version": 1,
-  "updatedAt": "2026-11-20T04:41:56.000Z",
+  "updatedAt": "2026-11-20T06:26:37.000Z",
   "codebase": {
-    "revision": "ff638aa6a3bc58267a24dff3078020f6fa0fa90f",
-    "scannedAt": "2026-11-20T04:41:56.000Z"
+    "revision": "1b689d28cf48287f147be8581dd348992ba23d4b",
+    "scannedAt": "2026-11-20T06:26:37.000Z"
   },
   "upstream": {
     "repository": "nilbuild/developer-roadmap",
@@ -881,6 +881,19 @@
         "docs/PREVIEW_DEPLOYMENT_2026_11_16.md"
       ],
       "revision": "5b29201"
+    },
+    {
+      "id": "roadmap-canonical-source-repair",
+      "title": "roadmap.sh canonical source transfer",
+      "signal": "The live sync could read repository metadata but raw topic validation returned 404 after the upstream owner changed.",
+      "resolution": "The sync now trusts roadmap.sh's current nilbuild repository, verifies live raw topic samples, and retains the checked-in cache as an offline fallback.",
+      "detectedAt": "2026-11-20T06:26:37.000Z",
+      "resolvedAt": "2026-11-20T06:26:37.000Z",
+      "linkedFiles": [
+        "scripts/sync-roadmap.ts",
+        "src/data/roadmap.json"
+      ],
+      "revision": "1b689d2"
     }
   ]
 }

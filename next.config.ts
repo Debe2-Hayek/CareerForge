@@ -3,6 +3,9 @@ import { networkInterfaces } from "node:os";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  turbopack: {
+    root: process.cwd()
+  },
   experimental: {
     agentUpgrade: "security"
   },

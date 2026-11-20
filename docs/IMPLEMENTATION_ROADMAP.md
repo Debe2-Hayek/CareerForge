@@ -1,5 +1,41 @@
 # CareerForge implementation roadmap
 
+## Living learning roadmap and autonomous evolution - verified locally, 20 November 2026
+
+The existing private `Learning roadmap` destination now opens a product-evolution
+experience at `/learning-roadmap`; the original role-gap planner remains available
+through `My learning plan`. The product view includes a connected graph and
+Now/Next/Later board, keyboard search and view shortcuts, repository-proof drawer,
+self-healing feed, aggregate upvotes and private friction reports. Desktop and
+mobile layouts were visually reviewed with no runtime errors or horizontal overflow.
+
+Added a versioned roadmap schema and six roadmap.sh-aligned tracks. The sync command
+establishes a bounded upstream topic baseline and will flag only topics introduced
+after that baseline as `upstream-new`; it does not fabricate product nodes from
+upstream headings. Added privacy-minimized client diagnostics for unhandled errors,
+slow/failing same-origin APIs, rage clicks, empty searches and opted-in abandoned
+flows. Raw messages, query strings, click coordinates, career content and user IDs
+are not transmitted. Public summaries are aggregate-only; diagnostic summaries
+require at least three affected accounts.
+
+Added a weekly/on-demand review-first Codex workflow. It syncs upstream topics,
+exports bounded aggregate signals, permits one evidence-backed improvement, runs
+the full verification suite and opens a human-review pull request. Codex receives
+no repository token; the token is scoped to the final PR step. Live execution still
+requires the GitHub `OPENAI_API_KEY` secret and Actions permission to create pull
+requests. The Supabase migration is committed but not applied. Its transaction-only
+validator reached no database because the configured development host returned
+`ENOTFOUND`, so live RLS/RPC verification remains an explicit deployment gate.
+
+The Next security agent upgraded Next.js and `eslint-config-next` from 16.4.2 to
+exactly 16.4.6 and recorded `experimental.agentUpgrade = "security"`. The safe npm
+audit fix also updated `fast-uri`; the remaining advisory is the `effect` dependency
+inside Prisma development tooling, for which npm offers only a forced breaking
+Prisma downgrade. Verification on the final lockfile: lint, TypeScript, all 111 unit
+tests, the 46-page offline production build and all 38 desktop/mobile CI browser
+cases pass. This work is local on `feature/autonomous-roadmap`; it has not been
+pushed, deployed, migrated or executed as a GitHub workflow.
+
 ## Isolated hosted preview deployed — 16 November 2026
 
 Reviewed all remote branches and PRs. Preview PR #1 was already merged; synchronized

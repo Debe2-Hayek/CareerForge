@@ -13,6 +13,7 @@
     "test:hydration": "node scripts/verify-root-hydration.mjs",
     "test": "node scripts/test-unit.mjs",
     "db:migrate": "node scripts/db-migrate.mjs",
+    "db:validate:evolution": "node scripts/validate-product-evolution-migration.mjs",
     "test:rls": "node scripts/test-rls.mjs",
     "test:account:live": "node scripts/test-account-live.mjs",
     "prisma:generate": "prisma generate",

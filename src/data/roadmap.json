@@ -705,7 +705,7 @@
       "title": "Living product roadmap",
       "category": "Product intelligence",
       "trackId": "ux-design",
-      "status": "in-progress",
+      "status": "done",
       "horizon": "now",
       "summary": "An interactive graph and delivery board grounded in roadmap.sh topics and repository proof.",
       "uxImpactScore": 92,
@@ -717,9 +717,12 @@
       ],
       "upstreamSourceUrl": "https://roadmap.sh/ux-design",
       "proof": {
-        "revision": null,
-        "verifiedAt": null,
-        "metrics": []
+        "revision": "444c0f5",
+        "verifiedAt": "2026-11-20T07:04:00+02:00",
+        "metrics": [
+          "Graph, board, proof drawer, self-healing feed and responsive controls passed desktop and mobile review",
+          "111 unit tests and 38 offline desktop/mobile browser cases passed on Next.js 16.4.6"
+        ]
       }
     },
     {
@@ -734,13 +737,17 @@
       "creativeHook": "Make pain visible to the product team while keeping the person behind it private.",
       "linkedFiles": [
         "src/lib/self-diagnose.ts",
-        "src/app/api/v1/diagnostics/route.ts"
+        "src/app/api/v1/diagnostics/route.ts",
+        "supabase/migrations/202611200001_product_evolution.sql"
       ],
       "upstreamSourceUrl": "https://roadmap.sh/system-design",
       "proof": {
-        "revision": null,
-        "verifiedAt": null,
-        "metrics": []
+        "revision": "ff638aa",
+        "verifiedAt": "2026-11-20T07:04:00+02:00",
+        "metrics": [
+          "Privacy, validation and handler contracts pass in the 111-test unit suite",
+          "Database migration remains unapplied; the configured development host was unavailable for rolled-back validation"
+        ]
       }
     },
     {
@@ -759,9 +766,12 @@
       ],
       "upstreamSourceUrl": "https://roadmap.sh/software-design-architecture",
       "proof": {
-        "revision": "b8b57f7a93c1bd586395ce6b87d5253365760477",
-        "verifiedAt": "2026-10-29T06:26:12+02:00",
-        "metrics": []
+        "revision": "ff638aa",
+        "verifiedAt": "2026-11-20T07:04:00+02:00",
+        "metrics": [
+          "Workflow permissions and protected-file boundaries were reviewed locally",
+          "Live GitHub execution remains pending repository secret and pull-request permission setup"
+        ]
       }
     },
     {

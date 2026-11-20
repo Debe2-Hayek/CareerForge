@@ -1,7 +1,7 @@
 {
   "$schema": "./roadmap.schema.json",
   "version": 1,
-  "updatedAt": "2026-11-20T06:26:37.000Z",
+  "updatedAt": "2026-11-20T16:39:22.000Z",
   "codebase": {
     "revision": "1b689d28cf48287f147be8581dd348992ba23d4b",
     "scannedAt": "2026-11-20T06:26:37.000Z"
@@ -9,8 +9,8 @@
   "upstream": {
     "repository": "nilbuild/developer-roadmap",
     "ref": "master",
-    "sourceRevision": "e23da87b60cd576b7e603d19fcbde8ab04964495",
-    "syncedAt": "2026-11-19T10:52:06.000Z"
+    "sourceRevision": "6675ce60868ce44aeecc439ad39b3df22453a8ce",
+    "syncedAt": "2026-11-20T16:39:22.000Z"
   },
   "tracks": [
     {
@@ -894,6 +894,50 @@
         "src/data/roadmap.json"
       ],
       "revision": "1b689d2"
+    },
+    {
+      "id": "production-migration-source-recovery",
+      "title": "Production migration source drift",
+      "signal": "Two live-job migrations recorded in production were missing from the repository, preventing a truthful migration-history repair.",
+      "resolution": "Recovered the exact SQL from retained DDL logs, verified both SHA-256 checksums byte-for-byte, restored the files and aligned all ten production migration records before promotion.",
+      "detectedAt": "2026-11-20T23:08:00+02:00",
+      "resolvedAt": "2026-11-20T23:08:00+02:00",
+      "linkedFiles": [
+        "supabase/migrations/202611190001_live_job_postings.sql",
+        "supabase/migrations/202611190002_job_experience_level.sql"
+      ],
+      "revision": "7949bfa"
+    },
+    {
+      "id": "new-password-breach-screening",
+      "title": "New-password breach screening",
+      "signal": "The connected Free Auth project could not enable Supabase's native leaked-password protection and accepted a weaker new-password shape.",
+      "resolution": "Aligned browser, server and preview Auth strength rules, then added a padded, bounded server-side Pwned Passwords range check that fails closed for CareerForge registration and password updates.",
+      "detectedAt": "2026-11-20T23:08:00+02:00",
+      "resolvedAt": "2026-11-20T23:08:00+02:00",
+      "linkedFiles": [
+        "src/lib/account/password-policy.ts",
+        "src/lib/account/pwned-passwords.ts",
+        "src/lib/account/auth-handlers.ts",
+        "src/lib/account/recovery-handlers.ts"
+      ],
+      "revision": "a64835a"
+    },
+    {
+      "id": "public-search-discovery",
+      "title": "Public search discovery controls",
+      "signal": "The deployed homepage had no canonical URL while robots.txt and sitemap.xml returned 404.",
+      "resolution": "Added one production-origin resolver, canonical metadata, indexable homepage directives, private-route noindex headers, robots and sitemap endpoints, plus opt-in Search Console verification.",
+      "detectedAt": "2026-11-20T23:08:00+02:00",
+      "resolvedAt": "2026-11-20T23:08:00+02:00",
+      "linkedFiles": [
+        "src/lib/site-url.ts",
+        "src/app/layout.tsx",
+        "src/app/robots.ts",
+        "src/app/sitemap.ts",
+        "next.config.ts"
+      ],
+      "revision": "4a90fb6"
     }
   ]
 }

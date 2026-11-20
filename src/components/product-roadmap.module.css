@@ -104,6 +104,8 @@
 .feedback textarea { width: 100%; resize: vertical; padding: 12px; border: 1px solid #415435; border-radius: 8px; outline: none; background: #10170e; color: #e6f0dc; font-size: 16px; line-height: 1.6; }
 .feedback textarea:focus { border-color: #9ecb6c; box-shadow: 0 0 0 3px #bce98415; }
 .feedbackMessage { min-height: 18px; color: #bcd79d; font-size: 10px; }
+.feedbackNotice { border-style: dashed !important; background: linear-gradient(135deg, #1a2118, #141a13) !important; }
+.feedbackNotice p { margin-top: 8px; color: #91a382; font-size: 11px; line-height: 1.75; }
 .upstream { margin-top: 24px; }
 @keyframes drawerIn { from { transform: translateX(28px); opacity: .6; } }
 @media (max-width: 1050px) {

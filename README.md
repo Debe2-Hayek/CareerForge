@@ -40,6 +40,19 @@ Learning roadmap now offers a pilot: select a fictional role for concrete
 gap-based exercises and original roadmap.sh links. Target selection survives
 reload in the URL; saved schedules and completion tracking remain planned.
 See [learning roadmap behavior](docs/LEARNING_ROADMAP.md).
+The same authenticated Learning roadmap tab contains the living product map:
+connected-node and Now/Next/Later views, repository proof, a verified-resolution
+feed and privacy-safe feedback. `/roadmap` is a compatibility entry that redirects
+to `/learning-roadmap`; it does not create a competing navigation destination.
+
+Routine evolution is token-free. `npm run sync:roadmap` reads the canonical
+roadmap.sh repository plus explicit `[roadmap:<node-id>]` git commit markers, and
+falls back to the last checked-in upstream snapshot when offline. The weekly
+`free-roadmap-sync.yml` workflow performs only this deterministic sync. Runtime
+signals are owner-bound in Supabase, aggregated only after the privacy threshold,
+and exported to `diagnostics/` without report text or identities. AI fixing is
+separate and opt-in: `codex-autofix.yml` selects one compact signal on a manual
+run, uses low effort, verifies the patch and opens a review-only pull request.
 My portfolio offers two templates, saved private choices and explicit publication
 of selected profile facts. Shared links show an approved snapshot; later draft
 edits stay private until republished. Make private revokes subsequent public reads.
@@ -69,7 +82,9 @@ Set `NEXT_PUBLIC_SUPABASE_URL` and
 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for the SSR clients. The hosted MVP uses
 verified user sessions and Supabase RLS; it needs no direct database credentials.
 Keep `DATABASE_URL`/`DIRECT_URL` local for the reviewed migration/RLS tools and
-development diagnostics. Prisma client generation works without either URL;
+development diagnostics. Set `EXPECTED_SUPABASE_PROJECT_REF` to the exact
+development project ref so those tools reject a connection to another project.
+Prisma client generation works without either URL;
 commands that connect through Prisma still need `DIRECT_URL`. `prisma.config.ts`
 loads `.env` via `dotenv/config`; Next.js loads `.env.local` automatically. Do not
 commit either local environment file, passwords, service-role keys, or other secrets.
@@ -83,9 +98,10 @@ npm run prisma:generate
 npm run test:rls
 ```
 
-The transaction-based migration runner uses `DATABASE_URL` (falling back to
-`DIRECT_URL`) and records migration checksums. Use the working session pooler
-URL when the direct hostname is unavailable. Never edit an applied SQL migration.
+The transaction-based migration runner prefers `DIRECT_URL` and falls back to
+`DATABASE_URL`; it records migration checksums and can enforce the expected
+Supabase project ref. Use a working session-mode administrative connection when
+the direct hostname is unavailable. Never edit an applied SQL migration.
 
 Visit `/register` to create your own account, `/login` to sign in, and `/account`
 to edit your private profile. The real account never imports sample profile data.

@@ -2,11 +2,11 @@ import nextEnv from "@next/env";
 import { Client } from "pg";
 import { readdir, readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { resolveAdminDatabaseUrl } from "./database-url.mjs";
 
 nextEnv.loadEnvConfig(process.cwd());
-const client = new Client({ connectionString: process.env.DATABASE_URL ?? process.env.DIRECT_URL, connectionTimeoutMillis: 15000, statement_timeout: 30000 });
+const client = new Client({ connectionString: resolveAdminDatabaseUrl(), connectionTimeoutMillis: 15000, statement_timeout: 30000 });
 try {
-  if (!process.env.DIRECT_URL && !process.env.DATABASE_URL) throw new Error("MISSING_DATABASE_URL");
   await client.connect();
   await client.query("begin");
   await client.query("select pg_advisory_xact_lock(728401321)");

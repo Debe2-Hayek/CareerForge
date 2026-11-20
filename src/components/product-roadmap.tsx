@@ -22,11 +22,12 @@ function isTyping(target: EventTarget | null) {
 }
 
 function RoadmapNodeCard({ node, count, onOpen }: { node: ProductRoadmapNode; count?: FeedbackCounts[string]; onOpen: () => void }) {
-  return <button type="button" className={styles.node} data-status={node.status} onClick={onOpen} aria-label={`Open ${node.title} proof and feedback`}>
+  const acceptsFeedback = node.acceptsFeedback === true;
+  return <button type="button" className={styles.node} data-status={node.status} onClick={onOpen} aria-label={`Open ${node.title} details${acceptsFeedback ? " and feedback" : ""}`}>
     <span className={styles.nodeTop}><span className={styles.status}><i />{statusLabels[node.status]}</span><span className={styles.score}>{node.uxImpactScore}</span></span>
     <strong>{node.title}</strong>
     <span className={styles.nodeSummary}>{node.summary}</span>
-    <span className={styles.nodeMeta}><span>{node.category}</span><span>{count?.upvotes ?? 0} votes</span></span>
+    <span className={styles.nodeMeta}><span>{node.category}</span><span>{acceptsFeedback ? `${count?.upvotes ?? 0} votes` : "upstream signal"}</span></span>
   </button>;
 }
 
@@ -81,7 +82,7 @@ export function ProductRoadmap({ roadmap }: { roadmap: ProductRoadmapView }) {
   }
 
   async function sendFeedback(kind: "upvote" | "friction") {
-    if (!selected || feedbackState === "sending") return;
+    if (!selected || selected.acceptsFeedback !== true || feedbackState === "sending") return;
     setFeedbackState("sending");
     try {
       const response = await fetch("/api/v1/roadmap-feedback", {
@@ -165,12 +166,12 @@ export function ProductRoadmap({ roadmap }: { roadmap: ProductRoadmapView }) {
           <section><h3>Evidence in this repository</h3>{selected.linkedFiles.length ? <ul className={styles.fileList}>{selected.linkedFiles.map(file => <li key={file}><code>{file}</code></li>)}</ul> : <p className={styles.muted}>No CareerForge file is linked yet. This is an upstream discovery, not implementation evidence.</p>}
           {selected.proof.metrics.length > 0 && <ul className={styles.metrics}>{selected.proof.metrics.map(metric => <li key={metric}>{metric}</li>)}</ul>}
           {selected.proof.revision && <a href={`https://github.com/hussein-hayek-mu/CareerForge/commit/${selected.proof.revision}`} target="_blank" rel="noopener noreferrer">Inspect commit {selected.proof.revision.slice(0, 7)} <span aria-hidden="true">↗</span></a>}</section>
-          <section className={styles.feedback}><div><h3>Shape this node</h3><p>Vote for priority or report where this workflow creates friction. Reports stay private to your account; only totals enter the public signal.</p></div>
+          {selected.acceptsFeedback === true ? <section className={styles.feedback}><div><h3>Shape this node</h3><p>Vote for priority or report where this workflow creates friction. Reports stay private to your account; only totals enter the public signal.</p></div>
             <button type="button" className={styles.vote} onClick={() => void sendFeedback("upvote")} disabled={feedbackState === "sending"}>↑ Upvote <span>{counts[selected.id]?.upvotes ?? 0}</span></button>
             <label><span>Report friction <small>(8–500 characters)</small></span><textarea value={friction} onChange={event => { setFriction(event.target.value.slice(0, 500)); setFeedbackState("idle"); }} placeholder="What slowed you down? Do not include private career details." rows={4} /></label>
             <button type="button" className="button primary" onClick={() => void sendFeedback("friction")} disabled={feedbackState === "sending" || friction.trim().length < 8}>Send private report</button>
             <span className={styles.feedbackMessage} role="status">{feedbackState === "sent" ? "Signal recorded. Thank you." : feedbackState === "error" ? "That signal could not be saved. Please retry." : ""}</span>
-          </section>
+          </section> : <section className={styles.feedbackNotice}><h3>Upstream discovery</h3><p>This topic came from the industry sync and is not a CareerForge commitment yet. Voting opens only after it is reviewed and promoted into the curated product roadmap.</p></section>}
           <a className={styles.upstream} href={selected.upstreamSourceUrl} target="_blank" rel="noopener noreferrer">Open the related roadmap.sh track <span aria-hidden="true">↗</span></a>
         </div>
       </article>}

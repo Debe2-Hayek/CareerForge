@@ -3,6 +3,7 @@ export type ExportedIssue = {
   durationMs?: number; lastSeen: string; priorityScore: number;
 };
 export type ExportedFeedback = { nodeId: string; upvotes: number; frictionReports: number; priorityScore: number };
+export type ExportedFriction = { nodeId: string; frictionReports: number; upvotes: number; priorityScore: number };
 
 const issueWeight: Record<string, number> = {
   "ui-error": 90,
@@ -10,6 +11,7 @@ const issueWeight: Record<string, number> = {
   "api-error": 84,
   "abandoned-flow": 68,
   "rage-click": 62,
+  "not-found": 60,
   "slow-api": 58,
   "empty-search": 52
 };
@@ -31,4 +33,16 @@ export function prioritizeFeedback(counts: Record<string, { upvotes: number; fri
     frictionReports: count.frictionReports,
     priorityScore: Math.min(100, count.frictionReports * 8 + count.upvotes * 2)
   })).sort((left, right) => right.priorityScore - left.priorityScore || left.nodeId.localeCompare(right.nodeId));
+}
+
+export function prioritizeFriction(counts: Record<string, { upvotes: number; frictionReports: number }>): ExportedFriction[] {
+  return Object.entries(counts).filter(([, count]) => count.frictionReports > 0).map(([nodeId, count]) => ({
+    nodeId,
+    frictionReports: count.frictionReports,
+    upvotes: count.upvotes,
+    priorityScore: Math.min(100, count.frictionReports * 10 + Math.min(10, count.upvotes))
+  })).sort((left, right) => right.priorityScore - left.priorityScore
+    || right.frictionReports - left.frictionReports
+    || right.upvotes - left.upvotes
+    || left.nodeId.localeCompare(right.nodeId));
 }

@@ -2,6 +2,12 @@ import type { DiagnosticSignal } from "./product-signals";
 
 const endpoint = "/api/v1/diagnostics";
 const slowEndpointMs = 1000;
+const knownRouteRoots = new Set([
+  "academic-planner", "account", "api", "application-agent", "application-insights", "applications", "auth",
+  "career-analysis", "career-assistant", "confirm-email", "cv", "cv-analysis", "dashboard", "documents", "features",
+  "forgot-password", "graduation-simulator", "jobs", "learning-roadmap", "p", "portfolio", "profile", "projects",
+  "reset-password", "roadmap", "skill-checks"
+]);
 
 export function normalizeDiagnosticRoute(pathname: string) {
   const path = pathname.split(/[?#]/, 1)[0] || "/";
@@ -9,6 +15,11 @@ export function normalizeDiagnosticRoute(pathname: string) {
     .replace(/\/[0-9a-f]{8}-[0-9a-f-]{27,}/gi, "/:id")
     .replace(/\/\d{3,}(?=\/|$)/g, "/:id")
     .slice(0, 160);
+}
+
+export function normalizeNotFoundRoute(pathname: string) {
+  const [root] = normalizeDiagnosticRoute(pathname).split("/").filter(Boolean);
+  return root && knownRouteRoots.has(root) ? `/${root}/*` : "/*";
 }
 
 export function fingerprintDiagnostic(value: string) {
@@ -71,6 +82,9 @@ export function installSelfDiagnosis() {
       emptySearches.length = 0;
     }
   };
+  const onNotFound = () => {
+    record({ kind: "not-found", route: normalizeNotFoundRoute(window.location.pathname), label: "404 dead end" });
+  };
   const onFlowStart = (event: Event) => {
     const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
     if (typeof id === "string" && /^[a-z0-9-]{1,80}$/.test(id)) flows.set(id, Date.now());
@@ -116,6 +130,7 @@ export function installSelfDiagnosis() {
   window.addEventListener("unhandledrejection", onRejection);
   window.addEventListener("pointerdown", onClick, { passive: true });
   window.addEventListener("careerforge:empty-search", onEmptySearch);
+  window.addEventListener("careerforge:not-found", onNotFound);
   window.addEventListener("careerforge:flow-start", onFlowStart);
   window.addEventListener("careerforge:flow-complete", onFlowEnd);
   window.addEventListener("careerforge:flow-cancel", onFlowEnd);
@@ -126,6 +141,7 @@ export function installSelfDiagnosis() {
     window.removeEventListener("unhandledrejection", onRejection);
     window.removeEventListener("pointerdown", onClick);
     window.removeEventListener("careerforge:empty-search", onEmptySearch);
+    window.removeEventListener("careerforge:not-found", onNotFound);
     window.removeEventListener("careerforge:flow-start", onFlowStart);
     window.removeEventListener("careerforge:flow-complete", onFlowEnd);
     window.removeEventListener("careerforge:flow-cancel", onFlowEnd);

@@ -3,6 +3,12 @@ import type { ProductRoadmap, ProductRoadmapNode } from "../src/lib/product-road
 export type UpstreamEntry = { path: string; type: "blob" | "tree"; sha?: string };
 export type UpstreamSnapshot = { treeRevision: string; committedAt: string; entries: UpstreamEntry[] };
 export type CodebaseSnapshot = { revision: string; committedAt: string; evidence: Record<string, { revision: string; committedAt: string }> };
+export type GitCommitSnapshot = {
+  revision: string;
+  committedAt: string;
+  subject: string;
+  changedFiles: string[];
+};
 
 const topicPattern = /^([a-z0-9][a-z0-9-]*)(?:@[^/]+)?\.md$/;
 
@@ -33,12 +39,55 @@ function upstreamNode(track: ProductRoadmap["tracks"][number], topicId: string):
     trackId: track.id,
     status: "upstream-new",
     horizon: "later",
+    acceptsFeedback: false,
     summary: `roadmap.sh added ${titleFromTopicId(topicId)} to its ${track.title} source. CareerForge has not reviewed or scheduled it yet.`,
+    uxRationale: "Surface new industry practice without presenting it as a product commitment until a human reviews its value and fit.",
     uxImpactScore: 50,
     creativeHook: "A signal from the wider practice, waiting for product-context review.",
     linkedFiles: [],
+    upstreamUrl: track.sourceUrl,
     upstreamSourceUrl: track.sourceUrl,
     proof: { revision: null, verifiedAt: null, metrics: ["Upstream discovery only; not an implemented CareerForge feature"] }
+  };
+}
+
+function normalizeRepoPath(path: string) {
+  return path.replaceAll("\\", "/").replace(/^\.\//, "");
+}
+
+/**
+ * A node is completed automatically only when a maintainer deliberately places
+ * `[roadmap:<node-id>]` in a commit subject, that commit changes a linked file,
+ * and every linked file currently exists. File presence alone is not proof that
+ * a planned capability works.
+ */
+export function completionEvidenceByNode(
+  roadmap: ProductRoadmap,
+  commits: GitCommitSnapshot[],
+  existingFiles: Iterable<string>
+): CodebaseSnapshot["evidence"] {
+  const files = new Set([...existingFiles].map(normalizeRepoPath));
+  return Object.fromEntries(roadmap.nodes.flatMap(node => {
+    const linkedFiles = node.linkedFiles.map(normalizeRepoPath);
+    if (!linkedFiles.length || linkedFiles.some(path => !files.has(path))) return [];
+    const marker = `[roadmap:${node.id}]`;
+    const commit = commits.find(candidate =>
+      candidate.subject.toLowerCase().includes(marker) &&
+      candidate.changedFiles.map(normalizeRepoPath).some(path => linkedFiles.includes(path))
+    );
+    return commit ? [[node.id, { revision: commit.revision, committedAt: commit.committedAt }]] : [];
+  }));
+}
+
+/** The topic ids in roadmap.json are also the last known-good offline cache. */
+export function cachedUpstreamSnapshot(roadmap: ProductRoadmap): UpstreamSnapshot {
+  return {
+    treeRevision: roadmap.upstream.sourceRevision,
+    committedAt: roadmap.upstream.syncedAt ?? roadmap.updatedAt,
+    entries: roadmap.tracks.flatMap(track => track.upstreamTopicIds.map(topic => ({
+      type: "blob" as const,
+      path: `${track.upstreamPath}/${topic}@cached.md`
+    })))
   };
 }
 
@@ -62,7 +111,17 @@ export function mergeRoadmapSnapshots(roadmap: ProductRoadmap, upstream: Upstrea
   const nodes = [...roadmap.nodes, ...discoveries].map(node => {
     const evidence = codebase.evidence[node.id];
     if (!evidence) return node;
-    return { ...node, proof: { ...node.proof, revision: evidence.revision, verifiedAt: evidence.committedAt } };
+    const completionMetric = "Completed by an explicit roadmap commit marker after every linked file was found.";
+    return {
+      ...node,
+      status: "done" as const,
+      proof: {
+        ...node.proof,
+        revision: evidence.revision,
+        verifiedAt: evidence.committedAt,
+        metrics: [...new Set([...node.proof.metrics, completionMetric])].slice(0, 12)
+      }
+    };
   });
   const updatedAt = [roadmap.updatedAt, upstream.committedAt, codebase.committedAt].sort().at(-1) ?? roadmap.updatedAt;
   return {

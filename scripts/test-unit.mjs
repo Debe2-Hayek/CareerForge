@@ -15,6 +15,12 @@ function discover(directory) {
 
 const tests = ["src", "scripts"].flatMap(directory => discover(join(root, directory))).sort();
 if (!tests.length) throw new Error("No local unit tests were found.");
-const result = spawnSync(process.execPath, ["--import", "tsx", "--test", ...tests], { cwd: root, stdio: "inherit" });
+// Keep worker fan-out bounded: Node otherwise starts one process per test file,
+// which can exhaust constrained Windows and CI runners before tests even load.
+const result = spawnSync(
+  process.execPath,
+  ["--import", "tsx", "--test", "--test-concurrency=4", ...tests],
+  { cwd: root, stdio: "inherit" }
+);
 if (result.error) throw result.error;
 process.exitCode = result.status ?? 1;

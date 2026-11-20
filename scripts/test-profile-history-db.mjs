@@ -3,13 +3,14 @@ import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import nextEnv from "@next/env";
 import { Client } from "pg";
+import { resolveAdminDatabaseUrl } from "./database-url.mjs";
 
 // Explicit development-only check. Pending SQL and all fixture rows are rolled back.
 if (!process.argv.includes("--development-rollback") || process.env.NODE_ENV === "production") {
   throw new Error("Run only against a development database with --development-rollback.");
 }
 nextEnv.loadEnvConfig(process.cwd(), false, { info() {}, error() {} });
-const client = new Client({ connectionString: process.env.DATABASE_URL || process.env.DIRECT_URL, connectionTimeoutMillis: 10000, statement_timeout: 15000 });
+const client = new Client({ connectionString: resolveAdminDatabaseUrl(), connectionTimeoutMillis: 10000, statement_timeout: 15000 });
 const owners = [randomUUID(), randomUUID()];
 let stage = "connection", inTransaction = false, installed = false;
 const checks = [];

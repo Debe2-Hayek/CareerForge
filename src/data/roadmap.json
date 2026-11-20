@@ -1,13 +1,13 @@
 {
   "$schema": "./roadmap.schema.json",
   "version": 1,
-  "updatedAt": "2026-11-19T10:52:06.000Z",
+  "updatedAt": "2026-11-20T04:41:56.000Z",
   "codebase": {
-    "revision": "6f66ee8975e47d8eaf4f035a3afb57d85b907db8",
-    "scannedAt": "2026-11-16T09:09:13.000Z"
+    "revision": "ff638aa6a3bc58267a24dff3078020f6fa0fa90f",
+    "scannedAt": "2026-11-20T04:41:56.000Z"
   },
   "upstream": {
-    "repository": "kamranahmedse/developer-roadmap",
+    "repository": "nilbuild/developer-roadmap",
     "ref": "master",
     "sourceRevision": "e23da87b60cd576b7e603d19fcbde8ab04964495",
     "syncedAt": "2026-11-19T10:52:06.000Z"
@@ -635,7 +635,9 @@
       "trackId": "api-design",
       "status": "done",
       "horizon": "now",
+      "acceptsFeedback": true,
       "summary": "Server-verified accounts, owner-scoped profile records and database row-level security.",
+      "uxRationale": "Private-by-default ownership and explicit evidence boundaries reduce disclosure anxiety before users share career details.",
       "uxImpactScore": 94,
       "creativeHook": "Trust is a feature users can feel before they share a single career detail.",
       "linkedFiles": [
@@ -643,6 +645,7 @@
         "src/lib/supabase/server.ts",
         "supabase/migrations/202610220001_profiles.sql"
       ],
+      "upstreamUrl": "https://roadmap.sh/api-design",
       "upstreamSourceUrl": "https://roadmap.sh/api-design",
       "proof": {
         "revision": "6c72a2ac81d4f64982cb25518acc10c3689cc37b",
@@ -659,7 +662,9 @@
       "trackId": "full-stack",
       "status": "done",
       "horizon": "now",
+      "acceptsFeedback": true,
       "summary": "A timed React and SQL fundamentals pilot with server-owned attempts and honest evidence limits.",
+      "uxRationale": "Scoped checks turn self-reported skills into understandable evidence while making the limits of that evidence visible.",
       "uxImpactScore": 88,
       "creativeHook": "Turn a claim into a small, inspectable proof instead of a louder badge.",
       "linkedFiles": [
@@ -667,6 +672,7 @@
         "src/lib/skill-check-server.ts",
         "supabase/migrations/202610280001_timed_skill_checks.sql"
       ],
+      "upstreamUrl": "https://roadmap.sh/full-stack",
       "upstreamSourceUrl": "https://roadmap.sh/full-stack",
       "proof": {
         "revision": "ecca5f4991cd958e0d32fc1dc291aab60b014f8d",
@@ -683,7 +689,9 @@
       "trackId": "full-stack",
       "status": "done",
       "horizon": "now",
+      "acceptsFeedback": true,
       "summary": "Users can save fictional roles and move applications through an owner-only status workflow.",
+      "uxRationale": "A persistent, honest status trail reduces memory load without implying that demo roles are live applications.",
       "uxImpactScore": 84,
       "creativeHook": "Keep momentum visible without pretending a demo vacancy is a live job.",
       "linkedFiles": [
@@ -691,6 +699,7 @@
         "src/lib/tracker/server.ts",
         "src/app/applications/page.tsx"
       ],
+      "upstreamUrl": "https://roadmap.sh/full-stack",
       "upstreamSourceUrl": "https://roadmap.sh/full-stack",
       "proof": {
         "revision": "6c72a2ac81d4f64982cb25518acc10c3689cc37b",
@@ -707,7 +716,9 @@
       "trackId": "ux-design",
       "status": "done",
       "horizon": "now",
+      "acceptsFeedback": true,
       "summary": "An interactive graph and delivery board grounded in roadmap.sh topics and repository proof.",
+      "uxRationale": "Progressive disclosure lets visitors scan priorities first, then inspect concrete code evidence only when they need it.",
       "uxImpactScore": 92,
       "creativeHook": "Let users inspect not only what is next, but the code evidence behind what is done.",
       "linkedFiles": [
@@ -715,6 +726,7 @@
         "scripts/sync-roadmap.ts",
         "src/components/product-roadmap.tsx"
       ],
+      "upstreamUrl": "https://roadmap.sh/ux-design",
       "upstreamSourceUrl": "https://roadmap.sh/ux-design",
       "proof": {
         "revision": "444c0f5",
@@ -732,7 +744,9 @@
       "trackId": "system-design",
       "status": "in-progress",
       "horizon": "now",
+      "acceptsFeedback": true,
       "summary": "Bounded diagnostics for errors, slow API calls and repeated interaction friction without recording user content.",
+      "uxRationale": "Aggregate, privacy-minimized signals reveal recurring friction without turning a product improvement tool into user surveillance.",
       "uxImpactScore": 90,
       "creativeHook": "Make pain visible to the product team while keeping the person behind it private.",
       "linkedFiles": [
@@ -740,6 +754,7 @@
         "src/app/api/v1/diagnostics/route.ts",
         "supabase/migrations/202611200001_product_evolution.sql"
       ],
+      "upstreamUrl": "https://roadmap.sh/system-design",
       "upstreamSourceUrl": "https://roadmap.sh/system-design",
       "proof": {
         "revision": "ff638aa",
@@ -757,19 +772,25 @@
       "trackId": "software-design-architecture",
       "status": "in-progress",
       "horizon": "next",
-      "summary": "A bounded Codex workflow proposes one evidence-backed fix at a time through a verified pull request.",
+      "acceptsFeedback": true,
+      "summary": "An opt-in, cost-capped Codex workflow proposes one evidence-backed fix at a time through a verified pull request.",
+      "uxRationale": "Review-first proposals keep automation useful and inspectable while preserving a human release decision.",
       "uxImpactScore": 86,
       "creativeHook": "Autonomy earns trust when every change arrives with proof and a human merge decision.",
       "linkedFiles": [
-        ".github/workflows/autonomous-evolve.yml",
+        ".github/workflows/codex-autofix.yml",
+        ".github/codex/codex-autofix.md",
+        ".github/codex/build-run-context.mjs",
         "AGENTS.md"
       ],
+      "upstreamUrl": "https://roadmap.sh/software-design-architecture",
       "upstreamSourceUrl": "https://roadmap.sh/software-design-architecture",
       "proof": {
         "revision": "ff638aa",
         "verifiedAt": "2026-11-20T07:04:00+02:00",
         "metrics": [
-          "Workflow permissions and protected-file boundaries were reviewed locally",
+          "Manual-only trigger, no AI cron, deterministic top-signal selection and protected-file boundaries were reviewed locally",
+          "Codex is skipped when no actionable signal exists; actionable runs use low reasoning effort and hard file/line caps",
           "Live GitHub execution remains pending repository secret and pull-request permission setup"
         ]
       }
@@ -781,12 +802,15 @@
       "trackId": "api-design",
       "status": "planned",
       "horizon": "next",
+      "acceptsFeedback": true,
       "summary": "A permitted source adapter with freshness, attribution, deduplication and explicit failure states.",
+      "uxRationale": "Visible freshness, attribution and failure states help users judge whether an opportunity is real and still actionable.",
       "uxImpactScore": 96,
       "creativeHook": "Replace demo opportunity cards with listings users can trace back to a real source.",
       "linkedFiles": [
         "src/lib/tracker/server.ts"
       ],
+      "upstreamUrl": "https://roadmap.sh/api-design",
       "upstreamSourceUrl": "https://roadmap.sh/api-design",
       "proof": {
         "revision": "6c72a2ac81d4f64982cb25518acc10c3689cc37b",
@@ -803,12 +827,15 @@
       "trackId": "system-design",
       "status": "planned",
       "horizon": "next",
+      "acceptsFeedback": true,
       "summary": "Custom SMTP and real inbox verification for confirmation and password recovery messages.",
+      "uxRationale": "Reliable confirmation and recovery delivery prevents account access from becoming a confusing dead end.",
       "uxImpactScore": 98,
       "creativeHook": "The account journey is only complete when the recovery message reaches a real inbox.",
       "linkedFiles": [
         "docs/PREVIEW_DEPLOYMENT_2026_11_16.md"
       ],
+      "upstreamUrl": "https://roadmap.sh/system-design",
       "upstreamSourceUrl": "https://roadmap.sh/system-design",
       "proof": {
         "revision": "6f66ee8975e47d8eaf4f035a3afb57d85b907db8",
@@ -825,12 +852,15 @@
       "trackId": "software-design-architecture",
       "status": "planned",
       "horizon": "later",
+      "acceptsFeedback": true,
       "summary": "Versioned evidence paths for degrees, languages, projects and richer practical skill assessments.",
+      "uxRationale": "Showing the method, scope and limitations of each review helps users understand what a verified claim actually means.",
       "uxImpactScore": 91,
       "creativeHook": "Show exactly what was checked, by which method, and what the result does not prove.",
       "linkedFiles": [
         "helper/OWNER_WORKING_STANDARDS_AND_REQUIREMENTS.md"
       ],
+      "upstreamUrl": "https://roadmap.sh/software-design-architecture",
       "upstreamSourceUrl": "https://roadmap.sh/software-design-architecture",
       "proof": {
         "revision": "b8b57f7a93c1bd586395ce6b87d5253365760477",

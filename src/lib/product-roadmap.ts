@@ -17,10 +17,15 @@ export const roadmapNodeSchema = z.object({
   trackId: z.string().regex(/^[a-z0-9-]+$/),
   status: roadmapStatusSchema,
   horizon: roadmapHorizonSchema,
+  acceptsFeedback: z.boolean(),
   summary: z.string().min(1).max(320),
+  // Compatibility aliases keep the original UI contract while exposing the
+  // cost-first schema names requested for external roadmap tooling.
+  uxRationale: z.string().min(1).max(320),
   uxImpactScore: z.number().int().min(0).max(100),
   creativeHook: z.string().min(1).max(240),
   linkedFiles: z.array(z.string().min(1).max(220)).max(24),
+  upstreamUrl: z.url().startsWith("https://roadmap.sh/"),
   upstreamSourceUrl: z.url().startsWith("https://roadmap.sh/"),
   proof: proofSchema
 }).strict();
@@ -54,7 +59,7 @@ export const productRoadmapSchema = z.object({
     scannedAt: z.iso.datetime({ offset: true })
   }).strict(),
   upstream: z.object({
-    repository: z.literal("kamranahmedse/developer-roadmap"),
+    repository: z.literal("nilbuild/developer-roadmap"),
     ref: z.string().min(1),
     sourceRevision: z.string(),
     syncedAt: z.iso.datetime({ offset: true }).nullable()

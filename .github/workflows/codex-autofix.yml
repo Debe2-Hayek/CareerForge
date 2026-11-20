@@ -1,0 +1,199 @@
+name: Codex autofix proposal
+
+on:
+  workflow_dispatch:
+    inputs:
+      focus:
+        description: "Select which existing signal queue Codex may address"
+        type: choice
+        required: true
+        default: auto
+        options:
+          - auto
+          - reliability
+          - performance
+          - ux
+
+concurrency:
+  group: codex-autofix
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  propose:
+    name: Propose one review-only fix
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DATABASE_URL: ""
+      DIRECT_URL: ""
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_SUPABASE_URL: ""
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ""
+      EVOLUTION_SOURCE_ORIGIN: ${{ vars.EVOLUTION_SOURCE_ORIGIN || 'https://careerforge-phi.vercel.app' }}
+    steps:
+      - name: Create the isolated Codex runner user
+        run: |
+          sudo adduser --system --home /home/codex-worker --shell /bin/bash --group codex-worker
+          sudo usermod -a -G codex-worker runner
+          sudo usermod -a -G runner codex-worker
+
+      - name: Check out the default branch
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 20
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Generate the Prisma client
+        run: npm run prisma:generate
+
+      - name: Export anonymous product signals
+        run: npm run evolution:export
+
+      - name: Select one compact signal
+        id: context
+        env:
+          REQUESTED_FOCUS: ${{ inputs.focus }}
+        run: node .github/codex/build-run-context.mjs
+
+      - name: Restore exported snapshots
+        run: |
+          git restore -- diagnostics/latest-issues.json diagnostics/roadmap-feedback.json
+          if test -f diagnostics/friction-queue.json; then
+            git restore -- diagnostics/friction-queue.json 2>/dev/null || true
+          fi
+
+      - name: Require the opt-in API secret
+        if: steps.context.outputs.actionable == 'true'
+        env:
+          CODEX_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if test -z "$CODEX_KEY"; then
+            echo "Add OPENAI_API_KEY as a GitHub Actions secret before manually running Codex autofix."
+            exit 1
+          fi
+
+      - name: Install Chromium before privilege reduction
+        if: steps.context.outputs.actionable == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Grant the isolated user workspace access
+        if: steps.context.outputs.actionable == 'true'
+        run: |
+          sudo chown -R runner:codex-worker "$GITHUB_WORKSPACE"
+          sudo chmod -R g+rwX "$GITHUB_WORKSPACE"
+          sudo find "$GITHUB_WORKSPACE" -type d -exec chmod g+s {} +
+
+      - name: Run one bounded Codex fix
+        if: steps.context.outputs.actionable == 'true'
+        id: codex
+        uses: openai/codex-action@54e817e77767f274e7e9ceb9da755fb5c62ce25d # v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":workspace"
+          safety-strategy: unprivileged-user
+          codex-user: codex-worker
+          prompt-file: .github/codex/codex-autofix.md
+          effort: low
+          codex-args: '["--ephemeral"]'
+
+      - name: Remove ephemeral signal context
+        if: always()
+        run: rm -f .codex-autofix-context.json
+
+      - name: Enforce the autofix boundary
+        if: steps.context.outputs.actionable == 'true'
+        run: |
+          git add -N .
+          changed_files="$(git diff --name-only HEAD)"
+
+          if test -z "$changed_files"; then
+            echo "Codex correctly made no change because it found no safe, reproducible fix."
+            exit 0
+          fi
+
+          protected_pattern='^(\.github/|AGENTS\.md$|\.env|\.deployment/|package(-lock)?\.json$|next\.config\.|vercel\.json$|prisma/|prisma\.config\.|supabase/|src/proxy\.ts$|src/lib/(account|supabase)/|src/app/auth/|src/app/\(auth\)/|src/app/api/v1/auth/)'
+          if printf '%s\n' "$changed_files" | grep -E "$protected_pattern"; then
+            echo "Codex changed a protected automation, dependency, deployment, database, or authentication boundary."
+            exit 1
+          fi
+
+          if printf '%s\n' "$changed_files" | grep -E '^diagnostics/'; then
+            echo "Diagnostic inputs are evidence, not Codex-editable product output."
+            exit 1
+          fi
+
+          file_count="$(printf '%s\n' "$changed_files" | sed '/^$/d' | wc -l | tr -d ' ')"
+          if test "$file_count" -gt 8; then
+            echo "The proposal changes $file_count files; the one-fix limit is 8."
+            exit 1
+          fi
+
+          if git diff --numstat HEAD | awk '$1 == "-" || $2 == "-" { found = 1 } END { exit found ? 0 : 1 }'; then
+            echo "Binary changes are outside the automated autofix boundary."
+            exit 1
+          fi
+
+          changed_lines="$(git diff --numstat HEAD | awk '{ total += $1 + $2 } END { print total + 0 }')"
+          if test "$changed_lines" -gt 700; then
+            echo "The proposal changes $changed_lines lines; the one-fix limit is 700."
+            exit 1
+          fi
+
+          implementation_files="$(printf '%s\n' "$changed_files" | grep -Ev '^(src/data/roadmap\.json$|docs/|.*\.(test|spec)\.[^.]+$|tests?/)' || true)"
+          if test -z "$implementation_files"; then
+            echo "A review PR requires a product implementation change, not only roadmap, docs, or test edits."
+            exit 1
+          fi
+
+          git diff --check HEAD
+
+      - name: Detect proposal changes
+        if: steps.context.outputs.actionable == 'true'
+        id: changes
+        run: |
+          if test -n "$(git diff --name-only HEAD)"; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify the bounded proposal
+        if: steps.changes.outputs.present == 'true'
+        run: |
+          npm run lint
+          npm run typecheck
+          npm test
+          npm run build:offline
+          npm run test:e2e:ci
+
+      - name: Open a review-only pull request
+        if: steps.changes.outputs.present == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CODEX_SUMMARY: ${{ steps.codex.outputs.final-message }}
+          AUTOFIX_BRANCH: codex/autofix-${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$AUTOFIX_BRANCH"
+          git add -A
+          git commit -m "Propose one evidence-backed autofix"
+          gh auth setup-git
+          git push origin "HEAD:$AUTOFIX_BRANCH"
+          node -e "const fs=require('node:fs'); const body=['## Selected signal and change', process.env.CODEX_SUMMARY || 'See the bounded diff for the selected signal and fix.', '', '## Independent verification', '- lint', '- strict TypeScript', '- unit tests', '- offline production build', '- desktop/mobile Playwright checks', '', '## Release boundary', 'This pull request is review-only. It does not auto-merge or deploy.', '', 'Workflow: '+process.env.RUN_URL].join('\\n'); fs.writeFileSync(process.env.RUNNER_TEMP+'/careerforge-autofix-pr.md', body);"
+          gh pr create --base "${{ github.event.repository.default_branch }}" --head "$AUTOFIX_BRANCH" --title "Codex autofix: evidence-backed product fix" --body-file "$RUNNER_TEMP/careerforge-autofix-pr.md"

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { diagnosticHandlers, feedbackHandlers, type FeedbackCounts, type ProductSignalAccess } from "./product-signals";
+import { diagnosticHandlers, feedbackEnabledNodeIds, feedbackHandlers, type FeedbackCounts, type ProductSignalAccess } from "./product-signals";
 
 const counts: FeedbackCounts = { "live-job-source": { upvotes: 4, frictionReports: 2 } };
 function access(overrides: Partial<ProductSignalAccess> = {}): ProductSignalAccess {
@@ -9,6 +9,15 @@ function access(overrides: Partial<ProductSignalAccess> = {}): ProductSignalAcce
 function request(method: string, body: unknown, headers: Record<string, string> = {}) {
   return new Request("http://localhost/api/v1/product-signal", { method, headers: { "Content-Type": "application/json", ...headers }, body: JSON.stringify(body) });
 }
+
+test("only explicitly curated roadmap nodes accept feedback", () => {
+  const enabled = feedbackEnabledNodeIds([
+    { id: "curated", acceptsFeedback: true },
+    { id: "upstream", acceptsFeedback: false },
+    { id: "legacy" }
+  ]);
+  assert.deepEqual([...enabled], ["curated"]);
+});
 
 test("roadmap feedback publishes aggregate counts but requires an owner for writes", async () => {
   const handlers = feedbackHandlers(async () => null, async () => counts);
@@ -59,4 +68,17 @@ test("diagnostic summary states its privacy threshold and successful writes are 
   assert.equal(response.status, 202);
   assert.equal((await response.json()).recorded, true);
   assert.deepEqual(saved, { fingerprint: "abcdef12", kind: "api-error", route: "/api/v1/applications/:id", label: "API error response", durationMs: 1300 });
+});
+
+test("diagnostics accept privacy-bucketed 404 dead ends", async () => {
+  let saved: unknown;
+  const handlers = diagnosticHandlers(async () => access({ diagnostic: async input => { saved = input; } }), async () => []);
+  const response = await handlers.POST(request("POST", {
+    fingerprint: "dead4040",
+    kind: "not-found",
+    route: "/jobs/*",
+    label: "404 dead end"
+  }));
+  assert.equal(response.status, 202);
+  assert.deepEqual(saved, { fingerprint: "dead4040", kind: "not-found", route: "/jobs/*", label: "404 dead end" });
 });

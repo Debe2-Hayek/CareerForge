@@ -2,17 +2,18 @@ import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { z } from "zod";
 import { productRoadmap } from "../src/lib/product-roadmap";
-import { prioritizeFeedback, prioritizeIssues } from "./product-signals-export-lib";
+import { prioritizeFeedback, prioritizeFriction, prioritizeIssues } from "./product-signals-export-lib";
 
 const root = resolve(process.cwd());
 const diagnosticsPath = resolve(root, "diagnostics/latest-issues.json");
 const feedbackPath = resolve(root, "diagnostics/roadmap-feedback.json");
+const frictionPath = resolve(root, "diagnostics/friction-queue.json");
 const maxBytes = 1024 * 1024;
 const issueSchema = z.object({
   fingerprint: z.string().regex(/^[a-f0-9]{8,64}$/),
-  kind: z.enum(["ui-error", "promise-rejection", "api-error", "slow-api", "rage-click", "empty-search", "abandoned-flow"]),
+  kind: z.enum(["ui-error", "promise-rejection", "api-error", "slow-api", "rage-click", "empty-search", "abandoned-flow", "not-found"]),
   route: z.string().regex(/^\/[^?#]*$/).max(160),
-  label: z.enum(["Unhandled UI error", "Unhandled promise rejection", "API error response", "Slow API response", "Rage click pattern", "Repeated empty search", "Abandoned flow"]),
+  label: z.enum(["Unhandled UI error", "Unhandled promise rejection", "API error response", "Slow API response", "Rage click pattern", "Repeated empty search", "Abandoned flow", "404 dead end"]),
   durationMs: z.number().int().min(0).max(120000).optional(),
   occurrences: z.number().int().nonnegative(),
   affectedUsers: z.number().int().min(3),
@@ -51,7 +52,7 @@ async function writeIfChanged(path: string, value: unknown) {
 
 async function main() {
   const origin = trustedOrigin();
-  const knownNodes = new Set(productRoadmap.nodes.map(node => node.id));
+  const knownNodes = new Set(productRoadmap.nodes.filter(node => node.acceptsFeedback).map(node => node.id));
   const results = await Promise.allSettled([
     fetchJson(origin, "/api/v1/diagnostics"),
     fetchJson(origin, "/api/v1/roadmap-feedback")
@@ -71,7 +72,12 @@ async function main() {
     const body = feedbackSchema.parse(results[1].value);
     const filtered = Object.fromEntries(Object.entries(body.counts).filter(([nodeId]) => knownNodes.has(nodeId)));
     const feedback = prioritizeFeedback(filtered);
+    const friction = prioritizeFriction(filtered);
     await writeIfChanged(feedbackPath, { source: `${origin}/api/v1/roadmap-feedback (aggregate counts only)`, feedback });
+    await writeIfChanged(frictionPath, {
+      source: `${origin}/api/v1/roadmap-feedback (aggregate counts only; private report text is never exported)`,
+      queue: friction
+    });
     console.log(`Exported aggregate feedback for ${feedback.length} roadmap nodes.`);
   } else console.warn(`Feedback export preserved the previous snapshot: ${results[1].reason instanceof Error ? results[1].reason.message : "request failed"}`);
 }

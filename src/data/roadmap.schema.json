@@ -23,7 +23,7 @@
       "additionalProperties": false,
       "required": ["repository", "ref", "sourceRevision", "syncedAt"],
       "properties": {
-        "repository": { "const": "kamranahmedse/developer-roadmap" },
+        "repository": { "const": "nilbuild/developer-roadmap" },
         "ref": { "type": "string", "minLength": 1 },
         "sourceRevision": { "type": "string" },
         "syncedAt": { "type": ["string", "null"], "format": "date-time" }
@@ -64,7 +64,7 @@
     "node": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "title", "category", "trackId", "status", "horizon", "summary", "uxImpactScore", "creativeHook", "linkedFiles", "upstreamSourceUrl", "proof"],
+      "required": ["id", "title", "category", "trackId", "status", "horizon", "acceptsFeedback", "summary", "uxRationale", "uxImpactScore", "creativeHook", "linkedFiles", "upstreamUrl", "upstreamSourceUrl", "proof"],
       "properties": {
         "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
         "title": { "type": "string", "minLength": 1, "maxLength": 100 },
@@ -72,7 +72,9 @@
         "trackId": { "type": "string", "pattern": "^[a-z0-9-]+$" },
         "status": { "enum": ["done", "in-progress", "planned", "upstream-new"] },
         "horizon": { "enum": ["now", "next", "later"] },
+        "acceptsFeedback": { "type": "boolean" },
         "summary": { "type": "string", "minLength": 1, "maxLength": 320 },
+        "uxRationale": { "type": "string", "minLength": 1, "maxLength": 320 },
         "uxImpactScore": { "type": "integer", "minimum": 0, "maximum": 100 },
         "creativeHook": { "type": "string", "minLength": 1, "maxLength": 240 },
         "linkedFiles": {
@@ -80,6 +82,7 @@
           "uniqueItems": true,
           "items": { "type": "string", "minLength": 1, "maxLength": 220 }
         },
+        "upstreamUrl": { "type": "string", "format": "uri", "pattern": "^https://roadmap\\.sh/" },
         "upstreamSourceUrl": { "type": "string", "format": "uri", "pattern": "^https://roadmap\\.sh/" },
         "proof": {
           "type": "object",

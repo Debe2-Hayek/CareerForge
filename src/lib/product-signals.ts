@@ -4,8 +4,8 @@ import { readBoundedJson } from "@/lib/account/request-body";
 import { privateWriteLimit } from "@/lib/account/attempt-limit";
 import { productRoadmap } from "@/lib/product-roadmap";
 
-export const diagnosticKinds = ["ui-error", "promise-rejection", "api-error", "slow-api", "rage-click", "empty-search", "abandoned-flow"] as const;
-export const diagnosticLabels = ["Unhandled UI error", "Unhandled promise rejection", "API error response", "Slow API response", "Rage click pattern", "Repeated empty search", "Abandoned flow"] as const;
+export const diagnosticKinds = ["ui-error", "promise-rejection", "api-error", "slow-api", "rage-click", "empty-search", "abandoned-flow", "not-found"] as const;
+export const diagnosticLabels = ["Unhandled UI error", "Unhandled promise rejection", "API error response", "Slow API response", "Rage click pattern", "Repeated empty search", "Abandoned flow", "404 dead end"] as const;
 export const diagnosticSignalSchema = z.object({
   fingerprint: z.string().regex(/^[a-f0-9]{8,64}$/),
   kind: z.enum(diagnosticKinds),
@@ -33,7 +33,10 @@ export type ProductSignalAccess = {
 };
 
 type Limit = (scope: "feedback" | "diagnostics", userId: string) => number;
-const nodeIds = new Set(productRoadmap.nodes.map(node => node.id));
+export function feedbackEnabledNodeIds(nodes: ReadonlyArray<{ id: string; acceptsFeedback?: boolean }>) {
+  return new Set(nodes.filter(node => node.acceptsFeedback === true).map(node => node.id));
+}
+const nodeIds = feedbackEnabledNodeIds(productRoadmap.nodes);
 function rateLimited(wait: number) {
   const response = failure("RATE_LIMITED", "Too many product signals. Please wait and retry.", 429);
   response.headers.set("Retry-After", String(wait));

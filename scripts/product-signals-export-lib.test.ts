@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { prioritizeFeedback, prioritizeIssues } from "./product-signals-export-lib";
+import { prioritizeFeedback, prioritizeFriction, prioritizeIssues } from "./product-signals-export-lib";
 
 test("diagnostic priority favors errors and preserves anonymous aggregates only", () => {
   const result = prioritizeIssues([
@@ -17,4 +17,14 @@ test("feedback priority weights friction above a passive vote", () => {
     "node-friction": { upvotes: 1, frictionReports: 2 }
   });
   assert.equal(result[0].nodeId, "node-friction");
+});
+
+test("friction queue excludes passive votes and exports aggregate counts only", () => {
+  const result = prioritizeFriction({
+    "passive-votes": { upvotes: 20, frictionReports: 0 },
+    "repeated-friction": { upvotes: 1, frictionReports: 3 },
+    "popular-friction": { upvotes: 8, frictionReports: 2 }
+  });
+  assert.deepEqual(result.map(item => item.nodeId), ["repeated-friction", "popular-friction"]);
+  assert.ok(result.every(item => !("summary" in item) && !("userId" in item)));
 });

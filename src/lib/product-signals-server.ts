@@ -45,8 +45,11 @@ export async function authorizeProductSignals(): Promise<ProductSignalAccess | n
   return {
     userId: user.id,
     async feedback(input: FeedbackInput) {
-      const { error } = await client.from("roadmap_feedback").insert({ user_id: user.id, node_id: input.nodeId, kind: input.kind, summary: input.kind === "friction" ? input.summary : null });
-      if (error?.code === "23505" && input.kind === "upvote") return;
+      const { error } = await client.rpc("record_roadmap_feedback", {
+        p_node_id: input.nodeId,
+        p_kind: input.kind,
+        p_summary: input.kind === "friction" ? input.summary : null
+      });
       if (error) throw new Error("Feedback write failed");
     },
     async diagnostic(input: DiagnosticSignal) {

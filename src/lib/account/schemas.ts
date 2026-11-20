@@ -1,8 +1,29 @@
 import { z } from "zod";
+import {
+  hasStrongPasswordShape,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH
+} from "./password-policy";
 
-export const credentialsSchema = z.object({
-  email: z.email().max(254).transform(email => email.trim().toLowerCase()),
-  password: z.string().min(8).max(128)
+export { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, PASSWORD_REQUIREMENTS } from "./password-policy";
+
+const emailSchema = z.email().max(254).transform(email => email.trim().toLowerCase());
+
+export const strongPasswordSchema = z.string()
+  .min(PASSWORD_MIN_LENGTH)
+  .max(PASSWORD_MAX_LENGTH)
+  .refine(hasStrongPasswordShape);
+
+// Sign-in deliberately accepts legacy passwords. Tightening it would lock out
+// accounts created before the stronger new-password policy was introduced.
+export const loginCredentialsSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1).max(PASSWORD_MAX_LENGTH)
+}).strict();
+
+export const registrationCredentialsSchema = z.object({
+  email: emailSchema,
+  password: strongPasswordSchema
 }).strict();
 
 export const profileSchema = z.object({

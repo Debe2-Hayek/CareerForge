@@ -12,11 +12,13 @@ export async function recoveryProvider(): Promise<RecoveryProvider> {
       const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: callback });
       return { error };
     },
-    async changePassword(password) {
+    async authorizePasswordChange() {
       const { data: { user }, error: authError } = await client.auth.getUser();
       if (authError || !user) return null;
-      const { error } = await client.auth.updateUser({ password });
-      return { error };
+      return async (password: string) => {
+        const { error } = await client.auth.updateUser({ password });
+        return { error };
+      };
     }
   };
 }

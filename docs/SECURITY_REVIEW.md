@@ -159,6 +159,27 @@ Retry-After/no-store and unrestricted logout. No real auth attempts, emails,
 database changes, new dependencies or paid services were required. Browser/UI
 tests were not rerun for this server-side increment.
 
+## New-password breach screening
+
+Registration and authenticated password updates now require 12–128 characters
+with lowercase, uppercase, number and a symbol from Supabase's documented ASCII
+set. Legacy login
+accepts the existing 1–128-character credential shape so policy tightening does
+not prevent established users from signing in and rotating their password.
+
+After validation, authorization and applicable attempt limits, the server checks
+new passwords against the free Have I Been Pwned range endpoint. It sends only a
+five-character SHA-1 prefix, requests padded results, validates a bounded response
+and compares the suffix locally. A compromised password returns a generic 400;
+an upstream timeout, non-200 or malformed response returns a sanitized 503. The
+Auth provider is not called on registration failure, and password recovery verifies
+the current user before making the range request and does not update on failure.
+
+This is application-route enforcement, not proof that Supabase's plan-gated native
+leaked-password option is active. Direct use of the public Auth endpoint remains a
+provider boundary; keep provider strength settings aligned and enable native leaked
+password protection when the project plan and Auth-admin permission support it.
+
 ## Verified-user write budgets
 
 The authenticated access objects now carry the verified server-side user ID.

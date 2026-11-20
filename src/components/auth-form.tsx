@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore, type FormEvent } from "react";
+import { hasStrongPasswordShape, PASSWORD_REQUIREMENTS } from "@/lib/account/password-policy";
 
 const subscribeReady = () => () => {};
 
@@ -17,7 +18,13 @@ export function AuthForm({ mode, callbackMessage }: { mode: "login" | "register"
     event.preventDefault();
     if (pending) return;
     const fields = new FormData(event.currentTarget);
-    if (registering && fields.get("password") !== fields.get("confirmPassword")) {
+    const password = String(fields.get("password") ?? "");
+    if (registering && !hasStrongPasswordShape(password)) {
+      setMessage(PASSWORD_REQUIREMENTS);
+      (event.currentTarget.elements.namedItem("password") as HTMLInputElement)?.focus();
+      return;
+    }
+    if (registering && password !== fields.get("confirmPassword")) {
       setMessage("Passwords do not match. Enter the same password in both fields.");
       (event.currentTarget.elements.namedItem("confirmPassword") as HTMLInputElement)?.focus();
       return;
@@ -25,7 +32,7 @@ export function AuthForm({ mode, callbackMessage }: { mode: "login" | "register"
     setPending(true);
     setMessage("");
     try {
-      const response = await fetch(`/api/v1/auth/${mode}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: String(fields.get("email") ?? "").trim(), password: String(fields.get("password") ?? "") }) });
+      const response = await fetch(`/api/v1/auth/${mode}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: String(fields.get("email") ?? "").trim(), password }) });
       const result = await response.json();
       if (!response.ok) { setMessage(result.error?.message ?? "Unable to continue. Please try again."); return; }
       if (result.confirmationRequired) { setConfirmation(true); return; }
@@ -44,10 +51,10 @@ export function AuthForm({ mode, callbackMessage }: { mode: "login" | "register"
           <p>If registration can proceed, a confirmation link will be sent to your email. Open the newest link in this browser, then sign in. Already registered? Use your existing password to sign in.</p>
           <Link className="text-button" href="/confirm-email">Request a new confirmation</Link>
           <Link className="button primary" href="/login" scroll={false}>Go to sign in <span aria-hidden="true">&#8599;</span></Link>
-        </div> : <form className="form-grid" method="post" onSubmit={submit} aria-busy={pending}>
+        </div> : <form className="form-grid" method="post" onSubmit={submit} onInput={() => { if (message) setMessage(""); }} aria-busy={pending}>
           <label className="full-field">Email address<input disabled={!ready || pending} type="email" name="email" autoComplete="email" required maxLength={254} /></label>
-          <label className="full-field">Password<input disabled={!ready || pending} name="password" aria-label="Password" type="password" autoComplete={registering ? "new-password" : "current-password"} required minLength={8} maxLength={128} aria-describedby={registering ? "password-help" : undefined} />{registering && <small id="password-help">Choose a password with 8&ndash;128 characters.</small>}</label>
-          {registering && <label className="full-field">Confirm password<input disabled={!ready || pending} name="confirmPassword" type="password" autoComplete="new-password" required minLength={8} maxLength={128} /></label>}
+          <label className="full-field">Password<input disabled={!ready || pending} name="password" aria-label="Password" type="password" autoComplete={registering ? "new-password" : "current-password"} required minLength={registering ? 12 : 1} maxLength={128} aria-describedby={registering ? "password-help" : undefined} />{registering && <small id="password-help">Use 12&ndash;128 characters with lowercase, uppercase, a number and a symbol. Known breached passwords are rejected using a private partial-hash check.</small>}</label>
+          {registering && <label className="full-field">Confirm password<input disabled={!ready || pending} name="confirmPassword" type="password" autoComplete="new-password" required minLength={12} maxLength={128} /></label>}
           {message && <p className="form-error full-field" role="alert">{message}</p>}
           <button className="button primary full-field" disabled={!ready || pending} type="submit">{pending ? registering ? "Creating account..." : "Signing in..." : registering ? "Create account" : "Sign in"}</button>
         </form>}

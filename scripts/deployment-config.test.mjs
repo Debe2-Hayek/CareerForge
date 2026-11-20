@@ -21,6 +21,8 @@ test("hosted deployment needs no direct database credentials but validates optio
   for (const name of ["DATABASE_URL", "DIRECT_URL"]) {
     assert.ok(deploymentConfigErrors({ ...publicOnly, [name]: "not-a-database-connection" }).some(error => error.startsWith(`${name}:`)));
   }
+  assert.deepEqual(deploymentConfigErrors({ ...publicOnly, NEXT_PUBLIC_SITE_URL: "https://careerforge-phi.vercel.app" }), []);
+  assert.ok(deploymentConfigErrors({ ...publicOnly, NEXT_PUBLIC_SITE_URL: "https://careerforge-phi.vercel.app/path" }).some(error => error.startsWith("NEXT_PUBLIC_SITE_URL:")));
 });
 test("deployment preflight never includes supplied values in diagnostic output", () => {
   const errors = deploymentConfigErrors({ ...fixture, APP_ORIGIN: "https://private-user:private-password@host.test", DATABASE_URL: "private-database", NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "private-key" });

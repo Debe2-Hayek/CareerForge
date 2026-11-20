@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://careerforge.dev/schemas/roadmap.schema.json",
+  "title": "CareerForge product evolution roadmap",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "updatedAt", "codebase", "upstream", "tracks", "nodes", "selfHealedLog"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "const": 1 },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "codebase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revision", "scannedAt"],
+      "properties": {
+        "revision": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+        "scannedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "upstream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "ref", "sourceRevision", "syncedAt"],
+      "properties": {
+        "repository": { "const": "kamranahmedse/developer-roadmap" },
+        "ref": { "type": "string", "minLength": 1 },
+        "sourceRevision": { "type": "string" },
+        "syncedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "tracks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "description", "upstreamPath", "sourceUrl", "upstreamTopicIds"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "description": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "upstreamPath": { "type": "string", "pattern": "^roadmaps/[a-z0-9-]+/content$" },
+          "sourceUrl": { "type": "string", "format": "uri", "pattern": "^https://roadmap\\.sh/" },
+          "upstreamTopicIds": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string", "pattern": "^[a-z0-9-]+$" }
+          }
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "selfHealedLog": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/selfHealedEntry" }
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "category", "trackId", "status", "horizon", "summary", "uxImpactScore", "creativeHook", "linkedFiles", "upstreamSourceUrl", "proof"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "category": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "trackId": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "status": { "enum": ["done", "in-progress", "planned", "upstream-new"] },
+        "horizon": { "enum": ["now", "next", "later"] },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 320 },
+        "uxImpactScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "creativeHook": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "linkedFiles": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 220 }
+        },
+        "upstreamSourceUrl": { "type": "string", "format": "uri", "pattern": "^https://roadmap\\.sh/" },
+        "proof": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["revision", "verifiedAt", "metrics"],
+          "properties": {
+            "revision": { "type": ["string", "null"] },
+            "verifiedAt": { "type": ["string", "null"], "format": "date-time" },
+            "metrics": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1, "maxLength": 160 }
+            }
+          }
+        }
+      }
+    },
+    "selfHealedEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "signal", "resolution", "detectedAt", "resolvedAt", "linkedFiles", "revision"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "signal": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "resolution": { "type": "string", "minLength": 1, "maxLength": 320 },
+        "detectedAt": { "type": "string", "format": "date-time" },
+        "resolvedAt": { "type": "string", "format": "date-time" },
+        "linkedFiles": { "type": "array", "items": { "type": "string" } },
+        "revision": { "type": "string", "minLength": 7, "maxLength": 40 }
+      }
+    }
+  }
+}

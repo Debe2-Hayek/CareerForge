@@ -7,6 +7,7 @@ import "./profile-history.css";
 import "./experience.css";
 import "./profile-start.css";
 import { AmbientBackground } from "@/components/ambient-background";
+import { SelfDiagnoseProvider } from "@/components/self-diagnose-provider";
 
 const title = "CareerForge — Build your next chapter";
 const description = "Build your skills. Find your direction. Shape your next chapter with CareerForge.";
@@ -31,6 +32,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <div className="site-layer">{children}</div>
+        <SelfDiagnoseProvider />
         {/* After the page in the DOM so the skip link stays first in the tab order; it is fixed-position, so it still paints behind the page. */}
         <AmbientBackground />
       </body>

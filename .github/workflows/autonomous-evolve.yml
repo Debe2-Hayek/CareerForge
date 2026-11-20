@@ -1,0 +1,121 @@
+name: Autonomous evolution proposal
+
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+    inputs:
+      focus:
+        description: "Optional bounded focus for this run"
+        type: choice
+        required: true
+        default: auto
+        options: [auto, reliability, performance, ux]
+
+concurrency:
+  group: autonomous-evolve
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DATABASE_URL: ""
+      DIRECT_URL: ""
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_SUPABASE_URL: ""
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ""
+      EVOLUTION_SOURCE_ORIGIN: ${{ vars.EVOLUTION_SOURCE_ORIGIN || 'https://careerforge-phi.vercel.app' }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run prisma:generate
+      - name: Install Chromium before privilege reduction
+        run: npx playwright install --with-deps chromium
+
+      - name: Synchronize roadmap.sh source
+        run: npm run roadmap:sync
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Export anonymous product signals
+        run: npm run evolution:export
+
+      - name: Record trusted run context
+        env:
+          REQUESTED_FOCUS: ${{ inputs.focus || 'auto' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          node -e "const fs=require('node:fs'); const allowed=new Set(['auto','reliability','performance','ux']); const focus=allowed.has(process.env.REQUESTED_FOCUS)?process.env.REQUESTED_FOCUS:'auto'; fs.writeFileSync('.github/codex/run-context.md', '# Run context\n\nFocus: '+focus+'\nWorkflow: '+process.env.RUN_URL+'\n');"
+
+      - name: Require the Codex API secret
+        env:
+          CODEX_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: test -n "$CODEX_KEY" || (echo "Configure the OPENAI_API_KEY Actions secret before running autonomous evolution." && exit 1)
+
+      - name: Run bounded Codex evolution
+        id: codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":workspace"
+          safety-strategy: drop-sudo
+          prompt-file: .github/codex/autonomous-evolve.md
+          codex-args: '["--search"]'
+
+      - name: Reject automation-boundary changes
+        run: |
+          if git diff --name-only -- .github/workflows/autonomous-evolve.yml AGENTS.md | grep -q .; then
+            echo "Codex changed a protected automation boundary. Refusing to publish."
+            exit 1
+          fi
+          git diff --check
+
+      - name: Detect proposal changes
+        id: changes
+        run: |
+          if test -n "$(git status --porcelain --untracked-files=all)"; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "present=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Verify proposal
+        if: steps.changes.outputs.present == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          npm run roadmap:sync
+          npm run lint
+          npm run typecheck
+          npm test
+          npm run build:offline
+          npm run test:e2e:ci
+
+      - name: Open review-only pull request
+        if: steps.changes.outputs.present == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CODEX_SUMMARY: ${{ steps.codex.outputs.final-message }}
+          EVOLUTION_BRANCH: codex/evolve-${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$EVOLUTION_BRANCH"
+          git add -A
+          git commit -m "Propose evidence-backed product evolution"
+          gh auth setup-git
+          git push origin "HEAD:$EVOLUTION_BRANCH"
+          node -e "const fs=require('node:fs'); const body=['## Before / after', process.env.CODEX_SUMMARY || 'See the focused diff for the selected signal and resolution.', '', '## Independent verification', '- roadmap.sh synchronization', '- lint and strict TypeScript', '- unit tests and offline production build', '- desktop/mobile Playwright suite', '', 'Workflow: '+process.env.RUN_URL, '', 'This PR is review-only. It does not auto-merge or deploy.'].join('\n'); fs.writeFileSync(process.env.RUNNER_TEMP+'/careerforge-evolution-pr.md', body);"
+          gh pr create --base "${{ github.event.repository.default_branch }}" --head "$EVOLUTION_BRANCH" --title "Codex evolution: evidence-backed product improvement" --body-file "$RUNNER_TEMP/careerforge-evolution-pr.md"

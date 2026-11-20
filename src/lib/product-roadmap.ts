@@ -76,8 +76,21 @@ export type ProductRoadmap = z.infer<typeof productRoadmapSchema>;
 export type ProductRoadmapNode = z.infer<typeof roadmapNodeSchema>;
 export type RoadmapStatus = z.infer<typeof roadmapStatusSchema>;
 export type RoadmapHorizon = z.infer<typeof roadmapHorizonSchema>;
+export type ProductRoadmapView = Pick<ProductRoadmap, "updatedAt" | "upstream" | "nodes" | "selfHealedLog"> & {
+  tracks: Array<Omit<ProductRoadmap["tracks"][number], "upstreamTopicIds">>;
+};
 
 export const productRoadmap: ProductRoadmap = productRoadmapSchema.parse(roadmapDocument);
+
+export function toProductRoadmapView(roadmap: ProductRoadmap): ProductRoadmapView {
+  return {
+    updatedAt: roadmap.updatedAt,
+    upstream: roadmap.upstream,
+    tracks: roadmap.tracks.map(({ upstreamTopicIds: _upstreamTopicIds, ...track }) => track),
+    nodes: roadmap.nodes,
+    selfHealedLog: roadmap.selfHealedLog
+  };
+}
 
 export function roadmapStats(roadmap: ProductRoadmap) {
   const counts: Record<RoadmapStatus, number> = { done: 0, "in-progress": 0, planned: 0, "upstream-new": 0 };

@@ -24,7 +24,8 @@
     "test:skill-checks": "node scripts/test-skill-checks.mjs",
     "test:portfolios": "node scripts/test-portfolios.mjs",
     "test:portfolio-appearance": "node scripts/test-portfolio-appearance.mjs",
-    "roadmap:sync": "tsx scripts/sync-roadmap.ts"
+    "roadmap:sync": "tsx scripts/sync-roadmap.ts",
+    "evolution:export": "tsx scripts/export-product-signals.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",

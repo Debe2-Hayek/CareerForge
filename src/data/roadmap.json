@@ -952,6 +952,20 @@
         "docs/SECURITY_REVIEW.md"
       ],
       "revision": "bc280c2"
+    },
+    {
+      "id": "github-actions-node24-runtime",
+      "title": "GitHub Actions runtime deprecation",
+      "signal": "The final production-release CI passed but warned that pinned checkout and setup-node revisions targeted deprecated Node 20 action runtimes.",
+      "resolution": "Verified the official v5 tag commits and moved every workflow to immutable checkout v5 and setup-node v5 pins, eliminating reliance on GitHub's temporary forced Node 24 compatibility mode.",
+      "detectedAt": "2026-11-21T00:00:00+02:00",
+      "resolvedAt": "2026-11-21T00:00:00+02:00",
+      "linkedFiles": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/codex-autofix.yml",
+        ".github/workflows/free-roadmap-sync.yml"
+      ],
+      "revision": "d3982cd"
     }
   ]
 }

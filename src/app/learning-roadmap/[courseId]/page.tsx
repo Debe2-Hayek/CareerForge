@@ -52,7 +52,8 @@ export default async function CoursePage({ params, searchParams }: { params: Par
 
   const progress = account.snapshot?.progress[course.id] ?? emptyProgress();
   const plan = buildLearningPlan(course, settings, enrollment ? progress : emptyProgress());
-  const view: RoadmapView = single(search.view) === "overview" ? "overview" : "path";
+  // The interactive graph is the default; "list" selects the guided list (old "overview" links still land on the graph).
+  const view: RoadmapView = single(search.view) === "list" ? "path" : "overview";
   const topicParam = slugSchema.safeParse(single(search.topic));
   const selectedTopicId = topicParam.success && course.topics.some(topic => topic.id === topicParam.data) ? topicParam.data : null;
 
@@ -69,10 +70,10 @@ export default async function CoursePage({ params, searchParams }: { params: Par
     const text = query.toString();
     return text ? `${base}?${text}` : base;
   };
-  const viewParam = view === "overview" ? "overview" : undefined;
+  const viewParam = view === "path" ? "list" : undefined;
   const hrefs = {
     topic: (id: string) => href({ view: viewParam, topic: id }),
-    view: (next: RoadmapView) => href({ view: next === "overview" ? "overview" : undefined }),
+    view: (next: RoadmapView) => href({ view: next === "path" ? "list" : undefined }),
     close: href({ view: viewParam })
   };
   const recommendations = recommendNextSteps(course, plan, base).map(item => item.href.startsWith(`${base}?topic=`)

@@ -490,6 +490,13 @@
   .dialog[open] { animation: none; }
 }
 
-/* Skill map view: the map gets the full width; guidance panels follow it. */
+/* Roadmap graph view: the graph gets the full width; guidance panels follow it. */
 .layout[data-view="overview"] { grid-template-columns: 1fr; }
 .layout[data-view="overview"] .sidebar { position: static; order: 0; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+
+/* Reset progress */
+.resetBox { display: grid; gap: 10px; margin-top: 16px; padding: 16px 18px; border: 1px solid #5c3b33; border-radius: 14px; background: #1d1614; }
+.resetBox strong { font-size: 14px; }
+.resetBox p { margin: 4px 0 0; color: var(--l-soft, #b4c2a8); font-size: 12px; line-height: 1.55; }
+.dangerButton { min-height: 44px; padding: 10px 16px; border: 1px solid #c56b5a; border-radius: 8px; background: #6b2a1f; color: #ffe9e3; font-size: 12px; font-weight: 700; cursor: pointer; }
+.dangerButton:focus-visible { outline: 2px solid #f0a58f; outline-offset: 2px; }

@@ -39,6 +39,10 @@ export function learningAccess(client: SupabaseClient, userId: string): Learning
       }
       if (inserted.error) throw inserted.error;
     },
+    async resetProgress(courseId: string) {
+      const removed = await client.from("learning_progress").delete().eq("user_id", userId).eq("course_id", courseId);
+      if (removed.error) throw removed.error;
+    },
     async saveProgress(input: ProgressInput) {
       const version = getCourse(input.courseId)?.version ?? 1;
       const key = <Query extends { eq: (column: string, value: string) => Query }>(query: Query) =>

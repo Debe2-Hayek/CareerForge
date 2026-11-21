@@ -4,10 +4,10 @@ import type { EnrollmentInput, ProgressInput } from "@/lib/learning/api";
 
 export type SaveResult = { ok: true } | { ok: false; message: string };
 
-async function put(path: string, body: EnrollmentInput | ProgressInput): Promise<SaveResult> {
+async function put(path: string, body: EnrollmentInput | ProgressInput | { courseId: string; confirm: true }, method = "PUT"): Promise<SaveResult> {
   try {
     const response = await fetch(`/api/v1/learning/${path}`, {
-      method: "PUT",
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
     });
@@ -24,3 +24,4 @@ async function put(path: string, body: EnrollmentInput | ProgressInput): Promise
 
 export const saveEnrollment = (input: EnrollmentInput) => put("enrollments", input);
 export const saveProgress = (input: ProgressInput) => put("progress", input);
+export const resetProgress = (courseId: string) => put("reset", { courseId, confirm: true }, "POST");

@@ -38,7 +38,8 @@ option. Reload resumes the deadline; answer drafts are page-memory only.
 See [timed assessment behavior](docs/TIMED_SKILL_CHECKS.md).
 Learning roadmap offers personalised, free-first guided paths (Python with
 backend/data/ML/automation specialisations, and JavaScript & Web Development with
-React and Node.js specialisations) plus a connected Skill map view: goal, level
+React and Node.js specialisations) shown as an interactive roadmap graph (zoom,
+search, prerequisite highlighting, focus mode) or a list: goal, level
 and weekly-time personalisation, prerequisite-aware plans, topic details with
 free official resources, owner-only progress tracking across devices, projects
 and portfolio-entry hand-off. Career roadmaps (`/learning-roadmap/careers`)

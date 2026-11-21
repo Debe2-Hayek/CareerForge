@@ -200,6 +200,10 @@ export async function verifySuppliedBuilderLive(context) {
     await builder.getByRole("button", { name: "Download CV", exact: true }).click();
     await expect(builder.getByRole("tab", { name: "CV", exact: true })).toHaveAttribute("aria-selected", "true");
     await expect.poll(() => page.evaluate(() => window.__builderPrintCalls)).toBe(1);
+    // "Professional bullet" is the default CV style since 4aa7fae; Modern is opt-in.
+    await expect(builder.getByRole("tab", { name: "Professional bullet", exact: true })).toHaveAttribute("aria-selected", "true");
+    await expect(builder.locator(".cv.bullet h1")).toHaveText("Local Draft Person");
+    await builder.getByRole("tab", { name: "Modern", exact: true }).click();
     await expect(builder.locator(".cv.modern h1")).toHaveText("Local Draft Person");
     await expect(builder.getByRole("checkbox", { name: "Photo on CV", exact: true })).toBeDisabled();
     await builder.getByRole("button", { name: "Download PDF", exact: true }).click();
@@ -254,7 +258,9 @@ export async function verifySuppliedBuilderLive(context) {
 
     for (const width of [320, 768, 1440, 1920]) {
       await page.setViewportSize({ width, height: 1000 });
-      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `CV overflow at ${width}px`);
+      // Let the app shell finish its desktop/mobile transition; genuine overflow still fails.
+      const fits = await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth, null, { timeout: 3000 }).then(() => true, () => false);
+      assert.equal(fits, true, `CV overflow at ${width}px`);
       if (width === 320) {
         const hideNotes = page.getByRole("button", { name: "Hide notes", exact: true });
         await hideNotes.click();
@@ -289,8 +295,9 @@ export async function verifySuppliedBuilderLive(context) {
     for (const selector of [".pb .toolbar", ".supplied-builder-bar", ".app-sidebar", ".app-topbar"]) {
       await expect(page.locator(selector)).not.toBeVisible();
     }
-    assert.equal(await page.locator(".app-main").evaluate(element => getComputedStyle(element).marginLeft), "0px");
-    assert.equal(await page.locator(".app-content").evaluate(element => getComputedStyle(element).padding), "0px");
+    // The shell animates its margin, so poll for the settled print layout.
+    await expect.poll(() => page.locator(".app-main").evaluate(element => getComputedStyle(element).marginLeft)).toBe("0px");
+    await expect.poll(() => page.locator(".app-content").evaluate(element => getComputedStyle(element).padding)).toBe("0px");
     await expect(builder.locator(".cv.modern")).toBeVisible();
     await expect(builder.locator(".cprint")).toBeVisible();
     await expect(builder.locator(".cprint")).toContainText("local-draft@careerforge.invalid");
@@ -325,7 +332,7 @@ export async function verifySuppliedBuilderLive(context) {
       await expect(builder.locator(".hero h2")).toHaveText("Sara Khoury");
     }
     await builder.getByRole("tab", { name: "CV", exact: true }).click();
-    await expect(builder.locator(".cv.modern h1")).toHaveText("Sara Khoury");
+    await expect(builder.locator(".cv.bullet h1")).toHaveText("Sara Khoury");
     await page.reload();
     await expect(builder.locator(".hero h2")).toHaveText("Sara Khoury");
     assert.deepEqual(errors, []);

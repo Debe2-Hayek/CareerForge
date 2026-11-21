@@ -1,5 +1,29 @@
 # CareerForge implementation roadmap
 
+## M5/R3 - Personalised learning roadmap - verified locally, 21 November 2026
+
+The Learning roadmap tab is now a learner journey: dashboard with continue
+cards and a searchable catalog; a deep, original Python guided path (52 topics,
+10 phases incl. backend/data/ML/automation specialisations, 12 projects, 103
+verified free resources); deterministic personalisation by goal, level, weekly
+hours and format; prerequisite-aware next steps and weekly plans; topic dialog
+with completion criteria; owner-only progress persistence; project tracking with
+portfolio-entry hand-off; and career roadmaps showing graded skill evidence.
+The product-evolution map moved to `/learning-roadmap/product` inside the tab.
+
+Evidence: lint, strict TypeScript, 180 unit/render tests and the offline
+production build passed; `db:validate:learning` passed against development in a
+rolled-back transaction; browser QA at 1440/820/390px showed no console errors
+or horizontal overflow and correct dialog focus/Escape behaviour;
+`check:learning-links` resolved 103/103 URLs. Details and limits:
+[LEARNING_ROADMAP.md](LEARNING_ROADMAP.md).
+
+Not yet done: migration `202611210001_learning_progress.sql` is **not applied**
+to any database (owner approval pending), so `test:account:live` has not run the
+new learning journey; only Python has a guided path; portfolio hand-off is a
+prepared entry, not normalised records; career gaps use per-listing skills, not
+aggregated market frequencies.
+
 ## Autonomous roadmap and search release - deployed 21 November 2026
 
 PR #2 merged the verified release branch into `main` at `60687cc` after its

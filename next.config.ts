@@ -17,6 +17,7 @@ const noIndexSources = [
   "/skill-checks",
   "/academic-planner",
   "/learning-roadmap",
+  "/learning-roadmap/:path*",
   "/roadmap",
   "/projects",
   "/documents",

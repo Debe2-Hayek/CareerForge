@@ -1,0 +1,448 @@
+{
+  "version": 1,
+  "source": {
+    "name": "roadmap.sh",
+    "url": "https://roadmap.sh/",
+    "repository": "https://github.com/nilbuild/developer-roadmap",
+    "reviewedAt": "2026-11-21",
+    "attribution": "CareerForge curates original practice tasks around public roadmap.sh topics. CareerForge is not affiliated with roadmap.sh."
+  },
+  "topics": {
+    "html": {
+      "title": "Semantic HTML",
+      "skillAliases": ["HTML", "Frontend"],
+      "focus": "Document structure, forms, landmarks and meaningful elements",
+      "task": "Build a multi-section opportunity page with a labelled application form and useful empty and error messages.",
+      "doneWhen": "The page works without CSS, headings form a logical outline, form errors are announced and every control has a label.",
+      "sourceUrl": "https://roadmap.sh/html"
+    },
+    "css": {
+      "title": "Responsive CSS",
+      "skillAliases": ["CSS", "Frontend", "UI"],
+      "focus": "Cascade, layout, responsive sizing and visible focus",
+      "task": "Turn the opportunity page into a responsive card layout with mobile, tablet and desktop states.",
+      "doneWhen": "There is no horizontal overflow at 320px, text remains readable at 200% zoom and every interactive control has visible focus.",
+      "sourceUrl": "https://roadmap.sh/css"
+    },
+    "javascript": {
+      "title": "JavaScript foundations",
+      "skillAliases": ["JavaScript", "JS"],
+      "focus": "Functions, arrays, DOM events and asynchronous requests",
+      "task": "Build a searchable opportunity list that loads JSON and handles loading, empty, success and error states.",
+      "doneWhen": "Search works without a reload, failed requests offer a retry and you can explain the event and promise flow.",
+      "sourceUrl": "https://roadmap.sh/javascript"
+    },
+    "git": {
+      "title": "Git and collaboration",
+      "skillAliases": ["Git", "GitHub", "Version control"],
+      "focus": "Branches, commits, pull requests, diffs and conflict resolution",
+      "task": "Build one feature on a branch, review its diff, then merge a second branch that creates a deliberate conflict.",
+      "doneWhen": "The history is understandable, both intended changes survive and you can demonstrate reverting one commit safely.",
+      "sourceUrl": "https://roadmap.sh/git-github"
+    },
+    "typescript": {
+      "title": "Reliable TypeScript",
+      "skillAliases": ["TypeScript", "TS"],
+      "focus": "Object types, unions, narrowing, generics and strict checking",
+      "task": "Model an opportunity and its loading, success and failure states with a discriminated union.",
+      "doneWhen": "Strict checking passes without any or unchecked casts, and unexpected API input is validated before use.",
+      "sourceUrl": "https://roadmap.sh/typescript"
+    },
+    "react": {
+      "title": "React interface patterns",
+      "skillAliases": ["React", "React.js", "ReactJS"],
+      "focus": "Components, state, forms, stable identity and effect cleanup",
+      "task": "Build a filterable learning board with add, edit, reorder and remove actions using immutable state updates.",
+      "doneWhen": "Reordering preserves input identity, every action works from the keyboard and tests cover the main state transitions.",
+      "sourceUrl": "https://roadmap.sh/react"
+    },
+    "accessibility": {
+      "title": "Accessible interfaces",
+      "skillAliases": ["Accessibility", "A11y", "WCAG"],
+      "focus": "Keyboard use, semantics, focus management, contrast and assistive feedback",
+      "task": "Audit one flow with keyboard-only navigation and a screen reader, then repair the three highest-impact barriers.",
+      "doneWhen": "The full flow works without a pointer, focus never disappears and automated checks have no serious violations.",
+      "sourceUrl": "https://roadmap.sh/frontend"
+    },
+    "testing": {
+      "title": "Testing useful behaviour",
+      "skillAliases": ["Testing", "QA", "Unit testing", "E2E"],
+      "focus": "Unit boundaries, integration behaviour, end-to-end flows and failure cases",
+      "task": "Test a critical flow at unit, integration and browser levels, including one network failure and one invalid input.",
+      "doneWhen": "Tests fail for the intended regression, avoid implementation details and run reliably from a clean checkout.",
+      "sourceUrl": "https://roadmap.sh/qa"
+    },
+    "frontend-performance": {
+      "title": "Frontend performance",
+      "skillAliases": ["Performance", "Web performance", "Core Web Vitals"],
+      "focus": "Loading cost, rendering work, image delivery and Core Web Vitals",
+      "task": "Profile one page, remove its largest avoidable cost and record the before and after measurement.",
+      "doneWhen": "The same repeatable test shows an improvement and the change preserves accessibility and expected behaviour.",
+      "sourceUrl": "https://roadmap.sh/best-practices/frontend-performance"
+    },
+    "web-security": {
+      "title": "Browser security basics",
+      "skillAliases": ["Web security", "Security", "OWASP"],
+      "focus": "Untrusted input, sessions, browser policies and dependency risk",
+      "task": "Threat-model a sign-in or profile flow, then add validation and one browser security control with a regression test.",
+      "doneWhen": "Trust boundaries are documented, malicious input is rejected safely and no secret reaches client code or source control.",
+      "sourceUrl": "https://roadmap.sh/cyber-security"
+    },
+    "http": {
+      "title": "HTTP and the web",
+      "skillAliases": ["HTTP", "Web", "Networking"],
+      "focus": "Requests, responses, methods, status codes, headers and caching",
+      "task": "Inspect a real browser-to-API exchange and document the request, response, cache behaviour and failure path.",
+      "doneWhen": "You can justify each method and status code and reproduce the exchange with a command-line client.",
+      "sourceUrl": "https://roadmap.sh/http"
+    },
+    "nodejs": {
+      "title": "Node.js services",
+      "skillAliases": ["Node.js", "NodeJS", "Node"],
+      "focus": "Runtime fundamentals, modules, asynchronous work and server lifecycle",
+      "task": "Build a small JSON service with health, create and read endpoints plus graceful shutdown.",
+      "doneWhen": "Malformed input and missing records return consistent errors, tests pass and shutdown completes active work safely.",
+      "sourceUrl": "https://roadmap.sh/nodejs"
+    },
+    "api-design": {
+      "title": "API design",
+      "skillAliases": ["API", "REST", "API design"],
+      "focus": "Resource modelling, contracts, validation, pagination and error design",
+      "task": "Design and implement a versioned learning-progress API with an example contract and pagination.",
+      "doneWhen": "The contract covers success and error shapes, invalid input is rejected and a breaking change is identified before release.",
+      "sourceUrl": "https://roadmap.sh/api-design"
+    },
+    "sql": {
+      "title": "Relational data and SQL",
+      "skillAliases": ["SQL", "PostgreSQL", "Database", "Databases"],
+      "focus": "Schema design, joins, grouping, constraints, indexes and safe parameters",
+      "task": "Model learners, roadmaps and completions, then report progress including roadmaps with no activity.",
+      "doneWhen": "Constraints prevent invalid data, a LEFT JOIN preserves empty roadmaps and user input is always parameterized.",
+      "sourceUrl": "https://roadmap.sh/sql"
+    },
+    "api-security": {
+      "title": "API security",
+      "skillAliases": ["API security", "Security", "OWASP API"],
+      "focus": "Authentication, authorization, rate limits, input validation and safe errors",
+      "task": "Protect one private endpoint against unauthorized object access, repeated abuse and malformed input.",
+      "doneWhen": "Tests prove users cannot read another account, rate limits behave predictably and responses reveal no internals.",
+      "sourceUrl": "https://roadmap.sh/best-practices/api-security"
+    },
+    "docker": {
+      "title": "Containers with Docker",
+      "skillAliases": ["Docker", "Containers", "Containerization"],
+      "focus": "Images, containers, ports, health checks and environment configuration",
+      "task": "Containerize a small service with a health check and document a clean-checkout run command.",
+      "doneWhen": "The build is reproducible, secrets stay outside the image and the application runs as a non-root user.",
+      "sourceUrl": "https://roadmap.sh/docker"
+    },
+    "spreadsheets": {
+      "title": "Spreadsheet analysis",
+      "skillAliases": ["Excel", "Google Sheets", "Spreadsheets"],
+      "focus": "Cleaning, formulas, lookups, validation and pivot summaries",
+      "task": "Clean a small outcomes dataset and build a monthly pivot summary with documented assumptions.",
+      "doneWhen": "Totals reconcile with source rows, duplicates and missing values are visible and formulas survive one added month.",
+      "sourceUrl": "https://roadmap.sh/data-analyst"
+    },
+    "python": {
+      "title": "Python for analysis",
+      "skillAliases": ["Python"],
+      "focus": "Collections, functions, files, environments and automated tests",
+      "task": "Write a CSV-cleaning program that normalizes categories, reports missing values and preserves rejected rows.",
+      "doneWhen": "Tests cover empty, duplicate and malformed records and another person can run it from a clean environment.",
+      "sourceUrl": "https://roadmap.sh/python"
+    },
+    "data-cleaning": {
+      "title": "Data cleaning",
+      "skillAliases": ["Data cleaning", "Pandas", "Data wrangling"],
+      "focus": "Missingness, duplicates, types, outliers and reproducible transformations",
+      "task": "Create a reproducible cleaning notebook and a data-quality report for an intentionally messy dataset.",
+      "doneWhen": "Every transformation has a reason, row counts reconcile and rerunning from raw data produces the same result.",
+      "sourceUrl": "https://roadmap.sh/data-analyst"
+    },
+    "statistics": {
+      "title": "Practical statistics",
+      "skillAliases": ["Statistics", "Statistical analysis"],
+      "focus": "Distributions, sampling, uncertainty, correlation and experiment basics",
+      "task": "Answer one product question with descriptive statistics and a confidence interval, then explain the limitations.",
+      "doneWhen": "The method matches the data, uncertainty is visible and the conclusion avoids causal claims the evidence cannot support.",
+      "sourceUrl": "https://roadmap.sh/data-analyst"
+    },
+    "data-visualization": {
+      "title": "Data visualization",
+      "skillAliases": ["Data visualization", "Tableau", "Power BI", "Charts"],
+      "focus": "Chart choice, scales, annotation, accessibility and truthful comparison",
+      "task": "Create three views of the same dataset, select the clearest one and document why the others mislead or distract.",
+      "doneWhen": "The chart answers one stated question, labels work without colour and scales do not exaggerate the result.",
+      "sourceUrl": "https://roadmap.sh/data-analyst"
+    },
+    "dashboard": {
+      "title": "Decision-ready dashboards",
+      "skillAliases": ["Dashboard", "BI", "Power BI", "Tableau"],
+      "focus": "Information hierarchy, filters, metric definitions and operational context",
+      "task": "Build a one-page outcomes dashboard for a named decision-maker and a single recurring decision.",
+      "doneWhen": "Metrics are defined, filters are understandable, empty states are useful and the intended decision can be made quickly.",
+      "sourceUrl": "https://roadmap.sh/data-analyst"
+    },
+    "data-storytelling": {
+      "title": "Data storytelling",
+      "skillAliases": ["Data storytelling", "Presentation", "Communication"],
+      "focus": "Audience, narrative, evidence, uncertainty and recommendations",
+      "task": "Turn an analysis into a five-slide briefing with one decision, three findings and one explicit limitation.",
+      "doneWhen": "Every claim traces to evidence, uncertainty is stated and the recommendation is proportionate to the result.",
+      "sourceUrl": "https://roadmap.sh/data-analyst"
+    },
+    "data-ethics": {
+      "title": "Responsible data use",
+      "skillAliases": ["Data ethics", "Privacy", "Responsible AI"],
+      "focus": "Privacy, consent, representation, bias and appropriate retention",
+      "task": "Review a dataset for collection risk, missing populations and harmful proxy variables before analysis.",
+      "doneWhen": "The review records what should not be used, who may be harmed and one concrete mitigation or stop condition.",
+      "sourceUrl": "https://roadmap.sh/data-analyst"
+    },
+    "ux-research": {
+      "title": "User research foundations",
+      "skillAliases": ["UX research", "User research", "Research"],
+      "focus": "Research questions, interviews, observation and evidence synthesis",
+      "task": "Plan and run three short interviews about one real workflow, using neutral prompts and consent.",
+      "doneWhen": "Notes separate observation from interpretation and findings include supporting evidence, limits and open questions.",
+      "sourceUrl": "https://roadmap.sh/ux-design"
+    },
+    "user-flows": {
+      "title": "User flows and journeys",
+      "skillAliases": ["User flows", "Journey mapping", "UX"],
+      "focus": "Goals, entry points, decisions, recovery and end states",
+      "task": "Map the current and improved journey for completing one high-value task, including failure and recovery paths.",
+      "doneWhen": "The flow has one clear goal, no unexplained dead ends and every branch ends in success, recovery or an honest stop.",
+      "sourceUrl": "https://roadmap.sh/ux-design"
+    },
+    "information-architecture": {
+      "title": "Information architecture",
+      "skillAliases": ["Information architecture", "IA", "Content design"],
+      "focus": "Mental models, grouping, labels, navigation and findability",
+      "task": "Run a small card sort, propose a navigation model and test five findability tasks with fresh participants.",
+      "doneWhen": "Labels use user language, results identify confusion and revisions connect directly to observed failures.",
+      "sourceUrl": "https://roadmap.sh/ux-design"
+    },
+    "figma": {
+      "title": "Figma and interface craft",
+      "skillAliases": ["Figma", "Interface design", "UI design"],
+      "focus": "Auto layout, reusable components, constraints, variants and interaction states",
+      "task": "Design a responsive opportunity-search flow with reusable controls and loading, empty and error states.",
+      "doneWhen": "Components resize without manual repair, variants are named consistently and the prototype covers keyboard focus order.",
+      "sourceUrl": "https://roadmap.sh/ux-design"
+    },
+    "interaction-design": {
+      "title": "Interaction design",
+      "skillAliases": ["Interaction design", "Prototyping", "UI/UX"],
+      "focus": "Feedback, constraints, state changes, motion and error prevention",
+      "task": "Prototype a multi-step flow and document the feedback shown after every important user action.",
+      "doneWhen": "Users always know what changed, destructive actions are recoverable and motion has a reduced-motion alternative.",
+      "sourceUrl": "https://roadmap.sh/ux-design"
+    },
+    "design-systems": {
+      "title": "Design systems",
+      "skillAliases": ["Design systems", "Design system", "Tokens"],
+      "focus": "Tokens, component anatomy, variants, documentation and governance",
+      "task": "Create a small token set and three documented components that cover real product states.",
+      "doneWhen": "Names express purpose, components handle disabled and error states and documentation includes when not to use them.",
+      "sourceUrl": "https://roadmap.sh/design-system"
+    },
+    "usability-testing": {
+      "title": "Usability testing",
+      "skillAliases": ["Usability testing", "UX testing"],
+      "focus": "Task design, facilitation, severity and evidence-led iteration",
+      "task": "Test a prototype with five task-based sessions and rank findings by frequency and impact.",
+      "doneWhen": "Prompts avoid coaching, evidence supports each issue and the top revision is tested again rather than assumed fixed.",
+      "sourceUrl": "https://roadmap.sh/ux-design"
+    },
+    "handoff": {
+      "title": "Design-to-development handoff",
+      "skillAliases": ["Handoff", "Design specs", "Developer collaboration"],
+      "focus": "States, responsive behaviour, content rules, acceptance criteria and collaboration",
+      "task": "Prepare one feature for implementation with annotated states, responsive rules and testable acceptance criteria.",
+      "doneWhen": "A developer can identify every state and edge case without guessing and open questions are resolved in writing.",
+      "sourceUrl": "https://roadmap.sh/ux-design"
+    },
+    "portfolio-case-study": {
+      "title": "Evidence-led case study",
+      "skillAliases": ["Portfolio", "Case study", "UX portfolio"],
+      "focus": "Problem framing, individual contribution, evidence, iteration and outcomes",
+      "task": "Publish a concise case study that shows what changed because of research or testing, including one failed direction.",
+      "doneWhen": "Claims are supported, your role is explicit, confidential details are removed and limitations are honest.",
+      "sourceUrl": "https://roadmap.sh/ux-design"
+    },
+    "linux": {
+      "title": "Linux foundations",
+      "skillAliases": ["Linux", "Shell", "Bash"],
+      "focus": "Files, processes, permissions, services, logs and shell automation",
+      "task": "Provision a least-privilege service user, run a small service and diagnose an intentional startup failure from logs.",
+      "doneWhen": "The service restarts predictably, permissions are minimal and the diagnosis is captured as a repeatable runbook.",
+      "sourceUrl": "https://roadmap.sh/linux"
+    },
+    "networking": {
+      "title": "Networking foundations",
+      "skillAliases": ["Networking", "DNS", "TCP/IP"],
+      "focus": "DNS, addresses, ports, TLS, routing and common failure modes",
+      "task": "Trace a request from DNS lookup to TLS connection and simulate one DNS and one port failure.",
+      "doneWhen": "You can locate each failure with standard tools and explain which layer owns the repair.",
+      "sourceUrl": "https://roadmap.sh/computer-science"
+    },
+    "ci-cd": {
+      "title": "Continuous delivery",
+      "skillAliases": ["CI/CD", "GitHub Actions", "Continuous integration", "DevOps"],
+      "focus": "Build checks, artifacts, environments, safe releases and rollback",
+      "task": "Create a pipeline that tests, builds and deploys a small service only after required checks pass.",
+      "doneWhen": "A broken test blocks release, secrets stay in the platform store and a documented rollback restores the prior version.",
+      "sourceUrl": "https://roadmap.sh/devops"
+    },
+    "cloud": {
+      "title": "Cloud fundamentals",
+      "skillAliases": ["Cloud", "AWS", "Azure", "GCP"],
+      "focus": "Compute, storage, identity, networking, regions and cost awareness",
+      "task": "Deploy a small service with least-privilege access, a budget alert and a diagram of its trust boundaries.",
+      "doneWhen": "The service is reproducible, public access is intentional and idle resources can be identified and removed.",
+      "sourceUrl": "https://roadmap.sh/cloud-computing"
+    },
+    "observability": {
+      "title": "Observability",
+      "skillAliases": ["Observability", "Monitoring", "Logging", "Metrics"],
+      "focus": "Structured logs, useful metrics, traces, service objectives and actionable alerts",
+      "task": "Instrument one request path and create an alert for a user-visible failure rather than raw infrastructure noise.",
+      "doneWhen": "A test incident can be traced end to end and the alert includes context, ownership and a useful runbook.",
+      "sourceUrl": "https://roadmap.sh/devops"
+    },
+    "infrastructure-security": {
+      "title": "Infrastructure security",
+      "skillAliases": ["Infrastructure security", "Security", "DevSecOps"],
+      "focus": "Least privilege, secrets, patching, network exposure and audit trails",
+      "task": "Review a small deployment for excessive access and replace one long-lived secret with a safer mechanism.",
+      "doneWhen": "Permissions are justified, secret rotation is tested and changes leave an auditable record without leaking sensitive values.",
+      "sourceUrl": "https://roadmap.sh/devsecops"
+    },
+    "incident-response": {
+      "title": "Incident response",
+      "skillAliases": ["Incident response", "On-call", "SRE"],
+      "focus": "Triage, communication, mitigation, recovery and blameless learning",
+      "task": "Run a tabletop outage, write a timestamped incident record and test the highest-value follow-up action.",
+      "doneWhen": "Roles and escalation are clear, recovery is verifiable and the follow-up fixes a system weakness rather than blaming a person.",
+      "sourceUrl": "https://roadmap.sh/devops"
+    }
+  },
+  "tracks": [
+    {
+      "id": "frontend",
+      "title": "Frontend Developer",
+      "shortTitle": "Frontend",
+      "audience": "For learners who want to build accessible, responsive web interfaces.",
+      "outcome": "Ship a tested interface that works across devices and failure states.",
+      "sourceUrl": "https://roadmap.sh/frontend",
+      "keywords": ["frontend", "front-end", "ui developer", "react", "web developer"],
+      "phases": [
+        { "id": "foundations", "title": "Build the web foundation", "goal": "Understand the platform before adding framework complexity.", "topicIds": ["html", "css", "javascript", "git"] },
+        { "id": "interfaces", "title": "Engineer real interfaces", "goal": "Turn requirements into maintainable and inclusive product states.", "topicIds": ["typescript", "react", "accessibility"] },
+        { "id": "shipping", "title": "Ship with confidence", "goal": "Prove behaviour, measure speed and protect user trust.", "topicIds": ["testing", "frontend-performance", "web-security"] }
+      ],
+      "capstone": {
+        "title": "Accessible opportunity explorer",
+        "brief": "Build and deploy a responsive opportunity search app with filters, saved items and complete loading, empty and error states.",
+        "proof": "Publish the code, a live URL, keyboard and accessibility notes, tests for a critical flow and one before/after performance measurement."
+      }
+    },
+    {
+      "id": "backend",
+      "title": "Backend Developer",
+      "shortTitle": "Backend",
+      "audience": "For learners who want to design dependable APIs and data services.",
+      "outcome": "Deliver a secure, tested and containerized API with a clear contract.",
+      "sourceUrl": "https://roadmap.sh/backend",
+      "keywords": ["backend", "back-end", "api", "server", "node"],
+      "phases": [
+        { "id": "foundations", "title": "Understand the request path", "goal": "Learn how web requests, code and version control fit together.", "topicIds": ["http", "javascript", "git"] },
+        { "id": "services", "title": "Build a data service", "goal": "Create a clear server boundary backed by relational data.", "topicIds": ["nodejs", "api-design", "sql"] },
+        { "id": "reliability", "title": "Make it dependable", "goal": "Test failure, enforce access rules and package a repeatable runtime.", "topicIds": ["testing", "api-security", "docker"] }
+      ],
+      "capstone": {
+        "title": "Learning progress API",
+        "brief": "Build a private API for roadmaps, progress and evidence with pagination, ownership rules and useful error responses.",
+        "proof": "Publish an API contract, automated tests for authorization and invalid input, a container run guide and a small threat model."
+      }
+    },
+    {
+      "id": "full-stack",
+      "title": "Full-Stack Developer",
+      "shortTitle": "Full stack",
+      "audience": "For learners who want to own a feature from interface to database.",
+      "outcome": "Ship one complete, secure product flow across browser, API and data layers.",
+      "sourceUrl": "https://roadmap.sh/full-stack",
+      "keywords": ["full stack", "full-stack", "software engineer", "software developer"],
+      "phases": [
+        { "id": "web", "title": "Learn the whole request", "goal": "Build strong browser and collaboration fundamentals.", "topicIds": ["html", "css", "javascript", "git"] },
+        { "id": "application", "title": "Connect interface and data", "goal": "Model a typed UI, service boundary and relational store.", "topicIds": ["typescript", "react", "nodejs", "sql"] },
+        { "id": "production", "title": "Prepare for production", "goal": "Design the contract, test risk and package a safe release.", "topicIds": ["api-design", "testing", "web-security", "docker"] }
+      ],
+      "capstone": {
+        "title": "Career application workspace",
+        "brief": "Build a responsive app that saves opportunities, tracks status changes and protects each learner's private records.",
+        "proof": "Publish the live flow, schema and API contract, browser and authorization tests, an accessibility review and a deployment runbook."
+      }
+    },
+    {
+      "id": "data-analyst",
+      "title": "Data Analyst",
+      "shortTitle": "Data analysis",
+      "audience": "For learners who want to turn imperfect data into responsible decisions.",
+      "outcome": "Produce a reproducible analysis and a decision-ready dashboard.",
+      "sourceUrl": "https://roadmap.sh/data-analyst",
+      "keywords": ["data analyst", "analytics", "business intelligence", "bi analyst"],
+      "phases": [
+        { "id": "tools", "title": "Query and calculate", "goal": "Use the core tools that analysts meet in real teams.", "topicIds": ["spreadsheets", "sql", "python"] },
+        { "id": "reasoning", "title": "Clean and reason", "goal": "Make transformations reproducible and conclusions proportionate.", "topicIds": ["data-cleaning", "statistics", "data-visualization"] },
+        { "id": "decisions", "title": "Communicate a decision", "goal": "Turn evidence into a clear, responsible product for an audience.", "topicIds": ["dashboard", "data-storytelling", "data-ethics"] }
+      ],
+      "capstone": {
+        "title": "Opportunity outcomes study",
+        "brief": "Clean and analyze an anonymized applications dataset, then build a dashboard for improving one part of the learner journey.",
+        "proof": "Publish raw-to-clean transformations, metric definitions, the dashboard, a five-slide briefing and a privacy and limitation note."
+      }
+    },
+    {
+      "id": "ux-design",
+      "title": "UX Designer",
+      "shortTitle": "UX design",
+      "audience": "For learners who want to turn user evidence into inclusive product decisions.",
+      "outcome": "Research, prototype and validate a complete flow with a credible case study.",
+      "sourceUrl": "https://roadmap.sh/ux-design",
+      "keywords": ["ux", "user experience", "product designer", "figma", "interaction designer"],
+      "phases": [
+        { "id": "understand", "title": "Understand the problem", "goal": "Replace assumptions with a grounded model of people and tasks.", "topicIds": ["ux-research", "user-flows", "information-architecture"] },
+        { "id": "design", "title": "Design the experience", "goal": "Create responsive, inclusive states that communicate clearly.", "topicIds": ["figma", "interaction-design", "accessibility", "design-systems"] },
+        { "id": "validate", "title": "Prove and communicate", "goal": "Test the work, prepare implementation and show honest evidence.", "topicIds": ["usability-testing", "handoff", "portfolio-case-study"] }
+      ],
+      "capstone": {
+        "title": "Learning-plan redesign",
+        "brief": "Research and redesign a confusing learning roadmap so a first-time learner can choose, start and understand a path.",
+        "proof": "Publish the research plan, current and revised flow, accessible prototype, usability findings, developer handoff and concise case study."
+      }
+    },
+    {
+      "id": "devops",
+      "title": "DevOps Engineer",
+      "shortTitle": "DevOps",
+      "audience": "For learners who want to make delivery reliable, observable and safe.",
+      "outcome": "Operate a repeatable deployment with useful alerts and a tested recovery path.",
+      "sourceUrl": "https://roadmap.sh/devops",
+      "keywords": ["devops", "platform", "cloud", "site reliability", "sre"],
+      "phases": [
+        { "id": "systems", "title": "Understand the system", "goal": "Diagnose the operating system, network and change history.", "topicIds": ["linux", "networking", "git"] },
+        { "id": "delivery", "title": "Automate delivery", "goal": "Package, verify and release a service repeatably.", "topicIds": ["docker", "ci-cd", "cloud"] },
+        { "id": "operations", "title": "Operate with confidence", "goal": "See failure, reduce exposure and recover deliberately.", "topicIds": ["observability", "infrastructure-security", "incident-response"] }
+      ],
+      "capstone": {
+        "title": "Production-ready service path",
+        "brief": "Deploy a containerized service through CI/CD with least privilege, actionable telemetry and a recovery exercise.",
+        "proof": "Publish infrastructure notes, passing pipeline evidence, an alert and runbook, a cost check and a short incident retrospective."
+      }
+    }
+  ]
+}

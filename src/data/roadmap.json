@@ -1,10 +1,10 @@
 {
   "$schema": "./roadmap.schema.json",
   "version": 1,
-  "updatedAt": "2026-11-20T16:39:22.000Z",
+  "updatedAt": "2026-11-21T04:38:48.000Z",
   "codebase": {
-    "revision": "1b689d28cf48287f147be8581dd348992ba23d4b",
-    "scannedAt": "2026-11-20T06:26:37.000Z"
+    "revision": "d3982cd5cd7caf7f559e63ca782e5b8d4b68fc74",
+    "scannedAt": "2026-11-21T04:38:48.000Z"
   },
   "upstream": {
     "repository": "nilbuild/developer-roadmap",

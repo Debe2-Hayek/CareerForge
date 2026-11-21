@@ -1,5 +1,21 @@
 # CareerForge implementation roadmap
 
+## Production release of roadmap, web path and builder websites - 21 November 2026
+
+The hosted project (`gmrribyxcpcmqlqhdwea`, used by https://careerforge-phi.vercel.app)
+was migrated with the checksum runner after both migration validators passed
+against it in rolled-back transactions. Its ledger had been missing
+`202611190001_live_job_postings` and `202611190002_job_experience_level`, whose
+schema was also absent although the deployed code expected it; those were applied
+together with `202611210001_learning_progress` and `202611220001_portfolio_sites`
+in one transaction. All 12 migrations are now recorded and the new tables have RLS.
+PR #5 was then merged; CI passed and Vercel deployed `c6ae196` to production.
+Anonymous production checks passed: health/home/login 200, private learning and
+builder pages show the loading screen and redirect to login without private
+content (same as existing pages), learning and portfolio-site APIs return 401,
+unknown and malformed `/u/` addresses return uncached noindex 404s. The account
+live suite is not run against the hosted project by policy (it writes users directly).
+
 ## Builder websites, web guided path and skill map - verified locally, 22 November 2026
 
 Users can save the visual CV & Portfolio builder to their account (autosave,
@@ -16,7 +32,7 @@ validators passed in rolled-back transactions; `202611220001_portfolio_sites.sql
 was applied to development; the complete `test:account:live` suite passed against
 development (profile, assessments/CV, portfolio, builder publishing, learning
 journey incl. web path and Skill map, features, tracker, passwords, accounts);
-176/176 learning links resolved. Production is not migrated.
+176/176 learning links resolved. Production was migrated on 21 November (see above).
 
 ## M5/R3 - Personalised learning roadmap - verified locally, 21 November 2026
 
@@ -38,7 +54,7 @@ or horizontal overflow and correct dialog focus/Escape behaviour;
 
 The migration is applied to development (owner-approved) and the focused live
 journey (`test-account-live.mjs --learning-only`) passed against real Auth and
-data. Production is not migrated. Not yet done: only Python has a guided path;
+data. Production was migrated on 21 November. Not yet done: only Python has a guided path;
 portfolio hand-off is a prepared entry, not normalised records; career gaps use
 per-listing skills, not aggregated market frequencies. The full live suite now
 passes profile, assessment/CV and portfolio stages but stops at the supplied CV &

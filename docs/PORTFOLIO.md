@@ -114,7 +114,8 @@ account and can publish its Web portfolio view as a personal website at
   invalid stored content is treated as not found. All text renders as React text.
 - **Storage.** `portfolio_sites` (migration `202611220001_portfolio_sites.sql`):
   owner-read RLS, no direct writes, reviewed `security definer` functions,
-  cascade on account deletion. Applied to development on 22 November 2026.
+  cascade on account deletion. Applied to development and, on 21 November, to the
+  hosted production project.
 
 Verification: 188 unit/render tests; `scripts/validate-portfolio-sites-migration.mjs`
 (rolled-back transaction: isolation, no direct writes, revisions, server-derived

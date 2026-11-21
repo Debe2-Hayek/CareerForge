@@ -28,7 +28,9 @@
     "test:portfolio-appearance": "node scripts/test-portfolio-appearance.mjs",
     "sync:roadmap": "tsx scripts/sync-roadmap.ts",
     "roadmap:sync": "npm run sync:roadmap",
-    "evolution:export": "tsx scripts/export-product-signals.ts"
+    "evolution:export": "tsx scripts/export-product-signals.ts",
+    "jobs:ingest": "node --import tsx scripts/ingest-jobs.ts",
+    "test:jobs:live": "node scripts/verify-live-jobs-ui.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",

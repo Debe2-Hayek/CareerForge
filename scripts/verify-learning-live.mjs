@@ -31,6 +31,7 @@ export async function verifyLearningLive(context) {
     await page.goto("/learning-roadmap?target=1&target=2");
     await expect(page.locator(".form-error[role=alert]")).toBeVisible();
     await page.goto("/jobs");
+    await page.getByLabel("Listing type").selectOption("demo");
     await page.getByRole("button", { name: "Junior Frontend Developer", exact: true }).click();
     await page.getByRole("dialog", { name: "Junior Frontend Developer", exact: true }).getByRole("link", { name: /Build a learning plan/ }).click();
     await expect(page).toHaveURL(/\/learning-roadmap\?target=1$/);

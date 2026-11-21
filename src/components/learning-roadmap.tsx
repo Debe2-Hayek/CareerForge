@@ -3,9 +3,12 @@ import type { AccountProfile } from "@/lib/account/schemas";
 import type { CatalogJob } from "@/lib/tracker/schemas";
 import { buildLearningRoadmap } from "@/lib/learning-roadmap";
 
-export function LearningRoadmap({ profile, jobs, targetId }: {
+export function LearningRoadmap({ profile, jobs: catalog, targetId }: {
   profile: AccountProfile; jobs: CatalogJob[]; targetId?: string;
 }) {
+  // A role without detected skills cannot produce gaps, so it is not offered as a practice target.
+  const jobs = catalog.filter(job => job.skills.length > 0);
+  const groups = [["Live listings", jobs.filter(job => !job.isFictional)], ["Demo roles", jobs.filter(job => job.isFictional)]] as const;
   const target = jobs.find(job => job.id === targetId);
   const plan = target ? buildLearningRoadmap(profile.skills, target.skills) : null;
   return <div className="feature-page learning-page">
@@ -16,11 +19,11 @@ export function LearningRoadmap({ profile, jobs, targetId }: {
     </header>
     <section className="panel learning-target" aria-labelledby="learning-target-heading">
       <h2 id="learning-target-heading">Choose your practice target</h2>
-      <p>Targets come from the current fictional job catalog. This is a practice plan, not evidence of a live vacancy or a hiring prediction.</p>
+      <p>Targets come from current live listings (skills detected from the posting text) and fictional demo roles. This is a practice plan, not a hiring prediction.</p>
       {jobs.length ? <form action="/learning-roadmap" method="get" className="learning-target-form">
         <div><label htmlFor="learning-target">Target role</label><select id="learning-target" name="target" defaultValue={target?.id ?? ""} required key={target?.id ?? "empty"}>
           <option value="" disabled>Select a role</option>
-          {jobs.map(job => <option value={job.id} key={job.id}>{job.title} · {job.company}</option>)}
+          {groups.filter(([, list]) => list.length).map(([label, list]) => <optgroup label={label} key={label}>{list.map(job => <option value={job.id} key={job.id}>{job.title} · {job.company}</option>)}</optgroup>)}
         </select></div>
         <button className="button primary" type="submit">Show my plan</button>
       </form> : <p className="notice">No practice roles are available right now. Try again later.</p>}

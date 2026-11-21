@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { jobs } from "@/lib/demo-workspace";
 import { trackerHandlers, TrackerError, type TrackerAccess } from "./handlers";
+import { catalogJob, demoListingFields } from "./schemas";
 
-const job = { ...jobs[0], isActive: true, isFictional: true };
+const job = { ...jobs[0], isActive: true, isFictional: true, ...demoListingFields };
 const entry = { jobId: "1", status: "Interview" as const, revision: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", createdAt: "2026-10-22", updatedAt: "2026-10-22", job };
 test("limited tracker writes share an owner budget while reads remain available", async () => {
   let writes = 0;
@@ -78,4 +79,22 @@ test("tracker distinguishes conflicts/missing entries and sanitizes storage fail
     assert.equal(result.status, status);
     assert.equal((await result.text()).includes("secret database"), false);
   }
+});
+
+test("catalog filters by region and live/demo source, and rejects unknown filter values", async () => {
+  const row = { id: "wk-abc", title: "AI Developer", company: "Valsoft", initials: "V", location: "Beirut, Lebanon", work_mode: "Not specified",
+    employment_type: "Full-time", skills: ["Python"], description: "Department: Engineering.", color: "mint", is_active: true, is_fictional: false,
+    source: "workable", region: "lebanon", source_url: "https://apply.workable.com/j/ABC123", apply_url: "https://apply.workable.com/j/ABC123/apply",
+    seniority: null, salary_text: null, published_at: "2026-11-01T00:00:00Z", expires_at: null, fetched_at: "2026-11-19T00:00:00Z" };
+  const live = catalogJob(row);
+  assert.equal(live.applyUrl, "https://apply.workable.com/j/ABC123/apply");
+  assert.throws(() => catalogJob({ ...row, source_url: "javascript:alert(1)" }));
+  const h = trackerHandlers(async () => access({ jobs: async () => [job, live] }));
+  const ids = async (query: string) => (await (await h.jobs(new Request(`http://localhost/api/v1/jobs?${query}`))).json()).jobs.map((j: { id: string }) => j.id);
+  assert.deepEqual(await ids("region=lebanon"), ["wk-abc"]);
+  assert.deepEqual(await ids("source=live"), ["wk-abc"]);
+  assert.deepEqual(await ids("source=demo"), [job.id]);
+  assert.deepEqual(await ids("region=mena"), []);
+  for (const bad of ["region=mars", "source=fake"]) assert.equal((await h.jobs(new Request(`http://localhost/api/v1/jobs?${bad}`))).status, 400);
+  assert.equal(demoListingFields.source, "fictional");
 });

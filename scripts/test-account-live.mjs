@@ -123,6 +123,9 @@ try {
   await expect(a.page.locator(".app-sidebar-account").first()).toContainText("Live Test Owner A");
   await expect(a.page.locator(".film-summary")).toContainText("2 self-reported skills");
   await a.page.goto("/jobs");
+  await expect(a.page.locator(".outline-label")).toContainText(/\d+ live · 6 demo/);
+  await a.page.getByLabel("Listing type").selectOption("demo");
+  await expect(a.page.locator(".job-card")).toHaveCount(6);
   const frontend = a.page.locator(".job-card").filter({ has: a.page.getByRole("button", { name: "Junior Frontend Developer", exact: true }) });
   await expect(frontend).toContainText("25% skill match");
   await a.page.getByRole("button", { name: "Save Junior Frontend Developer", exact: true }).click();

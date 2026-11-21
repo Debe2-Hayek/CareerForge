@@ -77,6 +77,38 @@ tests, the 46-page offline production build and all 38 desktop/mobile CI browser
 cases pass. This work is local on `feature/autonomous-roadmap`; it has not been
 pushed, deployed, migrated or executed as a GitHub workflow.
 
+## R2 - Real job listings - Verified locally, 19 November 2026
+
+Owner request: real jobs from real APIs covering Lebanon, the region and the
+world, using the supplied free Himalayas key and no paid services. Delivered
+server-side ingestion (`npm run jobs:ingest`) from Himalayas (remote jobs open
+to Lebanon), Workable (Valsoft, Infoquest - Beirut) and Greenhouse (Careem,
+Tamara - MENA). Additive migration `202611190001_live_job_postings.sql` extends
+the catalog with provenance, dedupe key, region and freshness; RLS hides
+expired or 7-day-stale listings while keeping owners' saved history. `/jobs`
+gains region and live/demo filters, paging, attribution, unchanged apply links
+and matched/total skill counts. Contract, terms and evidence: [LIVE_JOBS.md](LIVE_JOBS.md).
+
+Evidence: 110 unit tests, lint, TypeScript, production build, `test:rls` (new
+live-listing checks) and three passes of the new `test:jobs:live` browser check;
+two real imports stored 191 listings with no duplicates. `test:account:live`
+fails at the pre-existing `/cv/saved` overflow assertion, reproduced on the
+unmodified baseline. Development database only; not pushed or deployed; hosted
+preview not migrated. No scheduled refresh yet.
+
+Owner feedback fix (same day): senior roles shown as junior, "remote" roles that
+were US/LATAM/Europe-only, and Himalayas links whose job was gone. Levels are now
+inferred deterministically (title, explicitly requested years, then source tag;
+never lowered below the tag) and stored in `experience_level` (migration
+`202611190002`) with a level filter. Remote listings whose title or text limits
+applicants to other countries, and Gulf roles reserved for other nationals, are
+excluded at import. Stored Himalayas jobs missing from recent pages are looked up
+by title within their company and closed when removed or restricted. Evidence:
+116 unit tests (rules built from real listings), lint, TypeScript, production
+build, `test:rls` (level constraint), three `test:jobs:live` passes (level filter,
+no senior-titled entry roles, layouts); real import: 177 listings, 16 restricted
+excluded, 6 removed jobs closed. Text heuristics can still miss unusual wording.
+
 ## Isolated hosted preview deployed — 16 November 2026
 
 Reviewed all remote branches and PRs. Preview PR #1 was already merged; synchronized
@@ -641,7 +673,7 @@ real inbox journeys and remaining session cases require verification.
 | D05 | Registration/login/logout | Partial | SSR HttpOnly sessions, origin validation, safe API errors, private account screen. Real signup/reset email delivery and callback require owner verification; recovery/resend routes are implemented. |
 | D06 | Private profile editing | Done | Validated profile summaries/skills, save/reload, error recovery and cross-user isolation tested. This is not full normalized experience/education CRUD. |
 | D07 | Account-aware workspace | Done | Server verifies session and reads owner profile; dashboard, skill ranking and role gaps use saved data. `/profile` leads signed-in users to `/account`; read failures do not substitute demo data. |
-| D08 | Jobs and transparent matching | Partial | Six database-seeded fictional roles for accounts; static guest catalog, search/work-mode/saved filters, detail dialog and transparent skill gaps. Catalog administration remains deferred. |
+| D08 | Jobs and transparent matching | Partial | Live listings (Himalayas, Workable, Greenhouse) plus six labeled fictional roles; region/live-demo/work-mode/saved filters, paging, attributed apply links, freshness/expiry and transparent skill gaps. See [LIVE_JOBS.md](LIVE_JOBS.md). Scheduled refresh, hosted ingestion and catalog administration remain. |
 | D09 | Saved roles and manual tracker | Done | Signed-in save/remove/status updates persist in Supabase across sessions/devices with revision conflicts and recovery. Guest tracker stays local; older account-local saves remain unimported. |
 | D10 | Public entry and guest access | Done | Public homepage with sign-in/registration; direct private feature URLs require login. Prior editable guest demo is superseded by owner's 23 October instruction. No local demo state grants account access. |
 | D11 | Shared responsive design | Done | Graphite/chartreuse system, branded SVGs, sidebar collapse preference, mobile drawer, private profile identity and dark auth forms. Further release audit remains required. |
@@ -673,7 +705,7 @@ mark the current release or planned destinations complete:
 | ID | Status | Requirement / acceptance reference | Dependencies and next action |
 | --- | --- | --- | --- |
 | R1 | Partial: timed checks and portfolio snapshots implemented | Source-grounded portfolio with claim-specific validation, reviewed timed skill assessments, degree evidence and scoped language assessment; helper R1 | React/SQL lifecycle and profile-derived portfolio templates/publication work. Practical tasks, bank review, normalized claim/evidence records and degree/language validation remain; no proof of identity/mastery. |
-| R2 | Open | Real jobs through free permitted APIs or permitted public HTTP/HTML ingestion; helper R2 | Verify source terms/availability; define bounded adapters, freshness, deduplication and failure states. Existing jobs remain fictional. No access-control bypass or arbitrary URL fetcher. |
+| R2 | Partial: live ingestion delivered locally | Real jobs through free permitted APIs or permitted public HTTP/HTML ingestion; helper R2 | Himalayas (free key), Workable and Greenhouse public boards ingested through bounded server-side adapters with dedupe, freshness/expiry and per-source failure isolation; 177 real listings in development after excluding roles not open to Lebanon; inferred experience levels and removed-job rechecks. Scheduled refresh, hosted-preview migration/ingestion and more Lebanon employer boards remain. [LIVE_JOBS.md](LIVE_JOBS.md). |
 | R3 | Partial: learning pilot delivered | Concrete roadmap.sh-linked gap suggestions and tangible exercises; helper R3 | Saved-profile/catalog gaps now produce original tasks, review criteria and source links. Target remains in URL. Persisted targets/progress and adaptive schedules remain open; no imported content or partnership. |
 | R4 | Open | Trainer agreements, workshops and verifiable scoped certificates; helper R4 | Establish trainer/admin permissions and completion evidence before issuing certificates; support minimal verification, revocation and privacy. No trainer contacted or agreement executed. |
 

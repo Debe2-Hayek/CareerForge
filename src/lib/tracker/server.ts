@@ -1,10 +1,13 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { catalogJob, trackerEntry } from "./schemas";
+import { catalogJob, jobColumns, trackerEntry } from "./schemas";
+import { isCurrentListing } from "@/lib/jobs/display";
 import { TrackerError, type TrackerAccess } from "./handlers";
 
-const selection = "job_id,status,revision,created_at,updated_at,job:job_postings(*)";
+const selection = `job_id,status,revision,created_at,updated_at,job:job_postings(${jobColumns})`;
+// Bounded catalog read: demo roles plus the most recently published live listings.
+const catalogLimit = 500;
 const conflict = () => new TrackerError("CONFLICT", "This opportunity changed elsewhere. Refresh and choose again.", 409);
 const missing = () => new TrackerError("NOT_FOUND", "This opportunity is not available.", 404);
 
@@ -18,9 +21,11 @@ export function trackerAccess(client: SupabaseClient, userId: string): TrackerAc
   return {
     userId,
     async jobs() {
-      const { data, error } = await client.from("job_postings").select("*").eq("is_active", true).order("id");
+      const { data, error } = await client.from("job_postings").select(jobColumns).eq("is_active", true)
+        .order("is_fictional", { ascending: false }).order("published_at", { ascending: false, nullsFirst: false }).order("id").limit(catalogLimit);
       if (error) throw error;
-      return (data ?? []).map(catalogJob);
+      // RLS hides stale/expired listings, but keeps saved ones visible to their owner, so filter the catalog as well.
+      return (data ?? []).map(catalogJob).filter(job => isCurrentListing(job));
     },
     async list() {
       const { data, error } = await own().order("created_at", { ascending: false });

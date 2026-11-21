@@ -2,12 +2,14 @@
 
 ## Autonomous roadmap and search release - deployed 21 November 2026
 
-PR #2 merged the verified release branch into `main` at `60687cc` after the
-exact-head GitHub `verify` job passed in 2m20s. Vercel deployment
-`dpl_xVGwhFc7hpzG8HX6NDBWTk7MXjq1` reached READY and the permanent production
-alias is **https://careerforge-phi.vercel.app**. Vercel remains connected to the
-isolated, hardened preview Supabase backend; production Auth was not silently
-substituted while its provider policy is weaker.
+PR #2 merged the verified release branch into `main` at `60687cc` after its
+exact-head GitHub `verify` job passed. Main then advanced to `55c45fd` with
+official immutable Node 24 action pins and the corresponding roadmap evidence;
+that exact commit's CI passed in 2m30s, including all 38 browser cases. Final
+Vercel deployment `dpl_HZg51G5MRZWeE8QXBSCX1e4bFXxB` reached READY and the
+permanent production alias is **https://careerforge-phi.vercel.app**. Vercel
+remains connected to the isolated, hardened preview Supabase backend; production
+Auth was not silently substituted while its provider policy is weaker.
 
 Unauthenticated live HTTPS checks passed the homepage, health route, robots and
 sitemap. The homepage returns its descriptive title/summary, canonical production

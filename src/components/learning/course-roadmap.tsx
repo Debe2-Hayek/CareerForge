@@ -4,6 +4,7 @@ import { orderResources, type LearningPlan, type PlanProject, type PlanTopic, ty
 import type { Recommendation } from "@/lib/learning/recommendations";
 import { CourseSetupForm } from "./course-setup-form";
 import { ProgressRing } from "./progress-bar";
+import { SkillMap } from "./skill-map";
 import { ProjectControls } from "./project-controls";
 import { StartPathButton } from "./start-path-button";
 import { TopicControls } from "./topic-controls";
@@ -77,18 +78,18 @@ export function CourseRoadmap({ course, plan, mode, view, selectedTopicId, recom
       </aside>
     </header>
 
-    <div className={styles.layout}>
+    <div className={styles.layout} data-view={view}>
       <main>
         <div className={styles.toolbar}>
           <nav className={styles.viewToggle} aria-label="Roadmap view">
             <Link href={hrefs.view("path")} aria-current={view === "path" ? "page" : undefined} scroll={false}>Guided path</Link>
-            <Link href={hrefs.view("overview")} aria-current={view === "overview" ? "page" : undefined} scroll={false}>Overview map</Link>
+            <Link href={hrefs.view("overview")} aria-current={view === "overview" ? "page" : undefined} scroll={false}>Skill map</Link>
           </nav>
           <ul className={styles.legend} aria-label="Legend">
             {(["available", "in_progress", "completed", "known", "locked"] as const).map(status => <li key={status}><span className={styles.dot} data-status={status} aria-hidden="true" />{statusLabel[status]}</li>)}
           </ul>
         </div>
-        {view === "overview" ? <OverviewMap plan={plan} hrefs={hrefs} /> : <PathView plan={plan} hrefs={hrefs} />}
+        {view === "overview" ? <SkillMap course={course} plan={plan} topicHref={hrefs.topic} /> : <PathView plan={plan} hrefs={hrefs} />}
 
         <section className={styles.section} aria-labelledby="projects-heading">
           <div className={styles.sectionHead}>
@@ -184,22 +185,6 @@ function PathView({ plan, hrefs }: { plan: LearningPlan; hrefs: Hrefs }) {
         ? <section key={phase.id} className={styles.phase} data-included="true" aria-label={phase.title}>{head}{content}</section>
         : <details key={phase.id} className={styles.phase} data-included="false"><summary style={{ listStyle: "none", cursor: "pointer" }}>{head}</summary>{content}</details>;
     })}
-  </div>;
-}
-
-function OverviewMap({ plan, hrefs }: { plan: LearningPlan; hrefs: Hrefs }) {
-  return <div className={styles.overview} role="region" aria-label="Overview map of all phases" tabIndex={0}>
-    {plan.phases.map(phase => <section key={phase.id} className={styles.overviewPhase} data-included={phase.included} aria-label={phase.title}>
-      <h3>{phase.title}</h3>
-      <p>{phase.included ? phase.required ? `${phase.done}/${phase.required} done` : "Optional" : "Other specialisation"}</p>
-      <ol className={styles.nodeList}>
-        {phase.topics.map(topic => <li key={topic.id}>
-          <Link href={hrefs.topic(topic.id)} scroll={false} className={styles.node} data-next={topic.isNext} data-in-plan={topic.inPlan} aria-label={`${topic.title}: ${statusLabel[topic.status]}`}>
-            <span className={styles.dot} data-status={topic.status} aria-hidden="true" />{topic.title}
-          </Link>
-        </li>)}
-      </ol>
-    </section>)}
   </div>;
 }
 

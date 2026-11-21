@@ -36,8 +36,9 @@ entries; currently React/SQL fundamentals checks can qualify selected CV skills.
 Checks use server-enforced 10-minute attempts, with a 100-minute extended-time
 option. Reload resumes the deadline; answer drafts are page-memory only.
 See [timed assessment behavior](docs/TIMED_SKILL_CHECKS.md).
-Learning roadmap offers personalised, free-first guided paths (currently a deep
-Python path with backend, data, ML and automation specialisations): goal, level
+Learning roadmap offers personalised, free-first guided paths (Python with
+backend/data/ML/automation specialisations, and JavaScript & Web Development with
+React and Node.js specialisations) plus a connected Skill map view: goal, level
 and weekly-time personalisation, prerequisite-aware plans, topic details with
 free official resources, owner-only progress tracking across devices, projects
 and portfolio-entry hand-off. Career roadmaps (`/learning-roadmap/careers`)

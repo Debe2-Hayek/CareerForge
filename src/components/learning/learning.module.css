@@ -363,20 +363,6 @@
 .topicMeta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 3px; color: var(--l-muted); font-size: 12px; }
 .topicSide { display: flex; flex-wrap: wrap; justify-content: end; gap: 6px; }
 
-/* ---------- Overview (compact map) view ---------- */
-.overview { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(210px, 1fr); gap: 14px; overflow-x: auto; padding-bottom: 12px; scroll-snap-type: x proximity; }
-.overviewPhase { scroll-snap-align: start; padding: 14px; border: 1px solid var(--l-line); border-radius: 14px; background: var(--l-panel); }
-.overviewPhase[data-included="false"] { opacity: .65; border-style: dashed; }
-.overviewPhase h3 { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
-.overviewPhase > p { margin: 0 0 12px; color: var(--l-muted); font: 10px var(--mono); }
-.nodeList { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
-.nodeList li { position: relative; }
-.nodeList li + li::before { content: ""; position: absolute; left: 13px; top: -6px; height: 12px; width: 2px; background: var(--l-line-strong); }
-.node { display: flex; align-items: center; gap: 8px; margin: 6px 0; padding: 7px 8px; border: 1px solid var(--l-line); border-radius: 9px; background: #141a12; color: var(--l-ink); font-size: 12px; line-height: 1.3; text-decoration: none; }
-.node:hover { border-color: #6f8c4e; }
-.node[data-next="true"] { border-color: var(--l-accent); box-shadow: 0 0 0 3px var(--l-accent-soft); }
-.node[data-in-plan="false"] { color: var(--l-soft); border-style: dashed; }
-
 /* ---------- Setup ---------- */
 .setup { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .9fr); gap: 28px; padding-top: 28px; }
 .setupForm { display: grid; gap: 22px; padding: 24px; border: 1px solid var(--l-line-strong); border-radius: var(--l-radius); background: var(--l-panel); }
@@ -503,3 +489,7 @@
   .pathCard:hover { transform: none; }
   .dialog[open] { animation: none; }
 }
+
+/* Skill map view: the map gets the full width; guidance panels follow it. */
+.layout[data-view="overview"] { grid-template-columns: 1fr; }
+.layout[data-view="overview"] .sidebar { position: static; order: 0; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }

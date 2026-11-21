@@ -39,7 +39,7 @@ export const topicSchema = z.object({
   why: text(300),
   objectives: z.array(text(160)).min(2).max(5),
   prerequisites: z.array(slugSchema).max(4),
-  example: z.object({ language: z.enum(["python", "bash", "sql", "text"]), code: text(900) }).strict().optional(),
+  example: z.object({ language: z.enum(["python", "bash", "sql", "text", "javascript", "html", "css"]), code: text(900) }).strict().optional(),
   resources: z.array(resourceSchema).min(1).max(4),
   exercises: z.array(text(260)).min(1).max(4),
   miniProject: text(300).optional(),

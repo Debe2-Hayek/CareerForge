@@ -1,5 +1,23 @@
 # CareerForge implementation roadmap
 
+## Builder websites, web guided path and skill map - verified locally, 22 November 2026
+
+Users can save the visual CV & Portfolio builder to their account (autosave,
+revision-checked) and publish it as a personal website at `/u/<address>`,
+update it, or take it offline ([PORTFOLIO.md](PORTFOLIO.md)). A second guided path,
+JavaScript & Web Development (46 topics, React/Node.js specialisations, 8
+projects), joins Python, and the roadmap's overview is now a connected Skill map
+with prerequisite lines, status colours and the highlighted route to the next
+topic ([LEARNING_ROADMAP.md](LEARNING_ROADMAP.md)). Stale builder live checks were
+updated after the 10 November CV-style change.
+
+Evidence: lint, strict TypeScript and 192 unit/render tests passed; both migration
+validators passed in rolled-back transactions; `202611220001_portfolio_sites.sql`
+was applied to development; the complete `test:account:live` suite passed against
+development (profile, assessments/CV, portfolio, builder publishing, learning
+journey incl. web path and Skill map, features, tracker, passwords, accounts);
+176/176 learning links resolved. Production is not migrated.
+
 ## M5/R3 - Personalised learning roadmap - verified locally, 21 November 2026
 
 The Learning roadmap tab is now a learner journey: dashboard with continue

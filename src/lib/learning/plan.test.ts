@@ -166,3 +166,26 @@ test("course summaries report real counts and an empty plan is stable", () => {
   assert.deepEqual(buildLearningPlan(python, settings(), emptyProgress()).progress.completed, 0);
   assert.equal(buildLearningPlan(python, settings({ goalId: "unknown" })).goal.id, "foundations");
 });
+
+test("the web path validates and its goals select the right specialisations", () => {
+  const web = getCourse("web-development")!;
+  assert.ok(web, "web course registered");
+  const plan = (goalId: string) => buildLearningPlan(web, settings({ goalId }));
+  const included = (goalId: string) => plan(goalId).phases.filter(phase => phase.included).map(phase => phase.id);
+  assert.equal(plan("foundations").nextTopic?.id, "how-the-web-works");
+  assert.ok(included("frontend").includes("react") && !included("frontend").includes("node"));
+  assert.ok(included("backend").includes("node") && !included("backend").includes("react"));
+  assert.ok(included("full-stack").includes("react") && included("full-stack").includes("node"));
+  assert.ok(plan("full-stack").progress.requiredTotal > plan("frontend").progress.requiredTotal);
+  assert.ok(plan("foundations").phases.find(phase => phase.id === "career")!.topics.every(topic => !topic.inPlan));
+});
+
+test("web projects unlock in order and full-stack work needs both specialisations", () => {
+  const web = getCourse("web-development")!;
+  const landing = buildLearningPlan(web, settings(), done("html-basics", "semantic-html", "css-basics", "flexbox")).projects.find(item => item.project.id === "landing-page")!;
+  assert.equal(landing.readiness, "ready");
+  const backendOnly = buildLearningPlan(web, settings({ goalId: "backend" })).projects;
+  assert.equal(backendOnly.find(item => item.project.id === "react-job-board")!.relevant, false);
+  const fullStack = backendOnly.find(item => item.project.id === "full-stack-app")!;
+  assert.ok(fullStack.missing.some(topic => topic.id.startsWith("react-")), "full-stack project lists React prerequisites");
+});

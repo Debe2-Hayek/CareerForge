@@ -17,8 +17,12 @@ role. Implemented 21 November 2026 at `/learning-roadmap` (M5 pilot).
 3. **Roadmap**: progress ring, remaining hours/weeks at the stated pace, current
    stage, explainable *What to do next* recommendations, a *This week* plan that
    respects prerequisites, an evidence ladder, and two views:
-   *Guided path* (accessible vertical timeline, default) and *Overview map*
-   (compact phase columns of connected nodes, horizontally scrollable).
+   *Guided path* (accessible vertical timeline, default) and *Skill map* — a
+   connected graph: phases as columns with progress bars, topics as status-coloured
+   nodes, a curved line for every prerequisite, and the route into the next topic
+   highlighted. The map takes the full width (guidance panels follow it); nodes are
+   real links with descriptive labels, the drawing is decorative, and on phones it
+   scrolls inside its frame with a hint, while the Guided path stays the default.
 4. **Topic detail** (`?topic=<id>`): native modal dialog (focus trapped and
    restored, Escape closes, background keeps its scroll position). Answers what,
    why, prerequisites (linked, with status), worked example, free resources
@@ -131,11 +135,27 @@ Automate the Boring Stuff and others. Every resource is marked free and English.
   This run found and fixed a bug where ticked completion criteria were cleared
   when a save re-rendered the dialog, and a goal badge that overflowed at 320px.
 
+## Guided paths
+
+- **Python** (`python`): 52 topics, 10 phases, backend/data/ML/automation
+  specialisations, 12 projects.
+- **JavaScript & Web Development** (`web-development`, added 22 November 2026):
+  46 topics, 8 phases (web basics, HTML & CSS, JavaScript fundamentals, browser
+  JavaScript, professional tooling, React, Node.js, career), goals foundations /
+  front end (React) / back end (Node.js) / full stack (both), 8 projects from a
+  landing page to a deployed full-stack job tracker. Resources: MDN, web.dev,
+  javascript.info, The Odin Project, freeCodeCamp, React/Node/Express/Vite/Vitest/
+  TypeScript docs, OWASP and W3C WAI.
+- Career roadmaps link each step to the matching topic: web-only steps to the web
+  path, shared steps (Git, testing, SQL, APIs) to the path that suits the track
+  (`src/lib/learning/career-links.ts`, tested so every link resolves).
+- `check:learning-links`: 176/176 resources resolved on 22 November 2026.
+
 ## Remaining work (next steps, highest value first)
 
 1. Apply `202611210001_learning_progress.sql` to production only when a release
    is authorised (development is done).
-2. Add more guided paths with the same depth (JavaScript/web, SQL, data).
+2. Add more guided paths with the same depth (SQL & data, mobile, DevOps).
    Career roadmaps currently cover the other directions at a shallower level.
 3. Persist project evidence into normalised portfolio records once the portfolio
    project contract exists (today: prepared entry + links to existing tools).

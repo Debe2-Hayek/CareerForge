@@ -71,6 +71,20 @@ export async function verifyLearningLive(context) {
       await page.screenshot({ path: `test-results/learning-${width}.png`, fullPage: true, animations: "disabled" });
     }
 
+    step = "web path and skill map";
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto("/learning-roadmap");
+    await expect(page.getByRole("link", { name: /JavaScript & Web Development/ })).toBeVisible();
+    await page.goto("/learning-roadmap/web-development?goal=full-stack&level=new&hours=8&format=mixed&view=overview");
+    const map = page.getByRole("region", { name: /skill map/ });
+    await expect(map).toBeVisible();
+    assert.ok(await map.locator("a[data-status]").count() >= 40, "every included topic appears on the map");
+    await expect(map.locator("a[data-next]")).toHaveCount(1);
+    await expect(map.locator("a[data-next]")).toHaveAttribute("aria-label", /How the web works: ready to start, your next topic/);
+    await map.locator("a[data-next]").click();
+    await expect(page.getByRole("dialog", { name: "How the web works" })).toBeVisible();
+    await page.keyboard.press("Escape");
+
     step = "API validation";
     // API rejects unknown curriculum ids and foreign origins.
     const unknown = await page.request.put("/api/v1/learning/progress", { data: { courseId: "python", kind: "topic", itemId: "not-a-topic", state: "completed" } });
@@ -89,7 +103,7 @@ export async function verifyLearningLive(context) {
     // Clean up this account's learning rows.
     const reopen = await page.request.put("/api/v1/learning/progress", { data: { courseId: "python", kind: "topic", itemId: "how-programs-work", state: null } });
     assert.equal(reopen.status(), 200);
-    console.log("PASS: private learning dashboard, catalog search, preview-then-save enrolment, topic dialog progress persistence, goal change keeps progress, resume, API validation, career target redirect and 320/768/1440px layouts");
+    console.log("PASS: private learning dashboard, catalog search, preview-then-save enrolment, topic dialog progress persistence, goal change keeps progress, resume, API validation, career target redirect, web path skill map and 320/768/1440px layouts");
   } catch (error) {
     await page.screenshot({ path: "test-results/learning-failure.png", fullPage: true }).catch(() => {});
     error.message = `[learning step: ${step}] ${error.message}`;

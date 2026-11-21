@@ -1,5 +1,24 @@
 # CareerForge implementation roadmap
 
+## Interactive roadmap graph - verified locally, 21 November 2026
+
+The Roadmap tab's default view is now a roadmap.sh-style interactive graph
+(`@xyflow/react`): spine of phases, topic cards with dotted connectors, a fork
+into specialisations that rejoin at the career phase, zoom/pan/mini-map/fit,
+search-and-jump, prerequisite-chain highlighting, focus mode, next-topic jump,
+keyboard navigation and status-coloured cards; the timeline stays as *List*.
+Learners can reset a path's progress (two-step, goal kept). Python grew to 61
+topics with an Advanced phase (decorators, context managers, asyncio,
+concurrency, algorithms) plus type hints, packaging, closures and regex.
+Details: [LEARNING_ROADMAP.md](LEARNING_ROADMAP.md#graph-engine).
+
+Evidence: lint, strict TypeScript and 199 unit/render tests (incl. 6 layout and
+the reset handler) passed; Edge QA at 1440/390px (no console errors, no node
+overflow, no horizontal scroll, all 61 topics reachable by Tab and scrolled into
+view, viewport kept across the topic dialog); `test:account:live --learning-only`
+passed against development including the new graph, reset and foreign-origin
+checks; 200/200 learning links resolved. No migration is needed.
+
 ## Production release of roadmap, web path and builder websites - 21 November 2026
 
 The hosted project (`gmrribyxcpcmqlqhdwea`, used by https://careerforge-phi.vercel.app)

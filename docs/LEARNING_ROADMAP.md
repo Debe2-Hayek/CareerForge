@@ -16,13 +16,24 @@ role. Implemented 21 November 2026 at `/learning-roadmap` (M5 pilot).
    *Save and start learning* creates the enrolment.
 3. **Roadmap**: progress ring, remaining hours/weeks at the stated pace, current
    stage, explainable *What to do next* recommendations, a *This week* plan that
-   respects prerequisites, an evidence ladder, and two views:
-   *Guided path* (accessible vertical timeline, default) and *Skill map* — a
-   connected graph: phases as columns with progress bars, topics as status-coloured
-   nodes, a curved line for every prerequisite, and the route into the next topic
-   highlighted. The map takes the full width (guidance panels follow it); nodes are
-   real links with descriptive labels, the drawing is decorative, and on phones it
-   scrolls inside its frame with a hint, while the Guided path stays the default.
+   respects prerequisites, an evidence ladder, *Reset progress* (two-step
+   confirmation; goal and pace are kept), and two views:
+   - **Roadmap** (default, 21 November 2026): an interactive graph in the style
+     of roadmap.sh — a vertical spine of phase cards with progress bars, topic
+     cards on both sides joined by dotted connectors, a fork into the
+     specialisation columns that rejoin at the career phase. Zoom (buttons,
+     wheel, pinch), pan (drag), mini-map, *Fit to view*, search with keyboard
+     results that jumps to a topic, *Jump to next topic*, hover/selection that
+     highlights the full prerequisite chain (lime, before) and everything it
+     unlocks (blue, after) with a "N prerequisites · M topics build on it" note,
+     *Focus mode* that hides everything else and closes the gaps, and *Show all
+     prerequisites*. Cards show status (completed struck through, known,
+     in progress, needs prerequisites, optional dashed) and the next topic.
+     Every topic card is a real link with a full description ("Loops. Needs
+     prerequisites. About 4 hours. Open details."); Tab walks all topics in
+     order and the canvas follows focus; the view survives opening and closing
+     a topic. Opens centred on the next topic (or the selected one).
+   - **List** (`?view=list`): the accessible vertical timeline.
 4. **Topic detail** (`?topic=<id>`): native modal dialog (focus trapped and
    restored, Escape closes, background keeps its scroll position). Answers what,
    why, prerequisites (linked, with status), worked example, free resources
@@ -53,6 +64,8 @@ role. Implemented 21 November 2026 at `/learning-roadmap` (M5 pilot).
 | Skill evidence levels | `src/lib/learning/evidence.ts` |
 | API schemas, handlers, data access | `src/lib/learning/{api,handlers,server}.ts` |
 | Routes | `src/app/learning-roadmap/**`, `src/app/api/v1/learning/**` |
+| Graph layout (pure, tested) | `src/lib/learning/graph-layout.ts` |
+| Interactive graph (React Flow) | `src/components/learning/roadmap-graph.tsx` |
 | UI | `src/components/learning/*` |
 | Storage | `supabase/migrations/202611210001_learning_progress.sql` |
 
@@ -100,6 +113,34 @@ and project states (`building`, `completed`, optional `https://` evidence URL).
   returns no internal error details. Pages degrade to read-only roadmaps when
   progress storage is unavailable.
 
+## Graph engine
+
+- **Data-driven**: the graph is derived from the curriculum (phases, topics,
+  `prerequisites`, `branch`), never drawn by hand. Adding a topic to
+  `src/data/learning/*.ts` places it automatically.
+- **Layout** (`layoutRoadmap`, server-side and deterministic): title, then each
+  shared phase on the spine at x = 0 with its topics split into a left and a
+  right rail; a fork row with one column per specialisation (topics on a rail
+  below the branch head); the career phase rejoins every branch. Tests assert no
+  overlapping boxes, every topic placed exactly once, determinism, every node
+  reachable from the title, member edges only from the topic's own phase, one
+  edge per prerequisite, and correct ancestor/descendant sets.
+- **Rendering** (`RoadmapGraph`, client): `@xyflow/react` 12 (MIT) supplies the
+  viewport, zoom/pan, mini-map and controls. Nodes are not draggable or
+  selectable (the layout is the product); prerequisite edges are computed but
+  drawn only for the highlighted chain or with *Show all prerequisites*, which
+  keeps the default picture as calm as roadmap.sh's.
+- **Why not roadmap.sh's data**: roadmap.sh publishes its graph as React Flow JSON
+  (`roadmap.sh/python.json`: 124 nodes, 31 edges; topics/subtopics, dotted
+  `0.8 8` connectors, no prerequisite edges, a static rendering). It was studied
+  for structure only; nothing was copied (see licensing below). CareerForge's
+  graph adds what roadmap.sh's does not have: per-learner status and progress,
+  real prerequisite relations, path highlighting, search, focus mode, the next
+  recommended topic and goal-based optional/excluded branches.
+- **Reset**: `POST /api/v1/learning/reset` (`{ courseId, confirm: true }`,
+  same-origin, authenticated, rate-limited) deletes the learner's progress rows
+  for one path under RLS; the enrolment (goal, level, hours) is kept.
+
 ## Sources and licensing
 
 roadmap.sh's repository (`nilbuild/developer-roadmap`, formerly
@@ -137,8 +178,12 @@ Automate the Boring Stuff and others. Every resource is marked free and English.
 
 ## Guided paths
 
-- **Python** (`python`): 52 topics, 10 phases, backend/data/ML/automation
-  specialisations, 12 projects.
+- **Python** (`python`): 61 topics, 11 phases, backend/data/ML/automation
+  specialisations, 12 projects. 21 November 2026 added lambdas and closures,
+  regular expressions, type hints, packaging (pyproject/uv), and an *Advanced
+  Python* phase (decorators, context managers, async/await with asyncio,
+  threads/processes and the GIL, algorithms and complexity); linting now covers
+  Ruff and logging.
 - **JavaScript & Web Development** (`web-development`, added 22 November 2026):
   46 topics, 8 phases (web basics, HTML & CSS, JavaScript fundamentals, browser
   JavaScript, professional tooling, React, Node.js, career), goals foundations /
@@ -149,7 +194,8 @@ Automate the Boring Stuff and others. Every resource is marked free and English.
 - Career roadmaps link each step to the matching topic: web-only steps to the web
   path, shared steps (Git, testing, SQL, APIs) to the path that suits the track
   (`src/lib/learning/career-links.ts`, tested so every link resolves).
-- `check:learning-links`: 176/176 resources resolved on 22 November 2026.
+- `check:learning-links`: 200/200 resources resolved on 21 November 2026 (two
+  intentional redirects: Django "stable", 3Blue1Brown's topic URL).
 
 ## Remaining work (next steps, highest value first)
 
@@ -161,3 +207,5 @@ Automate the Boring Stuff and others. Every resource is marked free and English.
 4. Use observed job-requirement frequencies from live listings in career gaps,
    labelled with source and freshness (currently per-listing skills only).
 5. Weekly reminders/schedules and history of completed milestones.
+6. Graph: show projects as milestone nodes, let learners collapse phases, and
+   add a printable/static export of the graph.

@@ -22,6 +22,9 @@ const evidenceUrlSchema = z.string().trim().max(300).url().refine(value => {
   return url.protocol === "https:" && !url.username && !url.password;
 }, "Use a public https:// link");
 
+export const resetInputSchema = z.object({ courseId: slugSchema, confirm: z.literal(true) }).strict();
+export type ResetInput = z.infer<typeof resetInputSchema>;
+
 export const progressInputSchema = z.discriminatedUnion("kind", [
   z.object({ courseId: slugSchema, kind: z.literal("topic"), itemId: slugSchema, state: topicStateSchema.nullable() }).strict(),
   z.object({ courseId: slugSchema, kind: z.literal("project"), itemId: slugSchema, state: projectStateSchema.nullable(), evidenceUrl: evidenceUrlSchema.nullable().optional() }).strict()

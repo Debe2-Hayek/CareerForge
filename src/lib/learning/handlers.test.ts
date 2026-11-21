@@ -16,6 +16,7 @@ function fakeAccess(overrides: Partial<LearningAccess> = {}) {
     snapshot: async () => ({ enrollments: [], progress: {} }),
     enroll: async input => { calls.push(input); },
     saveProgress: async input => { calls.push(input); },
+    resetProgress: async courseId => { calls.push({ reset: courseId }); },
     ...overrides
   };
   return { access, calls };
@@ -94,4 +95,17 @@ test("snapshots map rows by course and ignore states that are invalid for their 
   assert.equal(snapshot.enrollments[0].goalId, "data");
   assert.deepEqual(snapshot.progress.python.topics, { functions: "completed" });
   assert.deepEqual(snapshot.progress.python.projects, { calculator: { state: "building", evidenceUrl: null } });
+});
+
+test("reset requires same origin, sign-in, explicit confirmation and a known course", async () => {
+  const { access, calls } = fakeAccess();
+  const handlers = learningHandlers(async () => access, () => 0);
+  const reset = (body: unknown, origin?: string) => handlers.reset(request("/reset", body, origin, "POST"));
+  assert.equal((await reset({ courseId: "python", confirm: true }, "https://evil.example")).status, 403);
+  assert.equal((await learningHandlers(async () => null).reset(request("/reset", { courseId: "python", confirm: true }, undefined, "POST"))).status, 401);
+  assert.equal((await reset({ courseId: "python" })).status, 400, "confirmation is required");
+  assert.equal((await reset({ courseId: "cobol", confirm: true })).status, 400, "unknown course");
+  assert.equal(calls.length, 0);
+  assert.equal((await reset({ courseId: "python", confirm: true })).status, 200);
+  assert.deepEqual(calls, [{ reset: "python" }]);
 });

@@ -4,7 +4,9 @@ import { orderResources, type LearningPlan, type PlanProject, type PlanTopic, ty
 import type { Recommendation } from "@/lib/learning/recommendations";
 import { CourseSetupForm } from "./course-setup-form";
 import { ProgressRing } from "./progress-bar";
-import { SkillMap } from "./skill-map";
+import { RoadmapGraph, type GraphPhaseState, type GraphTopicState } from "./roadmap-graph";
+import { ResetProgress } from "./reset-progress";
+import { layoutRoadmap } from "@/lib/learning/graph-layout";
 import { ProjectControls } from "./project-controls";
 import { StartPathButton } from "./start-path-button";
 import { TopicControls } from "./topic-controls";
@@ -82,14 +84,14 @@ export function CourseRoadmap({ course, plan, mode, view, selectedTopicId, recom
       <main>
         <div className={styles.toolbar}>
           <nav className={styles.viewToggle} aria-label="Roadmap view">
-            <Link href={hrefs.view("path")} aria-current={view === "path" ? "page" : undefined} scroll={false}>Guided path</Link>
-            <Link href={hrefs.view("overview")} aria-current={view === "overview" ? "page" : undefined} scroll={false}>Skill map</Link>
+            <Link href={hrefs.view("overview")} aria-current={view === "overview" ? "page" : undefined} scroll={false}>Roadmap</Link>
+            <Link href={hrefs.view("path")} aria-current={view === "path" ? "page" : undefined} scroll={false}>List</Link>
           </nav>
           <ul className={styles.legend} aria-label="Legend">
             {(["available", "in_progress", "completed", "known", "locked"] as const).map(status => <li key={status}><span className={styles.dot} data-status={status} aria-hidden="true" />{statusLabel[status]}</li>)}
           </ul>
         </div>
-        {view === "overview" ? <SkillMap course={course} plan={plan} topicHref={hrefs.topic} /> : <PathView plan={plan} hrefs={hrefs} />}
+        {view === "overview" ? <InteractiveRoadmap course={course} plan={plan} hrefs={hrefs} selectedTopicId={selectedTopicId} /> : <PathView plan={plan} hrefs={hrefs} />}
 
         <section className={styles.section} aria-labelledby="projects-heading">
           <div className={styles.sectionHead}>
@@ -110,6 +112,7 @@ export function CourseRoadmap({ course, plan, mode, view, selectedTopicId, recom
         <section id="adjust-plan" className={styles.section} aria-labelledby="adjust-heading" style={{ scrollMarginTop: 20 }}>
           <div className={styles.sectionHead}><div><p className={styles.kicker}>Personalisation</p><h2 id="adjust-heading">{enrolled ? "Adjust your plan" : "Change your answers"}</h2></div></div>
           <CourseSetupForm courseId={course.id} goals={course.goals} initial={plan.settings} enrolled={enrolled && storageAvailable} />
+          {enrolled && storageAvailable && <ResetProgress courseId={course.id} courseTitle={course.title} />}
         </section>
       </main>
 
@@ -142,6 +145,22 @@ export function CourseRoadmap({ course, plan, mode, view, selectedTopicId, recom
       <TopicDetail course={course} plan={plan} topic={topicsById.get(selected.id)!} planTopic={selected} enrolled={enrolled} storageAvailable={storageAvailable} hrefs={hrefs} />
     </TopicDialog>}
   </div>;
+}
+
+/** Server-side adapter: deterministic layout plus the learner's state for the client graph. */
+function InteractiveRoadmap({ course, plan, hrefs, selectedTopicId }: { course: LearningCourse; plan: LearningPlan; hrefs: Hrefs; selectedTopicId: string | null }) {
+  const layout = layoutRoadmap(course);
+  const topics: Record<string, GraphTopicState> = {};
+  const phases: Record<string, GraphPhaseState> = {};
+  const topicHrefs: Record<string, string> = {};
+  for (const phase of plan.phases) {
+    phases[phase.id] = { done: phase.done, required: phase.required, included: phase.included };
+    for (const topic of phase.topics) {
+      topics[topic.id] = { status: topic.status, inPlan: topic.inPlan, tier: topic.tier, hours: topic.hours };
+      topicHrefs[topic.id] = hrefs.topic(topic.id);
+    }
+  }
+  return <RoadmapGraph nodes={layout.nodes} edges={layout.edges} topics={topics} phases={phases} hrefs={topicHrefs} nextId={plan.nextTopic?.id ?? null} selectedId={selectedTopicId} />;
 }
 
 function TopicBadges({ topic }: { topic: PlanTopic }) {

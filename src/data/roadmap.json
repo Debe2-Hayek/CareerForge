@@ -938,6 +938,20 @@
         "next.config.ts"
       ],
       "revision": "4a90fb6"
+    },
+    {
+      "id": "transitive-effect-advisory",
+      "title": "Prisma tooling dependency advisory",
+      "signal": "A fresh registry audit found the high-severity Effect template-literal ReDoS advisory through Prisma 7.10.1, while npm offered only a breaking Prisma 6 downgrade.",
+      "resolution": "Pinned the transitive dependency to patched Effect 3.22.2 with a narrow root override, regenerated Prisma Client and re-ran the complete application and audit gates with zero reported vulnerabilities.",
+      "detectedAt": "2026-11-21T00:00:00+02:00",
+      "resolvedAt": "2026-11-21T00:00:00+02:00",
+      "linkedFiles": [
+        "package.json",
+        "package-lock.json",
+        "docs/SECURITY_REVIEW.md"
+      ],
+      "revision": "bc280c2"
     }
   ]
 }

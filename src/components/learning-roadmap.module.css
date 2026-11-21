@@ -619,8 +619,18 @@
   .hero h1 { font-size: clamp(42px, 13vw, 64px); }
   .sectionHeading { grid-template-columns: 1fr; gap: 14px; }
   .trackSection { padding-top: 44px; }
-  .trackGrid { grid-template-columns: 1fr; }
-  .trackCard { min-height: 0; }
+  .trackGrid {
+    display: flex;
+    gap: 10px;
+    margin-inline: -14px;
+    padding: 0 14px 14px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: #607b47 #141b12;
+  }
+  .trackCard { flex: 0 0 min(82vw, 330px); min-height: 0; scroll-snap-align: start; }
   .trackCard p { min-height: 0; }
   .targetSection { margin: 48px 0; padding: 24px; }
   .targetForm > div { grid-template-columns: 1fr; }

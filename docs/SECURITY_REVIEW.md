@@ -40,17 +40,17 @@ production dependency advisories. The ignored report is
 time, excludes development dependencies and is not proof that dependencies have
 no vulnerabilities. No automatic package upgrades were applied.
 
-20 November 2026 update: `next` and `eslint-config-next` were upgraded from
-16.4.2 to 16.4.6 to close the moderate Next.js `use cache` cross-root-param
-cache leak advisories GHSA-mfr8-8qww-v76h and GHSA-vc7v-qv4w-wrv8 (affected
-16.2.0-16.4.4). `npm audit fix` (non-forced) also updated the development-only
-`fast-uri` and `minimatch` advisories. Remaining: high `effect` ReDoS
-GHSA-7589-6fvf-x4pw, pinned by `@prisma/config` in Prisma 7.10.1 (latest stable
-7.x; the only offered fix is a breaking downgrade to Prisma 6). No application
-source imports Prisma Client or `effect`; it is reached only by the Prisma CLI
-reading the local config file, never user input. Revisit when Prisma ships a
-patched 7.x. Verification after the upgrade: ESLint, TypeScript, 116 unit tests,
-production build and `npm run test:rls` passed.
+20-21 November 2026 update: `next` and `eslint-config-next` were upgraded from
+16.4.2 to exactly 16.4.6 to close the moderate Next.js `use cache`
+cross-root-param cache leak advisories GHSA-mfr8-8qww-v76h and
+GHSA-vc7v-qv4w-wrv8 (affected 16.2.0-16.4.4). `npm audit fix` (non-forced) also
+updated the development-only `fast-uri` and `minimatch` advisories. Prisma
+7.10.1's `@prisma/config` pins vulnerable `effect` 3.20.0, so npm offered only a
+forced breaking Prisma 6 downgrade. The root lock now uses a narrow npm override
+to patched, semver-compatible `effect` 3.22.2 instead. Prisma Client generation,
+ESLint, TypeScript, all 149 unit tests and the 49-page offline production build
+passed on that exact lockfile; a fresh `npm audit --audit-level=low` reports zero
+vulnerabilities. Revalidate the override when Prisma updates its own pin.
 
 ## Remaining P4.1 gates
 

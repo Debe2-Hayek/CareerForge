@@ -70,12 +70,13 @@ validator reached no database because the configured development host returned
 
 The Next security agent upgraded Next.js and `eslint-config-next` from 16.4.2 to
 exactly 16.4.6 and recorded `experimental.agentUpgrade = "security"`. The safe npm
-audit fix also updated `fast-uri`; the remaining advisory is the `effect` dependency
-inside Prisma development tooling, for which npm offers only a forced breaking
-Prisma downgrade. Verification on the final lockfile: lint, TypeScript, all 111 unit
-tests, the 46-page offline production build and all 38 desktop/mobile CI browser
-cases pass. This work is local on `feature/autonomous-roadmap`; it has not been
-pushed, deployed, migrated or executed as a GitHub workflow.
+audit fix also updated `fast-uri`. On 21 November the remaining `effect` advisory
+was removed without npm's proposed breaking Prisma downgrade: a narrow root
+override moves Prisma 7.10.1's transitive pin from 3.20.0 to patched 3.22.2.
+Prisma Client generation, lint, TypeScript, all 149 unit tests, the 49-page offline
+production build and a zero-vulnerability npm audit pass on the exact lockfile.
+The origin/main live-jobs work is merged locally into `feature/autonomous-roadmap`;
+push, exact-head CI, PR merge and hosting deployment remain separate release gates.
 
 ## R2 - Real job listings - Verified locally, 19 November 2026
 

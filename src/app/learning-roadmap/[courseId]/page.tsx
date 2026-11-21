@@ -30,10 +30,11 @@ function previewSettings(course: NonNullable<ReturnType<typeof getCourse>>, sear
 }
 
 export default async function CoursePage({ params, searchParams }: { params: Params; searchParams: Search }) {
+  // Verify the session first so guests are redirected before any route detail is revealed.
+  const account = await loadLearningAccount();
   const course = getCourse((await params).courseId);
   if (!course) notFound();
   const search = await searchParams;
-  const account = await loadLearningAccount();
   if (account.status !== "ready") {
     return <AppShell pageTitle="Learning roadmap" privateAccount><div className="empty-state"><h1>Your learning plan is temporarily unavailable.</h1><p>We could not confirm your account. Your saved progress is unchanged.</p><Link href={`/learning-roadmap/${course.id}`} className="button primary">Try again</Link></div></AppShell>;
   }

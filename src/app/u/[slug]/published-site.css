@@ -1,0 +1,15 @@
+/* A published builder portfolio fills the page; the supplied two-column editor layout does not apply. */
+.published-site { min-height: 100dvh; background: #0c0e17; }
+.published-site .pb.pb-published { display: block; height: auto; min-height: 100dvh; grid-template-columns: 1fr; }
+.published-site .pb.pb-published .stage { display: block; overflow: visible; }
+.published-site .pb.pb-published .preview { overflow: visible; }
+.published-site .pb.pb-published .ed:empty { display: none; }
+.published-site-credit { padding: 18px 16px 28px; background: #0c0e17; color: #a3a8c0; font-size: 12px; text-align: center; }
+.published-site-credit a { color: #c9ccff; }
+/* A personal website should not carry the CareerForge workspace's ambient background or motion toggle. */
+body:has(.published-site) .ambient,
+body:has(.published-site) .motion-toggle { display: none; }
+.published-site-loading { min-height: 100dvh; background: #0c0e17; }
+/* The read-only photo frame is a div, not the editor's button, so give it the 4:5 ratio directly. */
+.published-site .pb.pb-published .avatar { display: block; height: auto; }
+.published-site .pb.pb-published .avatar .av-btn { height: auto; aspect-ratio: 4 / 5; cursor: default; }

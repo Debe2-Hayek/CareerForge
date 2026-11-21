@@ -123,8 +123,9 @@ export async function verifySuppliedBuilderLive(context) {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
     await expectUnifiedNavigation(desktopNavigation);
     await expect(page.locator("main")).toHaveCount(1);
-    await expect(page.locator(".supplied-builder-bar")).toContainText("Sample builder");
-    await expect(page.locator(".supplied-builder-bar")).toContainText("Edits stay in this tab");
+    // Builder drafts now autosave to the owner's account (portfolio_sites), never to the profile.
+    await expect(page.locator(".supplied-builder-bar")).toContainText("Your CV & portfolio");
+    await expect(page.locator(".builder-save-state")).toHaveText("Autosave on");
     await expect(builder.getByRole("heading", { name: "Turn rough notes into a portfolio and CV", exact: true })).toBeVisible();
     await expect(builder.getByRole("tab", { name: "Web portfolio", exact: true })).toHaveAttribute("aria-selected", "true");
     await expect(builder.locator(".hero h2")).toHaveText("Sara Khoury");
@@ -133,7 +134,7 @@ export async function verifySuppliedBuilderLive(context) {
     await expect(builder.locator(".socials a")).toHaveCount(5);
     await expect(builder.locator('.socials a[aria-label="Email"]')).toHaveAttribute("href", "mailto:sara.khoury@email.com");
     await expect(page.getByRole("link", { name: "Saved-profile CV", exact: true })).toHaveAttribute("href", "/cv/saved");
-    await expect(page.getByRole("link", { name: "Manage publication", exact: true })).toHaveAttribute("href", "/portfolio/publication");
+    await expect(page.getByRole("link", { name: "Profile portfolio", exact: true })).toHaveAttribute("href", "/portfolio/publication");
 
     const initialChrome = await readWorkspaceChrome();
     assert.ok(initialChrome.panels.every(color => initialChrome.palette.includes(color)), "Builder chrome must use the website surface colors");
@@ -315,6 +316,10 @@ export async function verifySuppliedBuilderLive(context) {
     await expect(builder.locator(".cv h1")).toHaveText("Demo Applicant");
     assert.deepEqual(await (await context.request.get("/api/v1/profile")).json(), savedProfile);
     assert.deepEqual(accountWrites, []);
+    await expect(page.locator(".builder-save-state")).toContainText("Saved", { timeout: 15000 });
+    const savedSite = await (await context.request.get("/api/v1/portfolio-site")).json();
+    assert.equal(savedSite.draft.data.name, "Demo Applicant", "the builder draft is saved to the account");
+    assert.equal(savedSite.isPublic, false, "saving never publishes");
 
     for (const path of ["/cv", "/portfolio"]) {
       const legacy = await page.goto(path);
@@ -322,24 +327,61 @@ export async function verifySuppliedBuilderLive(context) {
       assert.ok(legacy.headers()["cache-control"].includes("no-store"));
       await expect(page).toHaveURL(/\/documents$/);
       await expectUnifiedNavigation(desktopNavigation);
-      await expect(builder.locator(".hero h2")).toHaveText("Sara Khoury");
+      await expect(builder.locator(".hero h2")).toHaveText("Demo Applicant");
     }
     for (const path of ["/cv/saved", "/portfolio/publication"]) {
       await page.goto(path);
       await expectUnifiedNavigation(desktopNavigation);
       await desktopNavigation.getByRole("link", { name: "CV & Portfolio", exact: true }).click();
       await expect(page).toHaveURL(/\/documents$/);
-      await expect(builder.locator(".hero h2")).toHaveText("Sara Khoury");
+      await expect(builder.locator(".hero h2")).toHaveText("Demo Applicant");
     }
     await builder.getByRole("tab", { name: "CV", exact: true }).click();
-    await expect(builder.locator(".cv.bullet h1")).toHaveText("Sara Khoury");
+    // The saved CV style (Modern, chosen earlier) is restored with the draft.
+    await expect(builder.locator(".cv.modern h1")).toHaveText("Demo Applicant");
     await page.reload();
-    await expect(builder.locator(".hero h2")).toHaveText("Sara Khoury");
+    await expect(builder.locator(".hero h2")).toHaveText("Demo Applicant");
+    await verifyWebsitePublishing(page, context);
     assert.deepEqual(errors, []);
-    console.log("PASS: unified CV & Portfolio navigation/aliases; supplied education/language/contact/photo editing, visible skill insertion, styles, print CTA/PDF, source isolation, 320/768/1440/1920 centered preview, collapsible preserved notes, shared page scroll, unobscured section links, website-colored chrome and demo generation");
+    console.log("PASS: unified CV & Portfolio navigation/aliases; supplied education/language/contact/photo editing, visible skill insertion, styles, print CTA/PDF, source isolation, 320/768/1440/1920 centered preview, collapsible preserved notes, shared page scroll, unobscured section links, website-colored chrome, demo generation, autosaved drafts and website publish/update/offline");
   } catch (error) {
     console.error("Supplied builder verification:", error.message);
     await page.screenshot({ path: "test-results/supplied-builder-failure.png", fullPage: true }).catch(() => {});
     throw error;
   } finally { await page.close(); }
+}
+// Publish the saved builder portfolio, visit it anonymously, then take it offline.
+async function verifyWebsitePublishing(page, context) {
+  const slug = `live-test-${Math.random().toString(36).slice(2, 10)}`;
+  await page.getByRole("button", { name: "Publish website", exact: true }).click();
+  const panel = page.getByRole("region", { name: "Publish your portfolio website" });
+  await panel.getByLabel("Web address").fill(slug);
+  await panel.getByRole("button", { name: "Publish website", exact: true }).click();
+  await expect(panel.getByRole("heading", { name: "Your portfolio is live" })).toBeVisible();
+  const liveLink = panel.locator(".builder-live a");
+  await expect(liveLink).toHaveAttribute("href", new RegExp(`/u/${slug}$`));
+  const visitor = await context.browser().newContext({ baseURL: new URL(page.url()).origin });
+  try {
+    const publicPage = await visitor.newPage();
+    const response = await publicPage.goto(`/u/${slug}`);
+    assert.equal(response.status(), 200);
+    assert.ok(response.headers()["cache-control"].includes("no-store"));
+    await expect(publicPage.locator(".hero h2")).toHaveText("Demo Applicant");
+    await expect(publicPage.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    await expect(publicPage.locator("[contenteditable]")).toHaveCount(0);
+    await expect(publicPage.getByRole("button", { name: "+ Add skill" })).toHaveCount(0);
+    await expect(publicPage.getByText("i'm demo applicant")).toHaveCount(0);
+    for (const width of [320, 1440]) {
+      await publicPage.setViewportSize({ width, height: 900 });
+      await publicPage.reload();
+      await expect(publicPage.locator(".hero h2")).toHaveText("Demo Applicant");
+      await publicPage.waitForTimeout(600); // let entrance animations settle before the screenshot
+      assert.equal(await publicPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `public site overflow at ${width}px`);
+      await publicPage.screenshot({ path: `test-results/published-site-${width}.png`, fullPage: false });
+    }
+    assert.equal((await visitor.request.get("/u/no-such-site-here")).status(), 404);
+    await panel.getByRole("button", { name: "Take offline", exact: true }).click();
+    await expect(panel.getByRole("heading", { name: "Publish your portfolio as a website" })).toBeVisible();
+    assert.equal((await visitor.request.get(`/u/${slug}`)).status(), 404, "offline sites disappear immediately");
+  } finally { await visitor.close(); }
 }

@@ -69,8 +69,12 @@ async function structureWithAI(text) {
 /* ---------- Click-to-edit text ---------- */
 const EditCtx = createContext(() => {});
 const ListCtx = createContext({});
+// CareerForge addition: true when rendering a published (public, read-only) site.
+const ReadOnlyCtx = createContext(false);
 function Ed({ v, p, as: T = "span", multi, ph = "Add text", cls = "" }) {
   const set = useContext(EditCtx);
+  const readOnly = useContext(ReadOnlyCtx);
+  if (readOnly) return <T className={"ed " + cls}>{v}</T>;
   return (
     <T className={"ed " + cls} data-ph={ph} contentEditable suppressContentEditableWarning spellCheck={false}
       onBlur={(e) => set(p, e.currentTarget.textContent.trim())}
@@ -78,19 +82,46 @@ function Ed({ v, p, as: T = "span", multi, ph = "Add text", cls = "" }) {
   );
 }
 
-export default function PortfolioBuilder() {
-  const [input, setInput] = useState(SAMPLE);
-  const [data, setData] = useState(() => ({ ...mockStructure(SAMPLE), ...DEMO_CONTACT }));
+/* CareerForge addition: accent/background variables shared by the builder and published sites. */
+function themeVars(theme, custom, mode) {
+  const t = THEMES[theme] || THEMES.indigo;
+  const a = custom || t.a;
+  const light = mode === "light";
+  return {
+    "--a": a,
+    "--b": custom ? `color-mix(in srgb, ${custom} 55%, #ff7ad9)` : t.b,
+    "--bg": light ? `color-mix(in srgb, ${a} 7%, #f6f7fc)` : custom ? `color-mix(in srgb, ${custom} 9%, #07080d)` : t.bg,
+    "--on": lum(a) > 0.45 ? "#0a0a12" : "#ffffff", // readable text on accent fills
+  };
+}
+
+// CareerForge additions (all optional; without them the builder behaves as supplied):
+// initialState restores a saved draft; onStateChange reports edits so they can be saved.
+export default function PortfolioBuilder({ initialState, onStateChange } = {}) {
+  const [input, setInput] = useState(() => initialState?.notes ?? SAMPLE);
+  const [data, setData] = useState(() => initialState?.data ?? ({ ...mockStructure(SAMPLE), ...DEMO_CONTACT }));
   const [view, setView] = useState("portfolio");
-  const [theme, setTheme] = useState("indigo");
-  const [custom, setCustom] = useState(null);
+  const [theme, setTheme] = useState(() => initialState?.theme ?? "indigo");
+  const [custom, setCustom] = useState(() => initialState?.custom ?? null);
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(0);
   const [note, setNote] = useState("");
-  const [mode, setMode] = useState("dark");
-  const [photo, setPhoto] = useState(null);
-  const [cvPhoto, setCvPhoto] = useState(true);
-  const [cvStyle, setCvStyle] = useState("bullet");
+  const [mode, setMode] = useState(() => initialState?.mode ?? "dark");
+  const [photo, setPhoto] = useState(() => initialState?.photo ?? null);
+  const [cvPhoto, setCvPhoto] = useState(() => initialState?.cvPhoto ?? true);
+  const [cvStyle, setCvStyle] = useState(() => initialState?.cvStyle ?? "bullet");
+
+  const report = useRef(onStateChange);
+  useEffect(() => { report.current = onStateChange; });
+  // Report only real edits: compare with the values last seen (a remount or a
+  // repeated effect with unchanged state, e.g. React Strict Mode, is ignored).
+  const seen = useRef([input, data, theme, custom, mode, photo, cvPhoto, cvStyle]);
+  useEffect(() => {
+    const now = [input, data, theme, custom, mode, photo, cvPhoto, cvStyle];
+    if (now.every((value, i) => value === seen.current[i])) return;
+    seen.current = now;
+    report.current?.({ notes: input, data, theme, custom, mode, photo, cvPhoto, cvStyle });
+  }, [input, data, theme, custom, mode, photo, cvPhoto, cvStyle]);
 
   useEffect(() => {
     if (!busy) return;
@@ -121,15 +152,9 @@ export default function PortfolioBuilder() {
     finally { setBusy(false); }
   }
 
-  const t = THEMES[theme];
-  const a = custom || t.a;
+  const t = THEMES[theme] || THEMES.indigo;
   const light = mode === "light";
-  const vars = {
-    "--a": a,
-    "--b": custom ? `color-mix(in srgb, ${custom} 55%, #ff7ad9)` : t.b,
-    "--bg": light ? `color-mix(in srgb, ${a} 7%, #f6f7fc)` : custom ? `color-mix(in srgb, ${custom} 9%, #07080d)` : t.bg,
-    "--on": lum(a) > 0.45 ? "#0a0a12" : "#ffffff", // readable text on accent fills
-  };
+  const vars = themeVars(theme, custom, mode);
 
   return (
     <EditCtx.Provider value={set}>
@@ -200,10 +225,28 @@ export default function PortfolioBuilder() {
 /* ---------- View A: dark glass portfolio ---------- */
 const clearFx = (el) => el && ["--rx", "--ry", "--tx", "--ty"].forEach((k) => el.style.removeProperty(k));
 const NAV = ["about", "experience", "skills", "projects", "contact"];
+/* CareerForge addition: a published site — the same Portfolio view, read-only, with no editing controls. */
+export function PublishedPortfolio({ state }) {
+  const d = state.data;
+  return (
+    <ReadOnlyCtx.Provider value={true}>
+      <div className="pb pb-published" style={themeVars(state.theme, state.custom, state.mode)} data-mode={state.mode}>
+        <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        <section className="stage">
+          <div className="preview">
+            <Portfolio d={{ ...d, experience: d.experience || [], projects: d.projects || [], skills: d.skills || [] }} photo={state.photo} />
+          </div>
+        </section>
+      </div>
+    </ReadOnlyCtx.Provider>
+  );
+}
+
 function Portfolio({ d, photo, setPhoto, onCV }) {
   const ref = useRef(null);
   const [active, setActive] = useState("about");
   const { addSkill, removeSkill } = useContext(ListCtx);
+  const readOnly = useContext(ReadOnlyCtx);
 
   // Scroll progress bar + back-to-top visibility (DOM updates only, no re-renders)
   useEffect(() => {
@@ -276,10 +319,11 @@ function Portfolio({ d, photo, setPhoto, onCV }) {
           </div>
           <div className="cta">
             <button className="btn primary" onClick={() => go("contact")}>Get in touch</button>
-            <button className="btn" onClick={onCV}>Download CV</button>
+            {!readOnly && <button className="btn" onClick={onCV}>Download CV</button>}
           </div>
         </div>
-        <Avatar photo={photo} setPhoto={setPhoto} name={d.name} />
+        {readOnly ? <div className="avatar fx" data-tilt="1"><div className="av-btn">{photo ? <img src={photo} alt={d.name || "Profile photo"} /> : <span className="ph"><b>{(d.name || "").split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?"}</b></span>}</div></div>
+          : <Avatar photo={photo} setPhoto={setPhoto} name={d.name} />}
       </header>
 
       <section data-sec="experience">
@@ -314,8 +358,8 @@ function Portfolio({ d, photo, setPhoto, onCV }) {
       <section data-sec="skills">
         <h3>What I work with</h3>
         <div className="chips">
-          {d.skills.map((s, i) => <span key={i} className="chip fx rv" data-mag="1" style={{ "--i": i }}><Ed v={s} p={["skills", i]} ph="Skill" /><button className="sk-x" onClick={() => removeSkill(i)} aria-label={`Remove ${s}`}>×</button></span>)}
-          <button className="chip sk-add" onClick={addSkill}>+ Add skill</button>
+          {d.skills.map((s, i) => <span key={i} className="chip fx rv" data-mag="1" style={{ "--i": i }}><Ed v={s} p={["skills", i]} ph="Skill" />{!readOnly && <button className="sk-x" onClick={() => removeSkill(i)} aria-label={`Remove ${s}`}>×</button>}</span>)}
+          {!readOnly && <button className="chip sk-add" onClick={addSkill}>+ Add skill</button>}
         </div>
       </section>
 
@@ -334,7 +378,7 @@ function Portfolio({ d, photo, setPhoto, onCV }) {
       <footer data-sec="contact" className="contact">
         <h3>Let's work together</h3>
         <div className="cpills">
-          {FIELDS.map(([k, ic, label, ph]) => (
+          {FIELDS.filter(([k]) => !readOnly || d[k]).map(([k, ic, label, ph]) => (
             <div key={k} className={"cpill glass" + (d[k] ? "" : " empty")}>
               <a className="cico" href={linkFor(k, d[k])} target={k === "email" || k === "phone" ? undefined : "_blank"} rel="noreferrer" aria-label={label} tabIndex={linkFor(k, d[k]) ? 0 : -1}><Icon n={ic} /></a>
               <Ed v={d[k]} p={[k]} ph={ph} />

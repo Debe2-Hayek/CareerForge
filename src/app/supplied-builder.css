@@ -129,3 +129,27 @@
   .pb .cv.bullet .bullet-control, .pb .cv.bullet .bullet-remove { display: none !important; }
   .pb .cv.bullet .ed { background: transparent; outline: 0; }
 }
+
+/* Save status and website publishing (CareerForge additions around the supplied builder). */
+.builder-save-state { color: var(--workspace-muted); }
+.builder-save-state[data-state="saved"] { color: var(--workspace-accent); }
+.builder-save-state[data-state="error"], .builder-save-state[data-state="conflict"] { color: #f0a58f; }
+.builder-unpublished { color: #e8cf8f; }
+.builder-publish-toggle, .builder-secondary { min-height: 36px; padding: 6px 14px; border: 1px solid var(--workspace-line); border-radius: 8px; background: transparent; color: var(--workspace-ink, #eef4e6); font-size: 12px; font-weight: 600; cursor: pointer; }
+.builder-publish-toggle { border-color: var(--workspace-accent); color: var(--workspace-accent); }
+.builder-publish-toggle:hover, .builder-secondary:hover { background: #ffffff0d; }
+.builder-publish-toggle:focus-visible, .builder-secondary:focus-visible, .builder-publish input:focus-visible { outline: 2px solid var(--workspace-accent); outline-offset: 2px; }
+.builder-publish { flex-basis: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 16px 28px; margin: 4px 0 6px; padding: 18px; border: 1px solid var(--workspace-line); border-radius: 14px; background: #ffffff08; color: var(--workspace-ink, #eef4e6); }
+.builder-publish h2 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+.builder-publish p { margin: 0; color: var(--workspace-muted); font-size: 12px; line-height: 1.6; }
+.builder-publish form { display: grid; gap: 8px; }
+.builder-publish label { font-size: 12px; font-weight: 600; }
+.builder-publish small { color: var(--workspace-muted); font-size: 11px; }
+.builder-slug { display: flex; align-items: center; min-width: 0; border: 1px solid var(--workspace-line); border-radius: 8px; background: #0000002e; overflow: hidden; }
+.builder-slug span { padding: 0 4px 0 12px; color: var(--workspace-muted); font: 12px var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55%; }
+.builder-slug input { flex: 1; min-width: 0; min-height: 40px; padding: 8px 12px 8px 0; border: 0; background: transparent; color: inherit; font: 13px var(--mono); }
+.builder-publish-actions, .builder-live { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.builder-live { grid-column: 1 / -1; padding-top: 10px; border-top: 1px solid var(--workspace-line); }
+.builder-live a { overflow-wrap: anywhere; color: var(--workspace-accent); font: 12px var(--mono); }
+.builder-message { flex-basis: 100%; margin: 0; color: #e8cf8f; }
+@media (max-width: 760px) { .builder-publish { grid-template-columns: 1fr; } }

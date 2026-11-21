@@ -181,3 +181,20 @@ model LearningProgress {
   @@id([userId, courseId, itemKind, itemId])
   @@map("learning_progress")
 }
+
+// Visual builder drafts and published websites (/u/<slug>). Owner-read RLS and
+// all writes via reviewed SQL functions live in 202611220001_portfolio_sites.sql.
+model PortfolioSite {
+  userId            String    @id @map("user_id") @db.Uuid
+  draft             Json
+  revision          String    @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug              String?   @unique
+  published         Json?
+  publishedRevision String?   @map("published_revision") @db.Uuid
+  isPublic          Boolean   @default(false) @map("is_public")
+  publishedAt       DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(dbgenerated("clock_timestamp()")) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("portfolio_sites")
+}

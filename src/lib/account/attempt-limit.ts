@@ -21,8 +21,8 @@ export function createAttemptLimit(maxKeys = 5000) {
 
 const authAttempts = createAttemptLimit();
 const writeAttempts = createAttemptLimit();
-export function privateWriteLimit(scope: "profile" | "tracker" | "portfolio" | "history" | "feedback" | "diagnostics" | "learning", userId: string) {
-  const attempts = scope === "tracker" || scope === "learning" ? 60 : scope === "diagnostics" ? 120 : scope === "feedback" ? 20 : 30;
+export function privateWriteLimit(scope: "profile" | "tracker" | "portfolio" | "site" | "history" | "feedback" | "diagnostics" | "learning", userId: string) {
+  const attempts = scope === "tracker" || scope === "learning" || scope === "site" ? 60 : scope === "diagnostics" ? 120 : scope === "feedback" ? 20 : 30;
   return writeAttempts(scope, userId, attempts, 60000);
 }
 export function credentialLimit(kind: "login" | "register", email: string) {

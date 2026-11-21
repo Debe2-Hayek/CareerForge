@@ -16,3 +16,4 @@ supabase/.temp/
 .github/codex/run-context.md
 *.tsbuildinfo
 .DS_Store
+.tmp/

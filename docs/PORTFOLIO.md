@@ -86,3 +86,43 @@ The final full account suite and four desktop/mobile public-entry/guest-guard
 cases passed with the corrected proxy active. This source increment is local;
 push, remote CI and hosting remain separate verification steps. Existing local
 development configuration and the owner's IDE settings were preserved.
+
+## Builder websites — saved drafts and publishing (22 November 2026)
+
+The visual CV & Portfolio builder (`/documents`) now saves to the owner's
+account and can publish its Web portfolio view as a personal website at
+`/u/<address>`.
+
+- **Autosave.** Edits are saved about a second after they stop (status in the
+  builder bar). Saves are optimistic-revision checked: a draft changed in another
+  tab returns a conflict with a "Reload latest" action instead of overwriting.
+  Large photos are downscaled in the browser before saving. Builder drafts never
+  write to the profile or the profile-based portfolio.
+- **Publish.** "Publish website" asks for an address (3–40 lower-case letters,
+  digits and single hyphens; reserved words refused; unique across users). The
+  public snapshot is built inside the database from the saved draft with private
+  notes and CV-only settings removed — the client never sends public content.
+  Later edits stay private ("Unpublished changes") until "Update live site".
+  "Take offline" deletes the snapshot immediately; the address stays reserved.
+- **Public page.** `/u/<address>` renders the same supplied Portfolio view
+  read-only (no editable text, no edit controls, no CV download), without the
+  workspace background or loading screen. Unknown, unpublished and malformed
+  addresses get identical uncached 404s from the proxy before streaming. Pages
+  are `noindex`, like `/p/` links: shareable by URL, not listed by search engines.
+- **Safety.** Content is validated on write (zod, size limits, raster data-URL
+  photos only, hex colours only) and re-validated before every public render;
+  invalid stored content is treated as not found. All text renders as React text.
+- **Storage.** `portfolio_sites` (migration `202611220001_portfolio_sites.sql`):
+  owner-read RLS, no direct writes, reviewed `security definer` functions,
+  cascade on account deletion. Applied to development on 22 November 2026.
+
+Verification: 188 unit/render tests; `scripts/validate-portfolio-sites-migration.mjs`
+(rolled-back transaction: isolation, no direct writes, revisions, server-derived
+snapshot without notes, unique addresses, unpublish, anonymous reads, cascade);
+`test-account-live.mjs --builder-only` against development: autosave, persistence
+across navigation/reload, publish, anonymous visit (read-only, noindex, no-store,
+320/1440px without overflow), unknown-address 404, take offline → 404.
+
+Supplied-component note: `PortfolioBuilder.jsx` received additive hooks only
+(`initialState`, `onStateChange`, exported `PublishedPortfolio`, a read-only
+context). Without props it behaves as supplied.

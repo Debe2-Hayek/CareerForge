@@ -71,7 +71,11 @@ Apply the owner's senior engineering/product instructions and
 ## Living roadmap and autonomous evolution contract
 
 `src/data/roadmap.json` is the product-evolution source of truth shown in the
-authenticated Learning roadmap tab. Run the deterministic `npm run sync:roadmap`
+authenticated Learning roadmap tab at `/learning-roadmap/product` (the tab's main
+view is the learner journey; see `docs/LEARNING_ROADMAP.md`). Learning curriculum
+lives in `src/data/learning/` as original CareerForge content: link roadmap.sh and
+other sources, never copy their text (roadmap.sh's licence forbids reproduction).
+Run `npm run check:learning-links` after curriculum edits. Run the deterministic `npm run sync:roadmap`
 task whenever a feature, architecture boundary or upstream roadmap.sh topic
 changes. This sync is a zero-token data operation: it must never call an LLM or
 require `OPENAI_API_KEY`. A completed node must link to real repository files and

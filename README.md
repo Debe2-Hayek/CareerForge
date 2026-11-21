@@ -36,14 +36,19 @@ entries; currently React/SQL fundamentals checks can qualify selected CV skills.
 Checks use server-enforced 10-minute attempts, with a 100-minute extended-time
 option. Reload resumes the deadline; answer drafts are page-memory only.
 See [timed assessment behavior](docs/TIMED_SKILL_CHECKS.md).
-Learning roadmap now offers a pilot: select a fictional role for concrete
-gap-based exercises and original roadmap.sh links. Target selection survives
-reload in the URL; saved schedules and completion tracking remain planned.
-See [learning roadmap behavior](docs/LEARNING_ROADMAP.md).
-The same authenticated Learning roadmap tab contains the living product map:
-connected-node and Now/Next/Later views, repository proof, a verified-resolution
-feed and privacy-safe feedback. `/roadmap` is a compatibility entry that redirects
-to `/learning-roadmap`; it does not create a competing navigation destination.
+Learning roadmap offers personalised, free-first guided paths (Python with
+backend/data/ML/automation specialisations, and JavaScript & Web Development with
+React and Node.js specialisations) plus a connected Skill map view: goal, level
+and weekly-time personalisation, prerequisite-aware plans, topic details with
+free official resources, owner-only progress tracking across devices, projects
+and portfolio-entry hand-off. Career roadmaps (`/learning-roadmap/careers`)
+compare your profile and recorded evidence with a role or job target.
+Progress storage needs migration `202611210001_learning_progress.sql`; without
+it the roadmap is read-only. See [learning roadmap](docs/LEARNING_ROADMAP.md).
+The same authenticated tab keeps the living product map at
+`/learning-roadmap/product` (connected-node and Now/Next/Later views, repository
+proof, verified resolutions and privacy-safe feedback). `/roadmap` is a
+compatibility entry that redirects to `/learning-roadmap`.
 
 Routine evolution is token-free. `npm run sync:roadmap` reads the canonical
 roadmap.sh repository plus explicit `[roadmap:<node-id>]` git commit markers, and

@@ -1,5 +1,49 @@
 # CareerForge implementation roadmap
 
+## Builder websites, web guided path and skill map - verified locally, 22 November 2026
+
+Users can save the visual CV & Portfolio builder to their account (autosave,
+revision-checked) and publish it as a personal website at `/u/<address>`,
+update it, or take it offline ([PORTFOLIO.md](PORTFOLIO.md)). A second guided path,
+JavaScript & Web Development (46 topics, React/Node.js specialisations, 8
+projects), joins Python, and the roadmap's overview is now a connected Skill map
+with prerequisite lines, status colours and the highlighted route to the next
+topic ([LEARNING_ROADMAP.md](LEARNING_ROADMAP.md)). Stale builder live checks were
+updated after the 10 November CV-style change.
+
+Evidence: lint, strict TypeScript and 192 unit/render tests passed; both migration
+validators passed in rolled-back transactions; `202611220001_portfolio_sites.sql`
+was applied to development; the complete `test:account:live` suite passed against
+development (profile, assessments/CV, portfolio, builder publishing, learning
+journey incl. web path and Skill map, features, tracker, passwords, accounts);
+176/176 learning links resolved. Production is not migrated.
+
+## M5/R3 - Personalised learning roadmap - verified locally, 21 November 2026
+
+The Learning roadmap tab is now a learner journey: dashboard with continue
+cards and a searchable catalog; a deep, original Python guided path (52 topics,
+10 phases incl. backend/data/ML/automation specialisations, 12 projects, 103
+verified free resources); deterministic personalisation by goal, level, weekly
+hours and format; prerequisite-aware next steps and weekly plans; topic dialog
+with completion criteria; owner-only progress persistence; project tracking with
+portfolio-entry hand-off; and career roadmaps showing graded skill evidence.
+The product-evolution map moved to `/learning-roadmap/product` inside the tab.
+
+Evidence: lint, strict TypeScript, 180 unit/render tests and the offline
+production build passed; `db:validate:learning` passed against development in a
+rolled-back transaction; browser QA at 1440/820/390px showed no console errors
+or horizontal overflow and correct dialog focus/Escape behaviour;
+`check:learning-links` resolved 103/103 URLs. Details and limits:
+[LEARNING_ROADMAP.md](LEARNING_ROADMAP.md).
+
+The migration is applied to development (owner-approved) and the focused live
+journey (`test-account-live.mjs --learning-only`) passed against real Auth and
+data. Production is not migrated. Not yet done: only Python has a guided path;
+portfolio hand-off is a prepared entry, not normalised records; career gaps use
+per-listing skills, not aggregated market frequencies. The full live suite now
+passes profile, assessment/CV and portfolio stages but stops at the supplied CV &
+Portfolio builder check (`.cv.modern h1` not found), which is outside this change.
+
 ## Autonomous roadmap and search release - deployed 21 November 2026
 
 PR #2 merged the verified release branch into `main` at `60687cc` after its

@@ -12,7 +12,7 @@ export const features: readonly Feature[] = [
   { id: "career-analysis", label: "Career analysis", href: "/career-analysis", icon: "compass", group: "Career", module: "M2", status: "Planned", description: "Find a career direction and understand the skills to build next." },
   { id: "skill-checks", label: "Skill checks", href: "/skill-checks", icon: "checks", group: "Career", module: "Assessment pilot", status: "Pilot", description: "React and SQL fundamentals checks. Only selected skills with a current passing check enter your CV." },
   { id: "academic-planner", label: "Academic planner", href: "/academic-planner", icon: "courses", group: "Learning", module: "M3", status: "Planned", description: "Connect your courses and degree progress to your career target." },
-  { id: "learning-roadmap", label: "Learning roadmap", href: "/learning-roadmap", icon: "roadmap", group: "Learning", module: "M5 pilot", status: "Pilot", description: "Choose a fictional role for concrete gap-based exercises and roadmap.sh links. Saved schedules and progress remain planned." },
+  { id: "learning-roadmap", label: "Learning roadmap", href: "/learning-roadmap", icon: "roadmap", group: "Learning", module: "M5 pilot", status: "Pilot", description: "Personalised, free learning paths with progress tracking, projects and portfolio evidence, plus career roadmaps that compare your profile with a target role." },
   { id: "projects", label: "Project ideas", href: "/projects", icon: "projects", group: "Learning", module: "M5", status: "Planned", description: "Build projects that demonstrate the skills your target career needs." },
   { id: "documents", label: "CV & Portfolio", href: "/documents", icon: "cv", group: "Documents", module: "M6", status: "Pilot", description: "Create an editable CV and portfolio with shared details, styles and PDF output. AI writing and saved builder drafts are not connected." },
   { id: "cv-analysis", label: "CV analysis", href: "/cv-analysis", icon: "analysis", group: "Documents", module: "M6", status: "Planned", description: "Understand how your CV meets a specific job's requirements." },
@@ -42,5 +42,5 @@ export function getPlannedFeature(id: string): PlannedFeature {
   return feature;
 }
 export function isPrivateFeaturePath(path: string): boolean {
-  return path === "/features" || path.startsWith("/account/") || path === "/cv" || path === "/portfolio" || path.startsWith("/cv/") || path.startsWith("/portfolio/") || features.some(feature => feature.href === path);
+  return path === "/features" || path.startsWith("/account/") || path.startsWith("/learning-roadmap/") || path === "/cv" || path === "/portfolio" || path.startsWith("/cv/") || path.startsWith("/portfolio/") || features.some(feature => feature.href === path);
 }

@@ -17,6 +17,7 @@ const noIndexSources = [
   "/skill-checks",
   "/academic-planner",
   "/learning-roadmap",
+  "/learning-roadmap/:path*",
   "/roadmap",
   "/projects",
   "/documents",
@@ -29,7 +30,8 @@ const noIndexSources = [
   "/application-insights",
   "/career-assistant",
   "/graduation-simulator",
-  "/p/:path*"
+  "/p/:path*",
+  "/u/:path*"
 ];
 
 const nextConfig: NextConfig = {

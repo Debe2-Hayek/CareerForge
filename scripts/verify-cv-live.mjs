@@ -99,7 +99,9 @@ export async function verifyCVLive(context) {
     await expect(page.getByRole("button", { name: "Print / save as PDF" })).toBeEnabled();
     for (const width of [320, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      // Let the app shell finish its desktop/mobile transition; genuine overflow still fails.
+      const fits = await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth, null, { timeout: 3000 }).then(() => true, () => false);
+      assert.equal(fits, true, `CV horizontal overflow at ${width}px`);
       await page.screenshot({ path: `test-results/cv-${width}.png`, fullPage: true, animations: "disabled" });
     }
     await page.emulateMedia({ media: "print" });

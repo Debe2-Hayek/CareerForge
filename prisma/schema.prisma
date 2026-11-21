@@ -145,3 +145,56 @@ model ExperienceRecord {
   @@unique([userId, requestId], map: "experience_records_user_id_request_id_key")
   @@map("experience_records")
 }
+
+// Learning roadmap enrolment. Ownership FK to auth.users, RLS, column grants and
+// trigger-controlled timestamps live in SQL (202611210001_learning_progress.sql).
+model LearningEnrollment {
+  userId          String             @map("user_id") @db.Uuid
+  courseId        String             @map("course_id")
+  goalId          String             @map("goal_id")
+  experienceLevel String             @map("experience_level")
+  weeklyHours     Int                @map("weekly_hours") @db.SmallInt
+  resourceFormat  String             @map("resource_format")
+  contentVersion  Int                @map("content_version")
+  startedAt       DateTime           @default(dbgenerated("clock_timestamp()")) @map("started_at") @db.Timestamptz(6)
+  updatedAt       DateTime           @default(dbgenerated("clock_timestamp()")) @map("updated_at") @db.Timestamptz(6)
+  lastActiveAt    DateTime           @default(dbgenerated("clock_timestamp()")) @map("last_active_at") @db.Timestamptz(6)
+  progress        LearningProgress[]
+
+  @@id([userId, courseId])
+  @@index([userId, lastActiveAt(sort: Desc)], map: "learning_enrollments_recent")
+  @@map("learning_enrollments")
+}
+
+model LearningProgress {
+  userId         String             @map("user_id") @db.Uuid
+  courseId       String             @map("course_id")
+  itemKind       String             @map("item_kind")
+  itemId         String             @map("item_id")
+  state          String
+  evidenceUrl    String?            @map("evidence_url")
+  contentVersion Int                @map("content_version")
+  updatedAt      DateTime           @default(dbgenerated("clock_timestamp()")) @map("updated_at") @db.Timestamptz(6)
+  completedAt    DateTime?          @map("completed_at") @db.Timestamptz(6)
+  enrollment     LearningEnrollment @relation(fields: [userId, courseId], references: [userId, courseId], onDelete: Cascade)
+
+  @@id([userId, courseId, itemKind, itemId])
+  @@map("learning_progress")
+}
+
+// Visual builder drafts and published websites (/u/<slug>). Owner-read RLS and
+// all writes via reviewed SQL functions live in 202611220001_portfolio_sites.sql.
+model PortfolioSite {
+  userId            String    @id @map("user_id") @db.Uuid
+  draft             Json
+  revision          String    @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug              String?   @unique
+  published         Json?
+  publishedRevision String?   @map("published_revision") @db.Uuid
+  isPublic          Boolean   @default(false) @map("is_public")
+  publishedAt       DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(dbgenerated("clock_timestamp()")) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("portfolio_sites")
+}

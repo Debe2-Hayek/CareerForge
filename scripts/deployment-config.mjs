@@ -12,6 +12,7 @@ export function deploymentConfigErrors(env) {
   };
   url("APP_ORIGIN", ["https:"], true);
   url("NEXT_PUBLIC_SUPABASE_URL", ["https:"], true);
+  if (env.NEXT_PUBLIC_SITE_URL) url("NEXT_PUBLIC_SITE_URL", ["https:"], true);
   // Hosted private APIs use the public Supabase client with the verified user's
   // session and RLS. Direct connection credentials are optional local-tool config.
   for (const name of ["DATABASE_URL", "DIRECT_URL"]) {

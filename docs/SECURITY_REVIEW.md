@@ -40,17 +40,17 @@ production dependency advisories. The ignored report is
 time, excludes development dependencies and is not proof that dependencies have
 no vulnerabilities. No automatic package upgrades were applied.
 
-20 November 2026 update: `next` and `eslint-config-next` were upgraded from
-16.4.2 to 16.4.6 to close the moderate Next.js `use cache` cross-root-param
-cache leak advisories GHSA-mfr8-8qww-v76h and GHSA-vc7v-qv4w-wrv8 (affected
-16.2.0-16.4.4). `npm audit fix` (non-forced) also updated the development-only
-`fast-uri` and `minimatch` advisories. Remaining: high `effect` ReDoS
-GHSA-7589-6fvf-x4pw, pinned by `@prisma/config` in Prisma 7.10.1 (latest stable
-7.x; the only offered fix is a breaking downgrade to Prisma 6). No application
-source imports Prisma Client or `effect`; it is reached only by the Prisma CLI
-reading the local config file, never user input. Revisit when Prisma ships a
-patched 7.x. Verification after the upgrade: ESLint, TypeScript, 116 unit tests,
-production build and `npm run test:rls` passed.
+20-21 November 2026 update: `next` and `eslint-config-next` were upgraded from
+16.4.2 to exactly 16.4.6 to close the moderate Next.js `use cache`
+cross-root-param cache leak advisories GHSA-mfr8-8qww-v76h and
+GHSA-vc7v-qv4w-wrv8 (affected 16.2.0-16.4.4). `npm audit fix` (non-forced) also
+updated the development-only `fast-uri` and `minimatch` advisories. Prisma
+7.10.1's `@prisma/config` pins vulnerable `effect` 3.20.0, so npm offered only a
+forced breaking Prisma 6 downgrade. The root lock now uses a narrow npm override
+to patched, semver-compatible `effect` 3.22.2 instead. Prisma Client generation,
+ESLint, TypeScript, all 149 unit tests and the 49-page offline production build
+passed on that exact lockfile; a fresh `npm audit --audit-level=low` reports zero
+vulnerabilities. Revalidate the override when Prisma updates its own pin.
 
 ## Remaining P4.1 gates
 
@@ -170,6 +170,27 @@ scopes, time boundaries, saturation without eviction, provider-call denial,
 Retry-After/no-store and unrestricted logout. No real auth attempts, emails,
 database changes, new dependencies or paid services were required. Browser/UI
 tests were not rerun for this server-side increment.
+
+## New-password breach screening
+
+Registration and authenticated password updates now require 12–128 characters
+with lowercase, uppercase, number and a symbol from Supabase's documented ASCII
+set. Legacy login
+accepts the existing 1–128-character credential shape so policy tightening does
+not prevent established users from signing in and rotating their password.
+
+After validation, authorization and applicable attempt limits, the server checks
+new passwords against the free Have I Been Pwned range endpoint. It sends only a
+five-character SHA-1 prefix, requests padded results, validates a bounded response
+and compares the suffix locally. A compromised password returns a generic 400;
+an upstream timeout, non-200 or malformed response returns a sanitized 503. The
+Auth provider is not called on registration failure, and password recovery verifies
+the current user before making the range request and does not update on failure.
+
+This is application-route enforcement, not proof that Supabase's plan-gated native
+leaked-password option is active. Direct use of the public Auth endpoint remains a
+provider boundary; keep provider strength settings aligned and enable native leaked
+password protection when the project plan and Auth-admin permission support it.
 
 ## Verified-user write budgets
 

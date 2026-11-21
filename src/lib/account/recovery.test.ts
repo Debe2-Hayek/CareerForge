@@ -7,8 +7,10 @@ import { requestOrigin, isSameOrigin } from "./http";
 import { createAttemptLimit, credentialLimit, privateWriteLimit } from "./attempt-limit";
 
 const request = (body: unknown, origin = "http://localhost:3000") => new Request("http://localhost:3000/api/v1/auth/forgot-password", { method: "POST", headers: { "Content-Type": "application/json", Origin: origin }, body: JSON.stringify(body) });
-const provider: RecoveryProvider = { resend: async () => ({ error: null }), forgot: async () => ({ error: null }), changePassword: async () => ({ error: null }) };
+const provider: RecoveryProvider = { resend: async () => ({ error: null }), forgot: async () => ({ error: null }), authorizePasswordChange: async () => async () => ({ error: null }) };
 const noLimit = () => 0;
+const strongPassword = "StrongPassword123!";
+const safePassword = async () => false;
 test("private write budgets isolate verified users and profile/tracker scopes", () => {
   for (let i = 0; i < 30; i++) assert.equal(privateWriteLimit("profile", "write-budget-owner-a"), 0);
   assert.ok(privateWriteLimit("profile", "write-budget-owner-a") > 0);
@@ -48,7 +50,7 @@ test("credential limits deny provider access, set retry metadata and leave logou
   const auth: AuthProvider = { login: async () => ({ error: null }), register: async () => ({ error: null }), logout: async () => ({ error: null }) };
   const makeProvider = async () => { calls++; return auth; };
   for (const kind of ["login", "register"] as const) {
-    const response = await authHandler(kind, makeProvider, () => 42)(request({ email: "person@example.com", password: "password123" }));
+    const response = await authHandler(kind, makeProvider, () => 42)(request({ email: "person@example.com", password: kind === "register" ? strongPassword : "password123" }));
     assert.equal(response.status, 429);
     assert.equal(response.headers.get("Retry-After"), "42");
     assert.equal(response.headers.get("Cache-Control"), "no-store");
@@ -129,12 +131,29 @@ test("recovery enforces cooldown/provider limits and sanitizes delivery failures
 });
 
 test("password update validates bounds, requires verified identity and handles failure", async () => {
-  const handler = recoveryHandler("password", async () => provider);
+  const handler = recoveryHandler("password", async () => provider, noLimit, safePassword);
   assert.equal((await handler(request({ password: "short" }))).status, 400);
-  assert.equal((await handler(request({ password: "password123", user_id: "other" }))).status, 400);
-  const anonymous = recoveryHandler("password", async () => ({ ...provider, changePassword: async () => null }));
-  assert.equal((await anonymous(request({ password: "password123" }))).status, 401);
-  assert.deepEqual(await (await handler(request({ password: "password123" }))).json(), { passwordUpdated: true });
+  assert.equal((await handler(request({ password: strongPassword, user_id: "other" }))).status, 400);
+  let screened = false;
+  const anonymous = recoveryHandler("password", async () => ({ ...provider, authorizePasswordChange: async () => null }), noLimit, async () => { screened = true; return false; });
+  assert.equal((await anonymous(request({ password: strongPassword }))).status, 401);
+  assert.equal(screened, false);
+  assert.deepEqual(await (await handler(request({ password: strongPassword }))).json(), { passwordUpdated: true });
+});
+
+test("password recovery rejects breached passwords and screening outages before update", async () => {
+  let updates = 0;
+  const guardedProvider: RecoveryProvider = {
+    ...provider,
+    authorizePasswordChange: async () => async () => { updates++; return { error: null }; }
+  };
+  const compromised = await recoveryHandler("password", async () => guardedProvider, noLimit, async () => true)(request({ password: strongPassword }));
+  assert.equal(compromised.status, 400);
+  assert.equal((await compromised.json()).error.code, "PASSWORD_COMPROMISED");
+  const unavailable = await recoveryHandler("password", async () => guardedProvider, noLimit, async () => { throw new Error("private upstream details"); })(request({ password: strongPassword }));
+  assert.equal(unavailable.status, 503);
+  assert.equal((await unavailable.json()).error.code, "PASSWORD_SCREENING_UNAVAILABLE");
+  assert.equal(updates, 0);
 });
 
 test("callback safely routes confirmation/recovery and forwards isolated PKCE flow IDs", async () => {

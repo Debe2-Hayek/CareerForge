@@ -1,16 +1,59 @@
 import type { NextConfig } from "next";
 import { networkInterfaces } from "node:os";
 
+const noIndexSources = [
+  "/api/:path*",
+  "/auth/:path*",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/confirm-email",
+  "/reset-password",
+  "/dashboard",
+  "/account/:path*",
+  "/profile",
+  "/features",
+  "/career-analysis",
+  "/skill-checks",
+  "/academic-planner",
+  "/learning-roadmap",
+  "/roadmap",
+  "/projects",
+  "/documents",
+  "/cv-analysis",
+  "/cv/:path*",
+  "/portfolio/:path*",
+  "/jobs",
+  "/applications",
+  "/application-agent",
+  "/application-insights",
+  "/career-assistant",
+  "/graduation-simulator",
+  "/p/:path*"
+];
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  turbopack: {
+    root: process.cwd()
+  },
+  experimental: {
+    agentUpgrade: "security"
+  },
   async headers() {
-    return [{ source: "/:path*", headers: [
-      { key: "X-Content-Type-Options", value: "nosniff" },
-      { key: "X-Frame-Options", value: "DENY" },
-      { key: "Referrer-Policy", value: "no-referrer" },
-      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-      { key: "Content-Security-Policy", value: "base-uri 'self'; object-src 'none'; frame-ancestors 'none'" }
-    ] }];
+    return [
+      { source: "/:path*", headers: [
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "X-Frame-Options", value: "DENY" },
+        { key: "Referrer-Policy", value: "no-referrer" },
+        { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        { key: "Content-Security-Policy", value: "base-uri 'self'; object-src 'none'; frame-ancestors 'none'" }
+      ] },
+      ...noIndexSources.map(source => ({
+        source,
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }]
+      }))
+    ];
   },
   // Trust this computer's actual LAN addresses for development assets/HMR.
   // This does not loosen origin checks for account/profile API mutations.

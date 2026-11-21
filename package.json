@@ -13,6 +13,8 @@
     "test:hydration": "node scripts/verify-root-hydration.mjs",
     "test": "node scripts/test-unit.mjs",
     "db:migrate": "node scripts/db-migrate.mjs",
+    "db:validate:evolution": "node scripts/validate-product-evolution-migration.mjs",
+    "test:signals:db": "node scripts/test-product-signals-db.mjs --development-rollback",
     "test:rls": "node scripts/test-rls.mjs",
     "test:account:live": "node scripts/test-account-live.mjs",
     "prisma:generate": "prisma generate",
@@ -24,6 +26,9 @@
     "test:skill-checks": "node scripts/test-skill-checks.mjs",
     "test:portfolios": "node scripts/test-portfolios.mjs",
     "test:portfolio-appearance": "node scripts/test-portfolio-appearance.mjs",
+    "sync:roadmap": "tsx scripts/sync-roadmap.ts",
+    "roadmap:sync": "npm run sync:roadmap",
+    "evolution:export": "tsx scripts/export-product-signals.ts",
     "jobs:ingest": "node --import tsx scripts/ingest-jobs.ts",
     "test:jobs:live": "node scripts/verify-live-jobs-ui.mjs"
   },
@@ -32,7 +37,7 @@
     "@prisma/client": "^7.10.1",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.75.0",
-    "next": "^16.4.6",
+    "next": "16.4.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "zod": "^4.6.7"
@@ -45,11 +50,14 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "eslint": "^9.37.0",
-    "eslint-config-next": "^16.4.6",
+    "eslint-config-next": "16.4.6",
     "pg": "^8.16.3",
     "prisma": "^7.10.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "effect": "3.22.2"
   },
   "engines": {
     "node": "22.x"

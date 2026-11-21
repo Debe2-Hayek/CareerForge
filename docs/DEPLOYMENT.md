@@ -20,8 +20,11 @@ Set each environment explicitly in Vercel:
 | `APP_ORIGIN` | Exact HTTPS origin users will open, without path/credentials. Auth rejects other hosts. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Target Supabase HTTPS origin, set before build. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable/legacy anon key; never service-role/secret. |
+| `NEXT_PUBLIC_SITE_URL` | Optional primary HTTPS origin for canonical metadata, `robots.txt` and `sitemap.xml`; keep it on the production domain in every build. |
+| `GOOGLE_SITE_VERIFICATION` | Optional content value from the Search Console HTML-tag method; do not paste the surrounding `<meta>` tag. |
 
-The current hosted MVP needs only those three values. Private data operations use
+The current hosted MVP needs only the first three values. The final two values are
+optional discoverability settings. Private data operations use
 the public Supabase client with the authenticated user's session and database RLS.
 Prisma client generation does not connect to a database. Keep `DATABASE_URL` and
 `DIRECT_URL` in the local administration environment for reviewed migrations,
@@ -50,6 +53,14 @@ In Supabase, allow exactly `<APP_ORIGIN>/auth/callback`, set the intended Site U
 and verify confirmation/reset templates and delivery. Each PKCE flow must start
 and finish at the same origin/browser. Rebuild after changing public variables;
 they are compiled into the client. See [Vercel environments](https://vercel.com/docs/environment-variables).
+
+The indexable landing page publishes a canonical production URL. Private account,
+authentication, recovery, API and shared-portfolio routes emit `noindex`; they do
+not belong in the sitemap. After deployment, verify `/robots.txt` and `/sitemap.xml`
+on the primary domain, add that exact URL-prefix property in Google Search Console,
+set `GOOGLE_SITE_VERIFICATION`, redeploy, verify ownership, submit `sitemap.xml`,
+then use URL Inspection to request indexing for the homepage. Sitemap submission
+is a discovery hint, not a guarantee of indexing or ranking.
 
 ## Database and release gate
 

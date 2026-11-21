@@ -1,5 +1,83 @@
 # CareerForge implementation roadmap
 
+## Search discovery, password hardening and schema reconciliation - verified 20 November 2026
+
+The public landing page now has one production canonical origin, a descriptive
+title/summary, index/follow metadata, Open Graph URL, generated `robots.txt` and
+`sitemap.xml`, and optional Google Search Console verification through
+`GOOGLE_SITE_VERIFICATION`. Account, recovery, workspace, API and shared-portfolio
+surfaces retain page/header `noindex`; page routes remain crawlable so bots can
+observe that directive, while API and callback endpoints are excluded from crawl.
+The sitemap intentionally contains only the public landing page.
+
+New registration and password updates now share an exact 12-128 character policy
+with lowercase, uppercase, digit and Supabase-supported ASCII symbol requirements.
+The server checks candidates through the free Pwned Passwords k-anonymity range
+API: only a five-character SHA-1 prefix leaves the server, padded responses are
+bounded and parsed locally, and timeout/malformed/unavailable checks fail closed
+before Auth writes. Recovery verifies the user first; login accepts legacy password
+shapes so existing accounts can rotate safely. The hosted preview Supabase Auth
+policy was aligned to the same strength rules. Native provider-wide leaked-password
+protection remains disabled on the Free plan, so direct public Auth API calls are
+outside the application guard; this limitation is documented rather than hidden.
+
+Production migration drift was resolved without guessing SQL. Exact sources for
+`202611190001_live_job_postings.sql` and
+`202611190002_job_experience_level.sql` were recovered from retained DDL logs and
+their SHA-256 values match the production ledger byte-for-byte. The empty Supabase
+history was repaired for the nine already-applied migrations, only
+`202611200001_product_evolution.sql` was then applied, and its exact checksum was
+recorded. Production now has ten aligned versions. Live contract inspection and a
+rollback-only integration test passed tables, indexes, four RPCs, RLS/grants,
+idempotency, owner isolation, direct/anonymous denial and three-user aggregation;
+no test users or signal rows remain.
+
+Verification on the release branch: ESLint, TypeScript, 131 unit tests, the
+49-route offline production build and a live Pwned Passwords fixture check passed.
+The final registration policy case passed on desktop and mobile. An earlier full
+offline browser run completed all 38 cases, but the local Windows Edge runner did
+not exit after reporting them and required manual shutdown; exact-commit GitHub CI
+remains the clean browser release gate. At this checkpoint the application commits
+are local and not yet pushed, merged or deployed; Google verification still needs
+the owner's Search Console token.
+
+## Living learning roadmap and autonomous evolution - verified locally, 20 November 2026
+
+The existing private `Learning roadmap` destination now opens a product-evolution
+experience at `/learning-roadmap`; the original role-gap planner remains available
+through `My learning plan`. The product view includes a connected graph and
+Now/Next/Later board, keyboard search and view shortcuts, repository-proof drawer,
+self-healing feed, aggregate upvotes and private friction reports. Desktop and
+mobile layouts were visually reviewed with no runtime errors or horizontal overflow.
+
+Added a versioned roadmap schema and six roadmap.sh-aligned tracks. The sync command
+establishes a bounded upstream topic baseline and will flag only topics introduced
+after that baseline as `upstream-new`; it does not fabricate product nodes from
+upstream headings. Added privacy-minimized client diagnostics for unhandled errors,
+slow/failing same-origin APIs, rage clicks, empty searches and opted-in abandoned
+flows. Raw messages, query strings, click coordinates, career content and user IDs
+are not transmitted. Public summaries are aggregate-only; diagnostic summaries
+require at least three affected accounts.
+
+Added a weekly/on-demand review-first Codex workflow. It syncs upstream topics,
+exports bounded aggregate signals, permits one evidence-backed improvement, runs
+the full verification suite and opens a human-review pull request. Codex receives
+no repository token; the token is scoped to the final PR step. Live execution still
+requires the GitHub `OPENAI_API_KEY` secret and Actions permission to create pull
+requests. The Supabase migration is committed but not applied. Its transaction-only
+validator reached no database because the configured development host returned
+`ENOTFOUND`, so live RLS/RPC verification remains an explicit deployment gate.
+
+The Next security agent upgraded Next.js and `eslint-config-next` from 16.4.2 to
+exactly 16.4.6 and recorded `experimental.agentUpgrade = "security"`. The safe npm
+audit fix also updated `fast-uri`. On 21 November the remaining `effect` advisory
+was removed without npm's proposed breaking Prisma downgrade: a narrow root
+override moves Prisma 7.10.1's transitive pin from 3.20.0 to patched 3.22.2.
+Prisma Client generation, lint, TypeScript, all 149 unit tests, the 49-page offline
+production build and a zero-vulnerability npm audit pass on the exact lockfile.
+The origin/main live-jobs work is merged locally into `feature/autonomous-roadmap`;
+push, exact-head CI, PR merge and hosting deployment remain separate release gates.
+
 ## R2 - Real job listings - Verified locally, 19 November 2026
 
 Owner request: real jobs from real APIs covering Lebanon, the region and the

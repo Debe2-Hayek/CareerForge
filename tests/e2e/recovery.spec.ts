@@ -22,7 +22,7 @@ test("failed confirmation offers password recovery and safe resend with cooldown
 
 test("anonymous password changes and callback failures remain safe", async ({ page, request }, testInfo) => {
   const offlineProduction = testInfo.config.metadata.offlineProduction === true;
-  const passwordResponse = await request.post("/api/v1/auth/password", { data: { password: "not-a-real-password" } });
+  const passwordResponse = await request.post("/api/v1/auth/password", { data: { password: "StrongPassword123!" } });
   expect(passwordResponse.status()).toBe(offlineProduction ? 403 : 401);
   expect((await passwordResponse.json()).error.code).toBe(offlineProduction ? "FORBIDDEN" : "UNAUTHORIZED");
   await page.goto("/reset-password");

@@ -74,6 +74,8 @@ test("profile mapping round-trips current summary fields", () => {
   assert.equal(profileSchema.safeParse({ ...sample, role: "admin" }).success, false);
 });
 const provider: AuthProvider = { login: async () => ({ error: null }), register: async () => ({ error: null, hasSession: false }), logout: async () => ({ error: null }) };
+const strongPassword = "StrongPassword123!";
+const safePassword = async () => false;
 test("auth routes validate input before calling provider and block cross-origin requests", async () => {
   let calls = 0;
   const handler = authHandler("login", async () => { calls++; return provider; });
@@ -82,9 +84,9 @@ test("auth routes validate input before calling provider and block cross-origin 
   assert.equal(calls, 0);
 });
 test("auth routes handle login, confirmation-required registration, and logout without returning tokens", async () => {
-  const credentials = { email: "person@example.com", password: "password123" };
   for (const kind of ["login", "register", "logout"] as const) {
-    const response = await authHandler(kind, async () => provider)(request(credentials));
+    const credentials = { email: "person@example.com", password: kind === "register" ? strongPassword : "password123" };
+    const response = await authHandler(kind, async () => provider, () => 0, safePassword)(request(credentials));
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("cache-control"), "no-store");
     const body = await response.json();
@@ -92,6 +94,30 @@ test("auth routes handle login, confirmation-required registration, and logout w
     if (kind === "login") assert.equal(body.signedIn, true);
     assert.equal("access_token" in body, false);
   }
+});
+test("registration rejects breached passwords and fails closed before calling Auth", async () => {
+  let providerCalls = 0;
+  const makeProvider = async () => { providerCalls++; return provider; };
+  const credentials = request({ email: "person@example.com", password: strongPassword });
+
+  const compromised = await authHandler("register", makeProvider, () => 0, async () => true)(credentials.clone());
+  assert.equal(compromised.status, 400);
+  assert.equal((await compromised.json()).error.code, "PASSWORD_COMPROMISED");
+  const unavailable = await authHandler("register", makeProvider, () => 0, async () => { throw new Error("private upstream details"); })(credentials.clone());
+  assert.equal(unavailable.status, 503);
+  assert.equal((await unavailable.json()).error.code, "PASSWORD_SCREENING_UNAVAILABLE");
+  assert.equal(providerCalls, 0);
+});
+test("registration requires a strong new password without locking out legacy sign-ins", async () => {
+  const legacyCredentials = request({ email: "person@example.com", password: "oldpass" });
+  assert.equal((await authHandler("login", async () => provider)(legacyCredentials.clone())).status, 200);
+  const rejected = await authHandler("register", async () => provider)(legacyCredentials.clone());
+  assert.equal(rejected.status, 400);
+  assert.match((await rejected.json()).error.message, /lowercase.*uppercase.*number.*symbol/i);
+  const whitespaceOnlySymbol = await authHandler("register", async () => provider)(
+    request({ email: "person@example.com", password: "Password123 " })
+  );
+  assert.equal(whitespaceOnlySymbol.status, 400);
 });
 test("auth routes use clean invalid-credential, rate-limit, and provider-failure responses", async () => {
   const credentials = request({ email: "person@example.com", password: "password123" });
@@ -110,7 +136,7 @@ test("provider transport errors and service outages never accuse the user of inc
       const response = await authHandler(kind, async () => ({
         ...provider,
         [kind]: async () => ({ error: { status } })
-      }), () => 0)(request({ email: "person@example.com", password: "password123" }));
+      }), () => 0, safePassword)(request({ email: "person@example.com", password: kind === "register" ? strongPassword : "password123" }));
       assert.equal(response.status, 503);
       assert.equal((await response.json()).error.code, "AUTH_UNAVAILABLE");
       assert.equal(response.headers.get("cache-control"), "no-store");

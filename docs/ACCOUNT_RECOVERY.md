@@ -17,7 +17,9 @@ The app now offers recovery instead of asking users to recreate accounts.
 - `/reset-password` shows a new-password form only after the server verifies
   the session. An anonymous visitor is offered a fresh reset link. Password
   updates require verified authentication and same origin at the API as well.
-  A signed-in owner may also use this page to change their own password.
+  A signed-in owner may also use this page to change their own password. New
+  passwords require 12–128 characters with lowercase, uppercase, a number and
+  a symbol, and are rejected when they appear in the Pwned Passwords corpus.
 
 Keep `http://localhost:3000/auth/callback` in Supabase's allowed redirect URLs.
 For a phone, request the link from the computer's LAN origin and allow that
@@ -32,6 +34,22 @@ shows a countdown. This is not a distributed production abuse limiter.
 Input is bounded/strict, mutation origins are checked, responses are no-store,
 and callback redirects use no-referrer. Auth forms wait for hydration and use
 POST fallback to avoid putting credentials into URL query strings.
+
+Registration and authenticated password changes perform the free server-side
+Pwned Passwords range check. CareerForge hashes the candidate locally with the
+protocol-required SHA-1, sends only the first five hash characters over HTTPS,
+requests padded responses and compares the remaining suffix locally. The full
+password and full hash never leave the server. The request has a three-second
+timeout and bounded response parser; unavailable or malformed screening fails
+closed with a retryable 503 before Auth creates an account or updates a password.
+Login never invokes this check, so existing accounts are not locked out.
+
+This application guard does not claim that Supabase's provider-level leaked
+password option is enabled. That native option is plan-dependent, and clients
+holding the public Supabase key can technically call the provider directly.
+Keep the Supabase minimum length/required-character policy aligned, and enable
+its native leaked-password protection when the target plan and Auth-admin access
+allow it. No password, hash suffix, breach count or email is logged by this guard.
 
 No API returns access tokens, private provider errors or account eligibility.
 Email success means an eligible account can receive a message, not proof of
@@ -81,7 +99,9 @@ PKCE browser requirements and redirect configuration are documented in
 
 - Unit/API tests cover validation, origin rejection, generic email responses,
   cooldown/provider limits, sanitized failures, anonymous password denial,
-  fixed callback destinations, PKCE flow forwarding and expired callbacks.
+  fixed callback destinations, PKCE flow forwarding, expired callbacks, strong
+  password rules, padded partial-hash screening, timeout/malformed responses and
+  provider/update denial for compromised passwords.
 - Browser tests mock all email requests, check login/confirmation guidance,
   reset/resend cooldowns and anonymous reset behavior on desktop/phone. Wait
   for navigation before filling similarly named fields on the next page.
@@ -94,4 +114,5 @@ PKCE browser requirements and redirect configuration are documented in
 
 References: [Supabase password authentication](https://supabase.com/docs/guides/auth/passwords),
 [PKCE flow](https://supabase.com/docs/guides/auth/sessions/pkce-flow),
-[confirmation resend](https://supabase.com/docs/reference/javascript/auth-resend).
+[confirmation resend](https://supabase.com/docs/reference/javascript/auth-resend),
+[Pwned Passwords API](https://haveibeenpwned.com/API/v3#PwnedPasswords).

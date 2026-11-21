@@ -52,10 +52,11 @@ test("private account redirects anonymous visitors and sign-in errors remain usa
 });
 
 test("registration explains email confirmation without sending real messages", async ({ page }) => {
+  const strongPassword = "StrongPassword123!";
   let registrations = 0;
   await page.route("**/api/v1/auth/register", route => {
     registrations++;
-    expect(route.request().postDataJSON()).toEqual({ email: "test@careerforge.invalid", password: "not-a-real-password" });
+    expect(route.request().postDataJSON()).toEqual({ email: "test@careerforge.invalid", password: strongPassword });
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ confirmationRequired: true }) });
   });
   await page.goto("/register");
@@ -64,13 +65,19 @@ test("registration explains email confirmation without sending real messages", a
   await expect(page.getByRole("navigation", { name: "Account access" }).getByRole("link", { name: "Create account", exact: true })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("link", { name: "Forgot your password?" })).toHaveCount(0);
   await page.getByLabel("Email address").fill("test@careerforge.invalid");
-  await page.getByLabel("Password", { exact: true }).fill("not-a-real-password");
-  await page.getByLabel("Confirm password", { exact: true }).fill("different-password");
+  await page.getByLabel("Password", { exact: true }).fill("Password123é");
+  await page.getByLabel("Confirm password", { exact: true }).fill("Password123é");
+  await page.getByRole("button", { name: "Create account", exact: true }).click();
+  await expect(page.locator(".form-error[role=alert]")).toContainText("lowercase letter");
+  await expect(page.getByLabel("Password", { exact: true })).toBeFocused();
+  expect(registrations).toBe(0);
+  await page.getByLabel("Password", { exact: true }).fill(strongPassword);
+  await page.getByLabel("Confirm password", { exact: true }).fill("DifferentPassword123!");
   await page.getByRole("button", { name: "Create account", exact: true }).click();
   await expect(page.locator(".form-error[role=alert]")).toContainText("Passwords do not match");
   await expect(page.getByLabel("Confirm password", { exact: true })).toBeFocused();
   expect(registrations).toBe(0);
-  await page.getByLabel("Confirm password", { exact: true }).fill("not-a-real-password");
+  await page.getByLabel("Confirm password", { exact: true }).fill(strongPassword);
   await page.getByRole("button", { name: "Create account", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Check your email");
   expect(registrations).toBe(1);
@@ -88,15 +95,16 @@ test("registration explains email confirmation without sending real messages", a
 });
 
 test("registration failure retains inputs and switching to login clears the error", async ({ page }) => {
+  const strongPassword = "StrongPassword123!";
   await page.route("**/api/v1/auth/register", route => route.fulfill({ status: 503, json: { error: { message: "Registration is temporarily unavailable." } } }));
   await page.goto("/register");
   await page.getByLabel("Email address").fill("test@careerforge.invalid");
-  await page.getByLabel("Password", { exact: true }).fill("not-a-real-password");
-  await page.getByLabel("Confirm password", { exact: true }).fill("not-a-real-password");
+  await page.getByLabel("Password", { exact: true }).fill(strongPassword);
+  await page.getByLabel("Confirm password", { exact: true }).fill(strongPassword);
   await page.getByRole("button", { name: "Create account", exact: true }).click();
   await expect(page.locator(".form-error[role=alert]")).toContainText("temporarily unavailable");
   await expect(page.getByLabel("Email address")).toHaveValue("test@careerforge.invalid");
-  await expect(page.getByLabel("Confirm password", { exact: true })).toHaveValue("not-a-real-password");
+  await expect(page.getByLabel("Confirm password", { exact: true })).toHaveValue(strongPassword);
   await page.getByRole("navigation", { name: "Account access" }).getByRole("link", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByLabel("Email address")).toHaveValue("");

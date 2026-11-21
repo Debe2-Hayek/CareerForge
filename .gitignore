@@ -13,5 +13,6 @@ playwright-report/
 supabase/.temp/
 .vercel/
 .deployment/
+.github/codex/run-context.md
 *.tsbuildinfo
 .DS_Store

@@ -3,7 +3,7 @@ import { BrandMark } from "@/components/career-visuals";
 
 export default function NotFound() {
   return (
-    <main className="recovery-page" id="main-content">
+    <main className="recovery-page" id="main-content" data-self-diagnose-not-found>
       <div className="recovery-card">
         <Link className="brand" href="/" aria-label="CareerForge home"><BrandMark />CareerForge.</Link>
         <p className="eyebrow">404 / PAGE NOT FOUND</p>

@@ -2,11 +2,12 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import nextEnv from "@next/env";
 import { Client } from "pg";
+import { resolveAdminDatabaseUrl } from "./database-url.mjs";
 import { verifyTrackerRls } from "./verify-tracker-rls.mjs";
 import { verifyLiveJobsRls } from "./verify-live-jobs-rls.mjs";
 
 nextEnv.loadEnvConfig(process.cwd());
-const client = new Client({ connectionString: process.env.DATABASE_URL ?? process.env.DIRECT_URL, connectionTimeoutMillis: 15000, statement_timeout: 15000 });
+const client = new Client({ connectionString: resolveAdminDatabaseUrl(), connectionTimeoutMillis: 15000, statement_timeout: 15000 });
 const a = randomUUID(), b = randomUUID();
 async function denied(sql, params = [], code = "42501") {
   await client.query("savepoint blocked_operation");
@@ -20,7 +21,6 @@ async function asUser(id) {
   await client.query("set local role authenticated");
 }
 try {
-  if (!process.env.DIRECT_URL && !process.env.DATABASE_URL) throw new Error("MISSING_DATABASE_URL");
   await client.connect();
   await client.query("begin");
   await client.query("insert into auth.users (id, email) values ($1, $2), ($3, $4)", [a, `${a}@careerforge.invalid`, b, `${b}@careerforge.invalid`]);

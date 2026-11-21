@@ -1,0 +1,61 @@
+name: Free roadmap sync
+
+on:
+  schedule:
+    - cron: "31 3 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: free-roadmap-sync-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Sync roadmap.sh without AI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Synchronize upstream and repository evidence
+        run: npm run sync:roadmap
+        env:
+          ROADMAP_GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Refuse changes outside the roadmap document
+        shell: bash
+        run: |
+          unexpected="$(git status --porcelain --untracked-files=all | grep -vE '^.. src/data/roadmap\.json$' || true)"
+          if test -n "$unexpected"; then
+            echo "The zero-token sync changed files outside src/data/roadmap.json:"
+            echo "$unexpected"
+            exit 1
+          fi
+          git diff --check -- src/data/roadmap.json
+
+      - name: Commit the roadmap document when it changed
+        shell: bash
+        run: |
+          if git diff --quiet -- src/data/roadmap.json; then
+            echo "Roadmap is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- src/data/roadmap.json
+          git commit -m "chore(roadmap): sync free upstream snapshot"
+          git push

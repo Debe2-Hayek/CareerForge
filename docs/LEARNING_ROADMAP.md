@@ -153,8 +153,7 @@ Automate the Boring Stuff and others. Every resource is marked free and English.
 
 ## Remaining work (next steps, highest value first)
 
-1. Apply `202611210001_learning_progress.sql` to production only when a release
-   is authorised (development is done).
+1. Done 21 November: migrations applied to the hosted project and released.
 2. Add more guided paths with the same depth (SQL & data, mobile, DevOps).
    Career roadmaps currently cover the other directions at a shallower level.
 3. Persist project evidence into normalised portfolio records once the portfolio

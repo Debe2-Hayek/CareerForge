@@ -4,6 +4,9 @@ on:
   pull_request:
   push:
     branches: [main, 'preview/**']
+  # Lets the roadmap-sync job start this check on its own pull requests;
+  # PRs opened with GITHUB_TOKEN do not trigger pull_request workflows.
+  workflow_dispatch:
 
 permissions:
   contents: read

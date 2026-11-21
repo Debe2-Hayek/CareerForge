@@ -114,6 +114,9 @@
 
 /* ---------- Continue learning ---------- */
 .continueGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+.continueCard, .pathCard, .cardGrid > li {
+  min-width: 0;
+}
 .continueCard {
   display: grid;
   gap: 14px;
@@ -200,7 +203,10 @@
   color: var(--l-soft);
   font: 600 10px/1.4 var(--mono);
   letter-spacing: .04em;
-  white-space: nowrap;
+  /* Long labels (e.g. goal names) must wrap rather than widen cards on phones. */
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .badgeAccent { border-color: #6f8c4e; color: var(--l-accent); background: var(--l-accent-soft); }
 .badgeWarn { border-color: #7d6a3a; color: var(--l-warn); }

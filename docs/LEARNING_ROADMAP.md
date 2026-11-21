@@ -123,13 +123,18 @@ Automate the Boring Stuff and others. Every resource is marked free and English.
 - Browser QA (Edge, 1440/820/390px) of dashboard, intro, roadmap, overview map,
   topic dialog and preview: no console errors, no horizontal scroll, dialog
   focus/Escape behaviour verified.
-- `scripts/verify-learning-live.mjs` (part of `npm run test:account:live`)
-  covers the full signed-in journey but **requires the migration to be applied**.
+- Migration applied to **development** on 21 November 2026. `node
+  scripts/test-account-live.mjs --learning-only` (real Supabase Auth and
+  database, temporary accounts deleted afterwards) **passed**: dashboard, search,
+  preview-then-save, topic progress persisted across reload, goal change keeps
+  progress, resume, API validation, career-target redirect, 320/768/1440px.
+  This run found and fixed a bug where ticked completion criteria were cleared
+  when a save re-rendered the dialog, and a goal badge that overflowed at 320px.
 
 ## Remaining work (next steps, highest value first)
 
-1. Apply `202611210001_learning_progress.sql` to development (`npm run db:migrate`),
-   run `npm run test:account:live`, then to production when release is authorised.
+1. Apply `202611210001_learning_progress.sql` to production only when a release
+   is authorised (development is done).
 2. Add more guided paths with the same depth (JavaScript/web, SQL, data).
    Career roadmaps currently cover the other directions at a shallower level.
 3. Persist project evidence into normalised portfolio records once the portfolio

@@ -17,6 +17,7 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 const assessmentOnly = process.argv.includes("--assessment-only");
 const portfolioOnly = process.argv.includes("--portfolio-only");
 const builderOnly = process.argv.includes("--builder-only");
+const learningOnly = process.argv.includes("--learning-only");
 const users = [randomUUID(), randomUUID()].map(id => ({ id, email: `${id}@careerforge.invalid`, password: `Test-${randomUUID()}!` }));
 const db = new Client({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 15000, statement_timeout: 15000 });
 let browser;
@@ -86,7 +87,12 @@ try {
   await expect(a.page.getByLabel("Your skills", { exact: true })).toHaveValue("React, SQL");
   const aProfile = await (await a.context.request.get("/api/v1/profile")).json();
   assert.equal(aProfile.profile.name, "Live Test Owner A");
-  if (assessmentOnly || portfolioOnly || builderOnly) {
+  if (learningOnly) {
+    stage = "focused learning roadmap journey";
+    await verifyLearningLive(a.context);
+    assert.deepEqual(errors, []);
+    console.log("PASS: focused learning roadmap browser checks");
+  } else if (assessmentOnly || portfolioOnly || builderOnly) {
     if (!builderOnly) {
       stage = "focused timed-assessment and CV verification";
       await verifyCVLive(a.context);
@@ -213,7 +219,7 @@ try {
   console.log("PASS: real login, HttpOnly sessions, Supabase persistence, two-user isolation, phone layout, save-error recovery, logout, anonymous denial");
   }
 } catch (error) {
-  console.error("Live account verification failed at", stage, "(", error.code ?? error.name, ")");
+  console.error("Live account verification failed at", stage, "(", error.code ?? error.name, ")", String(error.message ?? "").split("\n")[0].slice(0, 300));
   if (error.name === "Error" || error.code === "ERR_ASSERTION") console.error(error.message);
   if (currentPage) {
     console.error("Visible account state:", await currentPage.getByRole("heading", { level: 1 }).allTextContents().catch(() => []));

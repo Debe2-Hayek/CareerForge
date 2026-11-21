@@ -325,7 +325,7 @@ function TopicDetail({ course, plan, topic, planTopic, enrolled, storageAvailabl
       {projects.length > 0 && <p style={{ marginTop: 12 }}>Used in: {projects.map((item, index) => <span key={item.project.id}>{index ? ", " : ""}<Link href={`${hrefs.close}#project-${item.project.id}`}>{item.project.title}</Link></span>)}</p>}
     </section>
 
-    <TopicControls key={`${topic.id}-${state}`} courseId={course.id} topicId={topic.id} state={state} doneWhen={topic.doneWhen} enrolled={enrolled}
+    <TopicControls key={topic.id} courseId={course.id} topicId={topic.id} state={state} doneWhen={topic.doneWhen} enrolled={enrolled}
       saveDisabledReason={!storageAvailable ? "Progress saving is temporarily unavailable." : enrolled ? null : "Save this roadmap (“Save and start learning”) to track progress."}
       nextHref={next ? hrefs.topic(next.id) : null} nextTitle={next?.title ?? null} />
 

@@ -18,11 +18,13 @@ or horizontal overflow and correct dialog focus/Escape behaviour;
 `check:learning-links` resolved 103/103 URLs. Details and limits:
 [LEARNING_ROADMAP.md](LEARNING_ROADMAP.md).
 
-Not yet done: migration `202611210001_learning_progress.sql` is **not applied**
-to any database (owner approval pending), so `test:account:live` has not run the
-new learning journey; only Python has a guided path; portfolio hand-off is a
-prepared entry, not normalised records; career gaps use per-listing skills, not
-aggregated market frequencies.
+The migration is applied to development (owner-approved) and the focused live
+journey (`test-account-live.mjs --learning-only`) passed against real Auth and
+data. Production is not migrated. Not yet done: only Python has a guided path;
+portfolio hand-off is a prepared entry, not normalised records; career gaps use
+per-listing skills, not aggregated market frequencies. The full live suite now
+passes profile, assessment/CV and portfolio stages but stops at the supplied CV &
+Portfolio builder check (`.cv.modern h1` not found), which is outside this change.
 
 ## Autonomous roadmap and search release - deployed 21 November 2026
 

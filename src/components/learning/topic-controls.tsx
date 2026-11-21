@@ -24,6 +24,8 @@ export function TopicControls({ courseId, topicId, state, doneWhen, enrolled, ne
   const [pending, startTransition] = useTransition();
   const busy = saving || pending;
   const canSave = enrolled && !saveDisabledReason;
+  // Kept across refreshes (the component is keyed by topic, not state), so a
+  // save that re-renders the dialog never clears criteria the learner ticked.
   const allChecked = checked.every(Boolean);
 
   async function update(next: TopicState | null, success: string) {
@@ -42,7 +44,7 @@ export function TopicControls({ courseId, topicId, state, doneWhen, enrolled, ne
     <ul className={styles.checklist}>
       {doneWhen.map((criterion, index) => <li key={criterion}>
         <label>
-          <input type="checkbox" checked={checked[index]} disabled={state === "completed"} onChange={event => setChecked(current => current.map((value, position) => position === index ? event.target.checked : value))} />
+          <input type="checkbox" checked={state === "completed" || checked[index]} disabled={state === "completed"} onChange={event => setChecked(current => current.map((value, position) => position === index ? event.target.checked : value))} />
           <span>{criterion}</span>
         </label>
       </li>)}

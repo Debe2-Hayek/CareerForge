@@ -1,5 +1,36 @@
 # CareerForge implementation roadmap
 
+## Autonomous roadmap and search release - deployed 21 November 2026
+
+PR #2 merged the verified release branch into `main` at `60687cc` after the
+exact-head GitHub `verify` job passed in 2m20s. Vercel deployment
+`dpl_xVGwhFc7hpzG8HX6NDBWTk7MXjq1` reached READY and the permanent production
+alias is **https://careerforge-phi.vercel.app**. Vercel remains connected to the
+isolated, hardened preview Supabase backend; production Auth was not silently
+substituted while its provider policy is weaker.
+
+Unauthenticated live HTTPS checks passed the homepage, health route, robots and
+sitemap. The homepage returns its descriptive title/summary, canonical production
+origin and `index, follow`; `robots.txt` allows public documents and points to the
+one-URL sitemap. Auth, private workspace, roadmap compatibility, jobs, shared
+portfolio and API checks return `noindex, nofollow`. A deliberately weak,
+non-creating registration payload returned 400 with the shared password rule.
+
+Final source evidence: roadmap.sh live sync, Prisma generation, ESLint, TypeScript,
+149 unit tests, the 49-page offline build, exact-head GitHub CI and a fresh
+zero-vulnerability npm audit passed. Eighteen focused desktop/mobile auth,
+navigation, private-route and missing-page browser cases reported passed locally;
+the known Windows runner cleanup stall required stopping the completed process.
+The production database's ten migration versions and checksum ledger were already
+aligned and the product-evolution RLS/RPC contract passed before release.
+
+Google Search Console verification remains owner-controlled: no placeholder meta
+tag is emitted until `GOOGLE_SITE_VERIFICATION` receives the real content value.
+Supabase Free still cannot enforce native breached-password screening, so direct
+public Auth API calls remain outside the application-level HIBP guard. Hosted live
+job refresh is not scheduled; location/experience text heuristics can miss unusual
+wording. These limitations remain explicit release follow-ups.
+
 ## Search discovery, password hardening and schema reconciliation - verified 20 November 2026
 
 The public landing page now has one production canonical origin, a descriptive
@@ -37,9 +68,9 @@ Verification on the release branch: ESLint, TypeScript, 131 unit tests, the
 The final registration policy case passed on desktop and mobile. An earlier full
 offline browser run completed all 38 cases, but the local Windows Edge runner did
 not exit after reporting them and required manual shutdown; exact-commit GitHub CI
-remains the clean browser release gate. At this checkpoint the application commits
-are local and not yet pushed, merged or deployed; Google verification still needs
-the owner's Search Console token.
+remains the clean browser release gate. Those application commits were subsequently
+merged and deployed as recorded above; Google verification still needs the owner's
+Search Console token.
 
 ## Living learning roadmap and autonomous evolution - verified locally, 20 November 2026
 
@@ -64,9 +95,9 @@ exports bounded aggregate signals, permits one evidence-backed improvement, runs
 the full verification suite and opens a human-review pull request. Codex receives
 no repository token; the token is scoped to the final PR step. Live execution still
 requires the GitHub `OPENAI_API_KEY` secret and Actions permission to create pull
-requests. The Supabase migration is committed but not applied. Its transaction-only
-validator reached no database because the configured development host returned
-`ENOTFOUND`, so live RLS/RPC verification remains an explicit deployment gate.
+requests. The Supabase migration was subsequently applied to preview and production;
+its tables, indexes, RPCs, grants, RLS and rollback-only multi-user contract passed,
+with no retained test identities or signal rows.
 
 The Next security agent upgraded Next.js and `eslint-config-next` from 16.4.2 to
 exactly 16.4.6 and recorded `experimental.agentUpgrade = "security"`. The safe npm
@@ -75,8 +106,8 @@ was removed without npm's proposed breaking Prisma downgrade: a narrow root
 override moves Prisma 7.10.1's transitive pin from 3.20.0 to patched 3.22.2.
 Prisma Client generation, lint, TypeScript, all 149 unit tests, the 49-page offline
 production build and a zero-vulnerability npm audit pass on the exact lockfile.
-The origin/main live-jobs work is merged locally into `feature/autonomous-roadmap`;
-push, exact-head CI, PR merge and hosting deployment remain separate release gates.
+The live-jobs work was merged with the roadmap release; exact-head CI, PR merge and
+the explicit Vercel deployment all completed as recorded above.
 
 ## R2 - Real job listings - Verified locally, 19 November 2026
 
@@ -94,8 +125,9 @@ Evidence: 110 unit tests, lint, TypeScript, production build, `test:rls` (new
 live-listing checks) and three passes of the new `test:jobs:live` browser check;
 two real imports stored 191 listings with no duplicates. `test:account:live`
 fails at the pre-existing `/cv/saved` overflow assertion, reproduced on the
-unmodified baseline. Development database only; not pushed or deployed; hosted
-preview not migrated. No scheduled refresh yet.
+unmodified baseline. Those import counts remain historical development evidence.
+The exact migrations are now aligned in preview and production and the code is
+deployed, but hosted ingestion is not scheduled and no hosted count is claimed.
 
 Owner feedback fix (same day): senior roles shown as junior, "remote" roles that
 were US/LATAM/Europe-only, and Himalayas links whose job was gone. Levels are now

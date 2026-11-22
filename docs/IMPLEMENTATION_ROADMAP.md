@@ -1,5 +1,16 @@
 # CareerForge implementation roadmap
 
+## Simpler roadmaps and free course library - verified locally, 22 November 2026
+
+Owner feedback: the roadmap was chaotic. The graph canvas, setup form and
+dashboard are replaced by one scrolling map per roadmap with a side panel. The
+catalogue grew from 2 paths to 63 original roadmaps (about 1,700 topics, 205
+project briefs) plus 1,194 free courses and 457 tutorials from openly licensed
+lists. Shared topics count in every roadmap. roadmap.sh's data was requested but
+its licence forbids reuse, so it is linked only. `@xyflow/react` was removed. No
+migration; existing progress carries over.
+Details and evidence: [LEARNING_ROADMAP.md](LEARNING_ROADMAP.md).
+
 ## Interactive roadmap graph - verified locally, 21 November 2026
 
 The Roadmap tab's default view is now a roadmap.sh-style interactive graph
@@ -10,7 +21,7 @@ keyboard navigation and status-coloured cards; the timeline stays as *List*.
 Learners can reset a path's progress (two-step, goal kept). Python grew to 61
 topics with an Advanced phase (decorators, context managers, asyncio,
 concurrency, algorithms) plus type hints, packaging, closures and regex.
-Details: [LEARNING_ROADMAP.md](LEARNING_ROADMAP.md#graph-engine).
+Superseded on 22 November by the simpler roadmaps above.
 
 Evidence: lint, strict TypeScript and 199 unit/render tests (incl. 6 layout and
 the reset handler) passed; Edge QA at 1440/390px (no console errors, no node

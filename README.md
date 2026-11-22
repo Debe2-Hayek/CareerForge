@@ -36,13 +36,12 @@ entries; currently React/SQL fundamentals checks can qualify selected CV skills.
 Checks use server-enforced 10-minute attempts, with a 100-minute extended-time
 option. Reload resumes the deadline; answer drafts are page-memory only.
 See [timed assessment behavior](docs/TIMED_SKILL_CHECKS.md).
-Learning roadmap offers personalised, free-first guided paths (Python with
-backend/data/ML/automation specialisations, and JavaScript & Web Development with
-React and Node.js specialisations) shown as an interactive roadmap graph (zoom,
-search, prerequisite highlighting, focus mode) or a list: goal, level
-and weekly-time personalisation, prerequisite-aware plans, topic details with
-free official resources, owner-only progress tracking across devices, projects
-and portfolio-entry hand-off. Career roadmaps (`/learning-roadmap/careers`)
+Learning roadmap offers 63 simple, free roadmaps (26 roles, 37 skills): open one,
+follow the boxes, tick topics as you learn. It includes project briefs, a library
+of openly licensed free courses and tutorials, and owner-only progress across
+devices; topics shared between roadmaps count everywhere. Python and JavaScript &
+Web Development add full lessons and goals. roadmap.sh is linked, never copied.
+Career roadmaps (`/learning-roadmap/careers`)
 compare your profile and recorded evidence with a role or job target.
 Progress storage needs migration `202611210001_learning_progress.sql`; without
 it the roadmap is read-only. See [learning roadmap](docs/LEARNING_ROADMAP.md).

@@ -1,5 +1,20 @@
 # CareerForge implementation roadmap
 
+## Workshops and a reorganised All features - verified locally, 22 November 2026
+
+New `/workshops`: topic rail, spotlight, search, filters, details, account
+bookmarks, calendar export and private submissions, with 20 hand-checked
+resources, 6 verified Microsoft Reactor sessions and DataTalks.Club's live
+calendar. Learners can add workshops and suggest them for operator review. Roadmaps
+link to matching practice by stable id. Production needs migrations
+`202611230001_workshop_bookmarks` and `202611230002_workshop_suggestions`; until then
+both stay on the device. Details and evidence: [WORKSHOPS.md](WORKSHOPS.md).
+
+`/features` now groups working tools by purpose (Learn, Show it, Find work, Your
+space) with one true line from the learner's records each, search, and planned
+modules apart under *Coming later*. It has its own icon. *Project ideas* opens
+the real project list; `/projects` redirects there, so seven modules remain planned.
+
 ## CV & Portfolio workspace polish - verified locally, 22 November 2026
 
 The document builder now reads as one organised studio rather than a loose row of

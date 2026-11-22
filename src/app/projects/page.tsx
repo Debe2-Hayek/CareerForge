@@ -1,7 +1,6 @@
-import { PlannedFeaturePage } from "@/components/feature-pages";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Project ideas - CareerForge", robots: { index: false, follow: false } };
-
-export default function Page() {
-  return <PlannedFeaturePage id="projects" />;
+/** Earlier address of Project ideas, kept for bookmarks. */
+export default function ProjectsCompatibilityPage() {
+  redirect("/learning-roadmap/projects");
 }

@@ -235,7 +235,6 @@ body:has(dialog:modal) .ambient, body:has(dialog:modal) .ambient * { animation-p
 .panel, .stat-card, .profile-setup, .portfolio-publication { transition: border-color .25s, box-shadow .25s; }
 .panel:hover, .profile-setup:hover { border-color: #4d6338; }
 .stat-card:hover { border-color: #55703b; box-shadow: 0 14px 40px #0003; }
-.feature-tile:hover { box-shadow: 0 18px 50px #0003, 0 0 0 1px #c5ed8514; }
 .button { position: relative; overflow: hidden; }
 .button.primary::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(110deg, transparent 35%, #ffffff55 50%, transparent 65%); transform: translateX(-130%); transition: transform .7s var(--ease); }
 .button.primary:hover::after { transform: translateX(130%); }

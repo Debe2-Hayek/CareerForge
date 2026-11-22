@@ -40,6 +40,8 @@ type Tip = { label: string; y: number };
 function isActivePath(pathname: string, href: string) {
   return pathname === href
     || (href === "/account" && pathname.startsWith("/account/"))
+    // Project ideas is its own tab inside the learning area.
+    || (href === "/learning-roadmap" && pathname.startsWith("/learning-roadmap/") && pathname !== "/learning-roadmap/projects")
     || (href === "/documents" && (pathname.startsWith("/cv/") || pathname.startsWith("/portfolio/")));
 }
 
@@ -92,7 +94,7 @@ function SidebarNav({ mobile, pathname, items, privateAccount, applicationCount,
     <div className="app-sidebar-brand"><Link href="/" className="brand" aria-label="CareerForge home" onClick={onNavigate}><BrandMark /><span className="app-brand-name">CareerForge<span>.</span></span></Link>{mobile && <button className="shell-icon-button" aria-label="Close navigation" onClick={onNavigate}><AppIcon name="close" /></button>}</div>
     <nav aria-label="Main navigation" id={mobile ? "mobile-navigation" : "desktop-navigation"} ref={nav}>
       <span className="nav-lens" aria-hidden="true" />
-      <Link href="/features" aria-label="All features" title={nativeTitle("All features")} aria-current={pathname === "/features" ? "page" : undefined} className={`app-nav-item feature-directory-link ${pathname === "/features" ? "selected" : ""}`} onClick={onNavigate} {...tipProps("All features")}><NavIcon name="overview" /><span className="app-nav-label">All features</span><span className="app-nav-label feature-directory-arrow" aria-hidden="true">&#8599;</span></Link>
+      <Link href="/features" aria-label="All features" title={nativeTitle("All features")} aria-current={pathname === "/features" ? "page" : undefined} className={`app-nav-item feature-directory-link ${pathname === "/features" ? "selected" : ""}`} onClick={onNavigate} {...tipProps("All features")}><NavIcon name="features" /><span className="app-nav-label">All features</span><span className="app-nav-label feature-directory-arrow" aria-hidden="true">&#8599;</span></Link>
       {featureGroups.map(group => <div className="app-nav-group" key={group}><p className="app-nav-heading">{group}</p>{items.filter(item => item.group === group).map(item => {
         const planned = item.status === "Planned" || item.status === "Stretch";
         return <Link key={item.href} href={item.href} prefetch={planned ? false : undefined} aria-label={item.label} aria-current={isActivePath(pathname, item.href) ? "page" : undefined} title={nativeTitle(`${item.label}${planned ? ` (${item.status?.toLowerCase()})` : ""}`)} className={`app-nav-item ${isActivePath(pathname, item.href) ? "selected" : ""}`} onClick={onNavigate} {...tipProps(`${item.label}${planned ? ` · ${item.status?.toLowerCase()}` : ""}`)}><NavIcon name={item.icon} /><span className="app-nav-label">{item.label}</span>{planned && <span className="app-nav-planned" role="img" aria-label={item.status} />}{item.href === "/applications" && applicationCount > 0 && <span className="app-nav-count">{applicationCount}</span>}</Link>;
@@ -142,7 +144,7 @@ export function AppShell({ children, pageTitle, displayName = "Your workspace", 
   const closeDrawer = () => drawer.current?.close();
 
   const paletteItems: PaletteItem[] = [
-    { id: "page-features", label: "All features", group: "Workspace", icon: "overview", href: "/features", keywords: "directory everything index", current: pathname === "/features" },
+    { id: "page-features", label: "All features", group: "Workspace", icon: "features", href: "/features", keywords: "directory everything index", current: pathname === "/features" },
     ...navigationItems.map(item => {
       const planned = item.status === "Planned" || item.status === "Stretch";
       return { id: `page-${item.id}`, label: item.label, group: item.group, icon: item.icon, href: item.href, keywords: `${item.id} ${item.href.replace("/", "")}`, badge: planned ? item.status : undefined, current: isActivePath(pathname, item.href) };

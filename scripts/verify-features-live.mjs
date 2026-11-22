@@ -6,10 +6,24 @@ export async function verifyFeaturesLive(context) {
   try {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/features");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("A place for every next step.");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("All features");
     const nav = page.locator(".app-sidebar nav");
     const plannedLinks = await nav.locator('a[title$="(planned)"], a[title$="(stretch)"]').evaluateAll(links => links.map(link => ({ href: link.getAttribute("href"), label: link.getAttribute("aria-label") })));
-    assert.equal(plannedLinks.length, 8);
+    assert.equal(plannedLinks.length, 7);
+    // Working tools and plans are separate, searchable and link to their own pages.
+    const directory = page.locator("#main-content");
+    await expect(directory.getByRole("heading", { level: 2 })).toHaveText(["Learn", "Show it", "Find work", "Your space", "Coming later"]);
+    await expect(directory.getByRole("link", { name: /^Workshops/ })).toHaveAttribute("href", "/workshops");
+    await page.getByLabel("Find a feature").fill("cv");
+    await expect(directory.getByRole("link", { name: /^CV & Portfolio/ })).toBeVisible();
+    await expect(directory.getByRole("link", { name: /^Workshops/ })).toHaveCount(0);
+    await page.getByLabel("Find a feature").fill("zzzz");
+    await page.getByRole("button", { name: "Show all features" }).click();
+    await page.goto("/projects");
+    await expect(page).toHaveURL(/\/learning-roadmap\/projects$/);
+    await expect(nav.getByRole("link", { name: "Project ideas", exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link", { name: "Learning roadmap", exact: true })).not.toHaveAttribute("aria-current", "page");
+    await page.goto("/features");
     await page.screenshot({ path: "test-results/features-1440.png", fullPage: true, animations: "disabled" });
     for (const { href, label } of plannedLinks) {
       const response = await page.goto(href);
@@ -52,6 +66,6 @@ export async function verifyFeaturesLive(context) {
     await page.screenshot({ path: "test-results/features-390.png", fullPage: true, animations: "disabled" });
     await page.goto("/application-agent");
     await page.screenshot({ path: "test-results/agent-390.png", fullPage: true, animations: "disabled" });
-    console.log("PASS: eight honest planned/stretch destinations, active links, no-store/noindex, sidebar persistence, narrow reflow and last mobile navigation item");
+    console.log("PASS: feature directory, search, seven honest planned/stretch destinations, active links, no-store/noindex, sidebar persistence, narrow reflow and last mobile navigation item");
   } finally { await page.close(); }
 }

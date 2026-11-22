@@ -6,7 +6,7 @@ const knownRouteRoots = new Set([
   "academic-planner", "account", "api", "application-agent", "application-insights", "applications", "auth",
   "career-analysis", "career-assistant", "confirm-email", "cv", "cv-analysis", "dashboard", "documents", "features",
   "forgot-password", "graduation-simulator", "jobs", "learning-roadmap", "p", "portfolio", "profile", "projects",
-  "reset-password", "roadmap", "skill-checks"
+  "reset-password", "roadmap", "skill-checks", "workshops"
 ]);
 
 export function normalizeDiagnosticRoute(pathname: string) {

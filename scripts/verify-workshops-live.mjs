@@ -102,6 +102,25 @@ export async function verifyWorkshopsLive(context) {
     await place(turned);
     await page.waitForTimeout(6500);
     await place(turned);
+    // A cursor that arrives while the ring is moving stops it at once, on a whole workshop.
+    await fresh();
+    await page.waitForFunction(() => {
+      const item = document.querySelector("[aria-roledescription=carousel] li");
+      const x = new DOMMatrix(getComputedStyle(item).transform).m41 + item.offsetWidth / 2;
+      return performance.now() > 4000 && Math.abs(x) > 8;
+    }, null, { timeout: 12_000, polling: "raf" });
+    await page.mouse.move(over.x + over.width / 2, over.y + over.height / 2);
+    await page.waitForTimeout(900);
+    const stopped = await ring.locator("p", { hasText: /^\d+ of 10$/ }).innerText();
+    const front3d = () => ring.locator("li[data-front]").evaluate(item => item.style.transform);
+    const still = await front3d();
+    assert.match(still, /rotateY\(-?0deg\)/, "it rests on a whole workshop");
+    await page.waitForTimeout(6500);
+    await place(stopped);
+    assert.equal(await front3d(), still);
+    // It goes on once the cursor leaves.
+    await page.mouse.move(4, 4);
+    await expect(ring.locator("p", { hasText: /^\d+ of 10$/ })).not.toHaveText(stopped, { timeout: 8000 });
     // The pause button, remembered.
     await ring.getByRole("button", { name: "Pause the moving workshops" }).click();
     await fresh();

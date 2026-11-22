@@ -7,8 +7,8 @@ cards and a detail panel. *Surprise me* opens a random workshop from the list.
 
 **Ring** (`src/lib/workshops/ring.ts`, `workshop-ring.tsx`): up to ten checked
 workshops of the chosen topic, live sessions first. The one at the front is the
-biggest and carries the details. It moves on by itself every five seconds, and waits
-while the mouse or keyboard is on it, for 12 seconds after it was turned by hand, while a
+biggest and carries the details. It moves on by itself every five seconds, and stops
+at once while the cursor is on a workshop or the keyboard is in the ring, for 12 seconds after it was turned by hand, while a
 panel is open, and off screen. A pause button is remembered (`careerforge-ring`); it stays
 still with reduced motion or the site's motion off, and automatic moves are not announced.
 Turn it with the wheel, a drag or swipe, the arrow keys, Home/End, or a side card;

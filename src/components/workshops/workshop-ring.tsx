@@ -122,6 +122,8 @@ export function WorkshopRing({ workshops, now, saved, held, onOpen, onToggle }: 
     if (!running) return;
     const timer = setTimeout(() => {
       const state = motion.current;
+      // Never pull a workshop from under the cursor, even one that arrived without moving.
+      if (list.current?.querySelector("li:hover")) { setHovered(true); return; }
       state.rate = soft;
       state.target = Math.round(state.target) + 1;
       setMoved(false);
@@ -211,6 +213,15 @@ export function WorkshopRing({ workshops, now, saved, held, onOpen, onToggle }: 
     // The click that ends a drag is ignored; the next one counts again.
     setTimeout(() => { justDragged.current = false; }, 0);
   }
+  /** The cursor on a workshop stops the ring at once: a move in progress settles on the nearest workshop. */
+  function hover(on: boolean) {
+    setHovered(on);
+    const state = motion.current;
+    if (!on || state.rate !== soft || state.dragging) return;
+    state.rate = brisk;
+    state.target = Math.round(state.position);
+    glide();
+  }
   /** The front card leans a little towards the mouse. */
   function lean(event: PointerEvent<HTMLElement>) {
     if (event.pointerType !== "mouse" || drag.current?.active || calm()) return;
@@ -226,7 +237,6 @@ export function WorkshopRing({ workshops, now, saved, held, onOpen, onToggle }: 
   const current = workshops[active];
   if (!current) return null;
   return <section className={styles.ring} data-area={areaOf[current.category]} aria-roledescription="carousel" aria-labelledby="ring-title" ref={section} onKeyDown={onKeyDown}
-    onPointerEnter={event => { if (event.pointerType === "mouse") setHovered(true); }} onPointerLeave={() => setHovered(false)}
     onFocus={event => { if (event.target.matches(":focus-visible")) setFocused(true); }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
     <h2 id="ring-title" className="sr-only">Featured workshops</h2>
     {count > 1 && <div className={styles.ringControls}>
@@ -241,7 +251,7 @@ export function WorkshopRing({ workshops, now, saved, held, onOpen, onToggle }: 
     {count > 1 && <button type="button" className={styles.ringArrow} data-next aria-label="Next workshop" onClick={() => go(1)}><AppIcon name="chevron" /></button>}
     <div className={styles.ringStage} ref={stage} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
       onClickCapture={event => { if (justDragged.current) { event.preventDefault(); event.stopPropagation(); } }}>
-      <ul className={styles.ringList} ref={list}>
+      <ul className={styles.ringList} ref={list} onPointerOver={event => { if (event.pointerType === "mouse") hover((event.target as Element).closest("li") !== null); }} onPointerLeave={() => hover(false)}>
         {workshops.map((workshop, index) => {
           const isFront = index === active;
           const state = lifecycleOf(workshop, now);

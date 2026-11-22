@@ -12,10 +12,10 @@ test("every career-step link points at a topic that exists in its guided path", 
 
 test("career tracks link web steps to the web path and shared steps to the track's path", () => {
   const frontend = guidedLinksFor("frontend");
-  assert.match(frontend.react.href, /^\/learning-roadmap\/web-development\?goal=frontend&.*topic=react-components$/);
+  assert.match(frontend.react.href, /^\/learning-roadmap\/web-development\?topic=react-components$/);
   assert.match(frontend.git.href, /web-development/);
   const data = guidedLinksFor("data-analyst");
-  assert.match(data.sql.href, /^\/learning-roadmap\/python\?goal=data&/);
-  assert.match(data.css.href, /web-development\?goal=foundations/, "web-only steps use the web path even for data tracks");
+  assert.match(data.sql.href, /^\/learning-roadmap\/python\?topic=databases$/);
+  assert.match(data.css.href, /web-development\?topic=/, "web-only steps use the web path even for data tracks");
   assert.match(guidedLinksFor(undefined).javascript.label, /JavaScript & Web/);
 });

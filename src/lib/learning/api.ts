@@ -1,12 +1,15 @@
 import { z } from "zod";
-import { getCourse } from "./catalog";
+import { getRoadmap, isRoadmapGoal } from "@/lib/roadmaps/catalog";
 import {
   experienceLevelSchema, projectStateSchema, resourceFormatSchema, slugSchema, topicStateSchema,
   type ExperienceLevel, type ProjectState, type ResourceFormat, type TopicState
 } from "./schema";
-import type { LearningProgress, LearningSettings } from "./plan";
 
 // Wire formats shared by the API handlers, the server data access and the client.
+
+export type LearningSettings = { goalId: string; level: ExperienceLevel; weeklyHours: number; format: ResourceFormat };
+export type ProjectProgress = { state: ProjectState; evidenceUrl: string | null };
+export type LearningProgress = { topics: Record<string, TopicState>; projects: Record<string, ProjectProgress> };
 
 export const enrollmentInputSchema = z.object({
   courseId: slugSchema,
@@ -33,12 +36,12 @@ export type ProgressInput = z.infer<typeof progressInputSchema>;
 
 /** Rejects ids that are well-formed but not part of the current curriculum. */
 export function validateAgainstCatalog(input: EnrollmentInput | ProgressInput): string | null {
-  const course = getCourse(input.courseId);
-  if (!course) return "Unknown learning path.";
-  if ("goalId" in input) return course.goals.some(goal => goal.id === input.goalId) ? null : "Unknown learning goal.";
+  const roadmap = getRoadmap(input.courseId);
+  if (!roadmap) return "Unknown roadmap.";
+  if ("goalId" in input) return isRoadmapGoal(roadmap, input.goalId) ? null : "Unknown learning goal.";
   const exists = input.kind === "topic"
-    ? course.topics.some(topic => topic.id === input.itemId)
-    : course.projects.some(project => project.id === input.itemId);
+    ? roadmap.sections.some(section => section.topics.some(topic => topic.id === input.itemId))
+    : roadmap.projects.some(project => project.id === input.itemId);
   return exists ? null : `Unknown ${input.kind}.`;
 }
 

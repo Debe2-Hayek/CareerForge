@@ -2,7 +2,7 @@ import { failure, isSameOrigin, json } from "@/lib/account/http";
 import { readBoundedJson } from "@/lib/account/request-body";
 import { privateWriteLimit } from "@/lib/account/attempt-limit";
 import { enrollmentInputSchema, progressInputSchema, resetInputSchema, validateAgainstCatalog, type EnrollmentInput, type LearningSnapshot, type ProgressInput } from "./api";
-import { getCourse } from "./catalog";
+import { getRoadmap } from "@/lib/roadmaps/catalog";
 
 export class LearningError extends Error {
   constructor(public code: string, message: string, public status: number) { super(message); }
@@ -13,7 +13,7 @@ export type LearningAccess = {
   snapshot: () => Promise<LearningSnapshot>;
   enroll: (input: EnrollmentInput) => Promise<void>;
   saveProgress: (input: ProgressInput) => Promise<void>;
-  /** Deletes every topic and project record for one course; the enrolment and settings stay. */
+  /** Removes one roadmap from the learner's list together with every topic and project record. */
   resetProgress: (courseId: string) => Promise<void>;
 };
 
@@ -54,7 +54,7 @@ export function learningHandlers(authorize: () => Promise<LearningAccess | null>
     }),
     reset: (request: Request) => run(request, async access => {
       const parsed = resetInputSchema.safeParse(await readBoundedJson(request, 256));
-      if (!parsed.success || !getCourse(parsed.data.courseId)) return failure("INVALID_INPUT", "Choose a learning path and confirm the reset.", 400);
+      if (!parsed.success || !getRoadmap(parsed.data.courseId)) return failure("INVALID_INPUT", "Choose a learning path and confirm the reset.", 400);
       const denied = limited(access);
       if (denied) return denied;
       await access.resetProgress(parsed.data.courseId);

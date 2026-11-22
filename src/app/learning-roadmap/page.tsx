@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { LearningDashboard } from "@/components/learning/learning-dashboard";
+import { RoadmapHome } from "@/components/roadmaps/roadmap-home";
 import { loadLearningAccount } from "@/lib/learning/page-data";
 
 export const metadata = { title: "Learning roadmap - CareerForge", robots: { index: false, follow: false } };
@@ -20,6 +20,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
     return <AppShell pageTitle="Learning roadmap" privateAccount><div className="empty-state"><h1>Your learning roadmap is temporarily unavailable.</h1><p>We could not confirm your account or profile. Your saved progress is unchanged.</p><Link href="/learning-roadmap" className="button primary">Try again</Link></div></AppShell>;
   }
   return <AppShell pageTitle="Learning roadmap" privateAccount displayName={account.profile.name}>
-    <LearningDashboard snapshot={account.snapshot} />
+    <RoadmapHome snapshot={account.snapshot} profile={account.profile} />
   </AppShell>;
 }

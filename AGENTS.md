@@ -73,7 +73,8 @@ Apply the owner's senior engineering/product instructions and
 `src/data/roadmap.json` is the product-evolution source of truth shown in the
 authenticated Learning roadmap tab at `/learning-roadmap/product` (the tab's main
 view is the learner journey; see `docs/LEARNING_ROADMAP.md`). Learning curriculum
-lives in `src/data/learning/` as original CareerForge content: link roadmap.sh and
+lives in `src/data/roadmaps/` and `src/data/learning/` as original CareerForge content
+(`src/data/open-catalog/` is imported from openly licensed lists only): link roadmap.sh and
 other sources, never copy their text (roadmap.sh's licence forbids reproduction).
 Run `npm run check:learning-links` after curriculum edits. Run the deterministic `npm run sync:roadmap`
 task whenever a feature, architecture boundary or upstream roadmap.sh topic

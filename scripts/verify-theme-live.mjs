@@ -128,6 +128,34 @@ export async function verifyThemeLive(context, anonymous) {
   await opened.close();
   console.log(`Low-contrast text, dark/light: ${summary.join(", ")}`);
 
+  // The extra button fits in every header, right after resizing and once settled.
+  for (const [owner, paths] of [[context, ["/account", "/application-agent", "/workshops", "/cv"]], [anonymous, ["/", "/login", "/register", "/forgot-password"]]]) {
+    const fit = await owner.newPage();
+    for (const path of paths) {
+      await fit.setViewportSize({ width: 1440, height: 900 });
+      await fit.goto(path, { waitUntil: "load" });
+      await expect(fit.locator(".theme-toggle").first()).toBeVisible({ timeout: 20_000 });
+      for (const width of [1440, 1250, 1024, 980, 860, 768, 640, 480, 420, 390, 360, 320]) {
+        await fit.setViewportSize({ width, height: 900 });
+        for (const wait of [0, 450]) {
+          await fit.waitForTimeout(wait);
+          const problem = await fit.evaluate(() => {
+            const wide = document.documentElement.scrollWidth - innerWidth;
+            if (wide > 0) return `page overflows by ${wide}px`;
+            const button = [...document.querySelectorAll(".theme-toggle")].find(item => item.checkVisibility());
+            if (!button) return "no theme button";
+            const box = button.getBoundingClientRect();
+            if (box.width < 38 || box.left < 0 || box.right > innerWidth) return `theme button at ${Math.round(box.left)}-${Math.round(box.right)}`;
+            const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+            return button.contains(hit) ? null : `theme button covered by ${hit?.className}`;
+          });
+          assert.equal(problem, null, `${path} at ${width}px after ${wait}ms: ${problem}`);
+        }
+      }
+    }
+    await fit.close();
+  }
+
   // The button switches, is remembered, and other tabs follow.
   const page = await context.newPage();
   await page.goto("/dashboard");

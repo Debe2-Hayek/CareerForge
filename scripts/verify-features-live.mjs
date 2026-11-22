@@ -44,7 +44,8 @@ export async function verifyFeaturesLive(context) {
     await page.getByRole("button", { name: "Expand sidebar", exact: true }).click();
     for (const width of [320, 390, 768]) {
       await page.setViewportSize({ width, height: 900 });
-      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      // The sidebar may still be sliding; an overflow that stays is still a failure.
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - innerWidth), { timeout: 3000 }).toBeLessThanOrEqual(0);
       for (const marker of await page.locator(".feature-workflow li > span").all()) {
         const bounds = await marker.boundingBox();
         assert.ok(bounds.width >= 24 && bounds.height < 24, "step number must stay on one line");

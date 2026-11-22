@@ -35,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     // Extensions can add document-wrapper attributes; app descendants keep hydration checks.
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body suppressHydrationWarning>
         <div className="site-layer">{children}</div>
         <SelfDiagnoseProvider />

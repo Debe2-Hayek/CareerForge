@@ -14,6 +14,34 @@ space) with one true line from the learner's records each, search, and planned
 modules apart under *Coming later*. It has its own icon. *Project ideas* opens
 the real project list; `/projects` redirects there, so seven modules remain planned.
 
+## CV & Portfolio workspace polish - verified locally, 22 November 2026
+
+The document builder now reads as one organised studio rather than a loose row of
+controls. Its command bar separates document/save/live status, primary Notes and
+Publish/Manage actions, and quieter saved-profile account tools. The editor,
+view/theme/CV controls, guidance and preview form coherent bordered surfaces;
+document theme choices remain isolated from CareerForge workspace chrome.
+
+The Notes control is now a labelled 48px action with an icon, state description
+and chevron. On desktop the notes column animates away while the preview expands;
+at 1000px and below the one-column panel collapses vertically, and phone actions
+stack without horizontal overflow. The control exposes `aria-expanded` and
+`aria-controls`; the full notes region becomes `aria-hidden` and `inert` while
+collapsed, so hidden fields cannot receive focus. Draft and preview edits remain
+mounted and survive every toggle. Reduced-motion preference removes layout,
+panel, chevron/action transitions and the save-status pulse while preserving the
+same final state. The publication panel, autosave, public website, print and
+saved-profile/reviewed-publication contracts are unchanged.
+
+Evidence: ESLint, strict TypeScript, all 192 unit/render tests and
+`npm run build:offline` passed. The builder-only authenticated browser run passed
+at 320, 768, 1440 and 1920 CSS pixels, including pointer and Enter/Space toggles,
+ARIA control/state semantics, hidden-focus denial, retained notes and preview
+edits, expanded desktop preview width, reduced motion, CV/print controls,
+autosave/publication regressions and no horizontal overflow. Its temporary account
+and related records were removed. No database, API, dependency or document-theme
+change was required. Physical-device and assistive-technology audits remain open.
+
 ## Simpler roadmaps and free course library - verified locally, 22 November 2026
 
 Owner feedback: the roadmap was chaotic. The graph canvas, setup form and

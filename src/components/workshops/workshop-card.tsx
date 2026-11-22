@@ -74,7 +74,7 @@ export function WorkshopCard({ workshop, now, saved, onOpen, onToggle }: { works
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
-function CountdownClock({ workshop, now }: { workshop: Workshop; now: number }) {
+export function CountdownClock({ workshop, now }: { workshop: Workshop; now: number }) {
   const mounted = useMounted();
   const left = countdownTo(workshop, now);
   if (!left) return null;
@@ -84,31 +84,4 @@ function CountdownClock({ workshop, now }: { workshop: Workshop; now: number }) 
   return <div className={styles.countdown} role="timer" aria-live="off" aria-label={`Starts in ${left.days} days, ${left.hours} hours and ${left.minutes} minutes`}>
     {parts.map(([value, unit]) => <span key={unit} aria-hidden="true"><strong suppressHydrationWarning>{mounted ? pad(value) : "--"}</strong>{unit}</span>)}
   </div>;
-}
-
-export function Spotlight({ workshop, now, saved, onOpen, onToggle }: { workshop: Workshop; now: number; saved: boolean; onOpen: () => void; onToggle: () => void }) {
-  const state = lifecycleOf(workshop, now);
-  const reason = state === "live" ? "Happening Now" : state === "upcoming" ? (workshop.isFeatured ? "Featured live session" : "Next live session") : workshop.badge ?? "Start here";
-  return <section className={styles.spotlight} data-area={areaOf[workshop.category]} data-state={state} aria-labelledby="spotlight-title">
-    <Picture name={pictureFor(workshop)} sizes="(max-width: 760px) 100vw, 1140px" eager />
-    <div className={styles.spotlightMain}>
-      <p className={state === "live" ? styles.liveNow : styles.reason}>{state === "live" && <i aria-hidden="true" />}{reason}</p>
-      <h2 id="spotlight-title">{workshop.outcomeHook}</h2>
-      <p className={styles.spotlightTitle}><button type="button" data-workshop={workshop.id} aria-haspopup="dialog" onClick={onOpen}>{workshop.title}</button></p>
-      <p className={styles.meta}>
-        <Difficulty workshop={workshop} />
-        <span>{state === "anytime" || state === "replay" ? "Self-paced" : "Live online"}</span>
-        <span>{durationLabel(workshop)}</span>
-        <span>{workshop.priceType}</span>
-        <span>{workshop.instructorOrHost}</span>
-      </p>
-    </div>
-    <div className={styles.spotlightSide}>
-      {state === "upcoming" && <><CountdownClock workshop={workshop} now={now} /><p className={styles.when}><LocalTime iso={workshop.startDateTime!} /></p></>}
-      <div className={styles.spotlightActions}>
-        <ActionLink workshop={workshop} now={now} primary />
-        <BookmarkButton saved={saved} title={workshop.title} onToggle={onToggle} />
-      </div>
-    </div>
-  </section>;
 }

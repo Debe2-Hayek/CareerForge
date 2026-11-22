@@ -82,18 +82,6 @@ export function discover(workshops: readonly Workshop[], rail: RailSelection, fi
 export const availableSavedCount = (workshops: readonly Workshop[], saved: ReadonlySet<string>, now: number) =>
   workshops.filter(workshop => saved.has(workshop.id) && isAvailable(workshop, now)).length;
 
-/** The spotlight follows a fixed order and never shows private submissions or expired events. */
-export function spotlight(workshops: readonly Workshop[], now: number): Workshop | null {
-  const verified = workshops.filter(workshop => workshop.verificationStatus === "verified" && isAvailable(workshop, now));
-  const state = (wanted: string) => verified.filter(workshop => lifecycleOf(workshop, now) === wanted);
-  const first = (list: Workshop[], compare: (a: Workshop, b: Workshop) => number) => [...list].sort((a, b) => compare(a, b) || byTitle(a, b))[0] ?? null;
-  return first(state("live"), byStart)
-    ?? first(state("upcoming").filter(workshop => workshop.isFeatured), byStart)
-    ?? first(state("upcoming"), byStart)
-    ?? first(state("anytime").filter(workshop => workshop.badge === "Staff Pick"), byPriority)
-    ?? first([...state("anytime"), ...state("replay")], byPriority);
-}
-
 const tracking = /^(utm_|fbclid$|gclid$|mc_|wt\.|ref$|source$)/i;
 
 /** Compares links by what they point at: no tracking, fragment, "www." or trailing slash. */

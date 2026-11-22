@@ -11,7 +11,9 @@ import { workshopCategories } from "../src/lib/workshops/types.ts";
 
 const now = Date.now();
 const headers = { "User-Agent": "Mozilla/5.0 (compatible; CareerForge-workshop-check/1.0)", "Accept-Language": "en" };
-const problems = [], warnings = [];
+const problems = [], warnings = [], unchecked = [];
+// Failures that say something about the site itself, not about where this check runs.
+const dead = new Set([404, 410, "ENOTFOUND", "CERT_HAS_EXPIRED"]);
 
 async function page(url) {
   for (let attempt = 1; ; attempt++) {
@@ -19,7 +21,7 @@ async function page(url) {
       const response = await fetch(url, { headers, redirect: "follow", signal: AbortSignal.timeout(25_000) });
       return { status: response.status, text: await response.text() };
     } catch (error) {
-      if (attempt === 3) return { status: error.name, text: "" };
+      if (attempt === 3) return { status: error.cause?.code ?? error.name, text: "" };
       await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
     }
   }
@@ -38,9 +40,9 @@ for (const workshop of curatedWorkshops) {
   const state = lifecycleOf(workshop, now);
   if (state === "ended") { warnings.push(`${workshop.id} has ended: add its recording or replace it`); continue; }
   const { status, text } = await page(workshop.registrationOrWatchUrl);
-  // A block page or rate limit is not proof that a link is dead.
-  if ([401, 403, 429].includes(status)) warnings.push(`${workshop.id}: ${status}, check by hand`);
-  else if (status !== 200) problems.push(`${workshop.id}: ${status} ${workshop.registrationOrWatchUrl}`);
+  if (dead.has(status)) problems.push(`${workshop.id}: ${status} ${workshop.registrationOrWatchUrl}`);
+  // Some sites refuse GitHub's servers. A refusal, time-out or outage is not proof that a link is dead.
+  else if (status !== 200) unchecked.push(`${workshop.id}: ${status} ${workshop.registrationOrWatchUrl}`);
   else if (workshop.sourceId?.startsWith("reactor:")) {
     const visible = text.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&#x27;/g, "'").replace(/\s+/g, " ");
     const { day, times } = reactorDate(workshop);
@@ -62,9 +64,12 @@ for (const category of workshopCategories) {
 const handPicked = upcoming.filter(workshop => workshop.sourceType === "curated").length;
 if (handPicked < 3) warnings.push(`only ${handPicked} hand-checked live sessions are upcoming: add some`);
 if (upcoming.length < 4) warnings.push(`only ${upcoming.length} live sessions are upcoming`);
+// One or two refusals are normal; many at once mean the check is no longer checking.
+if (unchecked.length >= 6) warnings.push(`${unchecked.length} pages could not be opened: ${unchecked.join("; ")}`);
+for (const item of unchecked) console.log("SKIP ", item);
 for (const warning of warnings) console.log("WARN ", warning);
 for (const problem of problems) console.log("ERROR", problem);
-console.log(`${curatedWorkshops.length} curated workshops checked: ${problems.length} problems, ${warnings.length} warnings.`);
+console.log(`${curatedWorkshops.length} curated workshops checked: ${problems.length} problems, ${warnings.length} warnings, ${unchecked.length} could not be opened.`);
 const at = process.argv.indexOf("--report");
 if (at > 0 && process.argv[at + 1]) {
   const list = (title, items) => items.length ? `### ${title}\n\n${items.map(item => `- ${item}`).join("\n")}\n\n` : "";

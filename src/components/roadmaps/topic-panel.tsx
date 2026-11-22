@@ -50,6 +50,17 @@ export function TopicPanel({ topic, sectionTitle, roadmapTitle, area, mark, read
     {mark?.via && <p className={styles.hint}>You already finished this in {mark.via}, so it counts here too.</p>}
     {readOnly && <p className={styles.hint}>Progress saving is temporarily unavailable.</p>}
 
+    {topic.lesson && <section className={styles.panelBlock} aria-labelledby="panel-lesson">
+      <h3 id="panel-lesson">The idea</h3>
+      <p>{topic.lesson.idea}</p>
+      <ul className={styles.points}>{topic.lesson.points.map(text => <li key={text}>{text}</li>)}</ul>
+      <div className={styles.tryIt}><strong>Try it</strong><p>{topic.lesson.practice}</p></div>
+      <details key={topic.id} className={styles.quiz}>
+        <summary><span>Check yourself</span>{topic.lesson.question}</summary>
+        <p>{topic.lesson.answer}</p>
+      </details>
+    </section>}
+
     <section className={styles.panelBlock} aria-labelledby="panel-learn">
       <h3 id="panel-learn">Learn it free</h3>
       <ul className={styles.resources}>

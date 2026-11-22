@@ -38,6 +38,10 @@ export async function verifyLearningLive(context) {
     const panel = page.getByRole("dialog", { name: "HTML" });
     await expect(panel).toBeVisible();
     await expect(page).toHaveURL(/\?topic=html$/);
+    const answer = panel.getByText("It has no keyboard focus, role or activation unless you rebuild all of them.");
+    await expect(answer).toBeHidden();
+    await panel.getByText("Why is a clickable div worse than a button?").click();
+    await expect(answer).toBeVisible();
     response1 = saved();
     await page.keyboard.press("l");
     await response1;

@@ -1,6 +1,6 @@
 import { library, publishers } from "@/data/roadmaps/sources";
 import type { LearningResource } from "@/lib/learning/schema";
-import type { Roadmap, RoadmapArea, RoadmapProject, RoadmapSection, RoadmapTopic, RoadmapTopicKind } from "./schema";
+import type { Roadmap, RoadmapArea, RoadmapLesson, RoadmapProject, RoadmapSection, RoadmapTopic, RoadmapTopicKind } from "./schema";
 
 // Compact roadmap text -> structured roadmap. One line per item keeps dozens of
 // roadmaps readable, reviewable and easy to extend:
@@ -78,9 +78,23 @@ export function parseSharedTopics(source: string): Map<string, SharedTopic> {
   return topics;
 }
 
+/** Lessons: "key = explanation | point; point | practice | question => answer". */
+export function parseLessons(source: string): Map<string, RoadmapLesson> {
+  const lessons = new Map<string, RoadmapLesson>();
+  for (const line of source.split("\n").map(value => value.trim()).filter(Boolean)) {
+    const match = /^([a-z0-9-]+(?:\/[a-z0-9-]+)?) = (.+)$/.exec(line);
+    const parts = match ? fields(match[2]) : [];
+    const [question, answer] = (parts[3] ?? "").split(" => ").map(part => part.trim());
+    if (!match || parts.length !== 4 || !answer) throw new Error(`Malformed lesson: ${line.slice(0, 60)}`);
+    if (lessons.has(match[1])) throw new Error(`Duplicate lesson ${match[1]}`);
+    lessons.set(match[1], { idea: parts[0], points: parts[1].split("; ").map(part => part.trim()), practice: parts[2], question, answer });
+  }
+  return lessons;
+}
+
 const kinds: Record<string, RoadmapTopicKind> = { "-": "core", "+": "good", "?": "optional" };
 
-export function parseRoadmap(meta: RoadmapMeta, body: string, shared: Map<string, SharedTopic>): Roadmap {
+export function parseRoadmap(meta: RoadmapMeta, body: string, shared: Map<string, SharedTopic>, lessons: Map<string, RoadmapLesson> = new Map()): Roadmap {
   const sections: RoadmapSection[] = [];
   const projects: RoadmapProject[] = [];
   let defaults: LearningResource[] = [];
@@ -110,7 +124,7 @@ export function parseRoadmap(meta: RoadmapMeta, body: string, shared: Map<string
     if (content.startsWith("@")) {
       const topic = shared.get(content.slice(1));
       if (!topic) throw new Error(`${where}: unknown shared topic`);
-      section.topics.push({ ...topic, kind, shared: true, guide: null, deepDive: topic.deepDive === meta.id ? null : topic.deepDive });
+      section.topics.push({ ...topic, kind, shared: true, lesson: lessons.get(topic.id) ?? null, guide: null, deepDive: topic.deepDive === meta.id ? null : topic.deepDive });
       continue;
     }
     const [title, summary, spec] = fields(content);
@@ -118,7 +132,8 @@ export function parseRoadmap(meta: RoadmapMeta, body: string, shared: Map<string
     const parsed = parseResources(spec, title, where);
     const resources = parsed.resources.length ? parsed.resources : defaults;
     if (!resources.length) throw new Error(`${where}: no resource and no section default`);
-    section.topics.push({ id: slugify(title), title, summary, kind, resources, deepDive: parsed.deepDive, shared: false, guide: null });
+    const id = slugify(title);
+    section.topics.push({ id, title, summary, kind, resources, deepDive: parsed.deepDive, shared: false, lesson: lessons.get(`${meta.id}/${id}`) ?? null, guide: null });
   }
   return {
     id: meta.id, version: meta.version ?? 1, kind: meta.kind, title: meta.title, area: meta.area, tagline: meta.tagline, inDepth: false,

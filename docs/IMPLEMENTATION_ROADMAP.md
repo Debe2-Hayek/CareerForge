@@ -4,8 +4,8 @@
 
 Owner feedback: the roadmap was chaotic. The graph canvas, setup form and
 dashboard are replaced by one scrolling map per roadmap with a side panel. The
-catalogue grew from 2 paths to 63 original roadmaps (about 1,700 topics, 205
-project briefs) plus 1,194 free courses and 457 tutorials from openly licensed
+catalogue grew from 2 paths to 90 original roadmaps (about 2,200 topics, 286
+project briefs, short lessons with self-tests) plus 1,194 free courses and 457 tutorials from openly licensed
 lists. Shared topics count in every roadmap. roadmap.sh's data was requested but
 its licence forbids reuse, so it is linked only. `@xyflow/react` was removed. No
 migration; existing progress carries over.

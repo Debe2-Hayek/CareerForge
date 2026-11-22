@@ -57,7 +57,7 @@ function parseCourses(markdown) {
     const url = safeUrl(entry[2]);
     const title = clean(entry[1]);
     if (!url || title.length < 3 || title.length > 140) continue;
-    const by = entry[3] ? clean(entry[3].replace(/\(:construction:[^)]*\)/g, "")).slice(0, 90) : "";
+    const by = entry[3] ? clean(entry[3].replace(/\([^)]*(?:construction|account|e-?mail|in process)[^)]*\)/gi, "")).slice(0, 90) : "";
     items.push({ topic, title, by, url });
   }
   return items;

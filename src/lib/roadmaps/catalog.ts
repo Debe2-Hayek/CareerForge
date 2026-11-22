@@ -2,12 +2,15 @@ import { z } from "zod";
 import { buildRoles } from "@/data/roadmaps/roles-build";
 import { dataRoles } from "@/data/roadmaps/roles-data";
 import { operateRoles } from "@/data/roadmaps/roles-operate";
+import { roleLessons } from "@/data/roadmaps/lessons-roles";
+import { sharedLessons } from "@/data/roadmaps/lessons-shared";
+import { moreRoadmaps } from "@/data/roadmaps/more";
 import { sharedTopics } from "@/data/roadmaps/shared";
 import { languageSkills } from "@/data/roadmaps/skills-languages";
 import { systemSkills } from "@/data/roadmaps/skills-systems";
 import { courses } from "@/lib/learning/catalog";
 import type { LearningCourse } from "@/lib/learning/schema";
-import { parseRoadmap, parseSharedTopics } from "./parse";
+import { parseLessons, parseRoadmap, parseSharedTopics } from "./parse";
 import { roadmapSchema, type Roadmap, type RoadmapArea } from "./schema";
 
 /** Goal id stored for roadmaps that have no specialisations. */
@@ -15,7 +18,7 @@ export const wholeRoadmap = "complete";
 
 const guided: Record<string, { area: RoadmapArea; keywords: string[]; courseTopics: string[]; related: string[] }> = {
   python: { area: "programming", keywords: ["python", "django", "flask", "fastapi"], courseTopics: ["Python", "Django", "FastAPI", "Flask"], related: ["data-analyst", "backend", "machine-learning", "data-structures-algorithms"] },
-  "web-development": { area: "web", keywords: ["web development", "html", "css", "javascript"], courseTopics: ["Web Development", "HTML and CSS", "JavaScript"], related: ["frontend", "javascript", "react", "nodejs"] }
+  "web-development": { area: "web", keywords: ["web development", "html", "css", "javascript"], courseTopics: ["HTML and CSS", "JavaScript", "Web Development"], related: ["frontend", "javascript", "react", "nodejs"] }
 };
 
 /** The in-depth guided paths keep their rich lessons but share the simple roadmap shape. */
@@ -39,7 +42,7 @@ function fromGuidedCourse(course: LearningCourse): Roadmap {
       checkpoint: null,
       topics: course.topics.filter(topic => topic.phaseId === phase.id).map(topic => ({
         id: topic.id, title: topic.title, summary: topic.summary, kind: topic.tier === "optional" ? "optional" as const : "core" as const,
-        resources: topic.resources, deepDive: null, shared: false,
+        resources: topic.resources, deepDive: null, shared: false, lesson: null,
         guide: {
           why: topic.why, objectives: topic.objectives, example: topic.example?.code ?? null,
           exercises: topic.miniProject ? [...topic.exercises, `Mini-project: ${topic.miniProject}`] : topic.exercises,
@@ -57,8 +60,9 @@ function fromGuidedCourse(course: LearningCourse): Roadmap {
 // Validated once while loading, so a malformed line, duplicate id or broken
 // reference fails tests and builds instead of reaching learners.
 const shared = parseSharedTopics(sharedTopics);
+const lessons = new Map([...parseLessons(sharedLessons), ...parseLessons(roleLessons)]);
 export const roadmaps: readonly Roadmap[] = z.array(roadmapSchema).parse([
-  ...[...buildRoles, ...dataRoles, ...operateRoles, ...languageSkills, ...systemSkills].map(([meta, body]) => parseRoadmap(meta, body, shared)),
+  ...[...buildRoles, ...dataRoles, ...operateRoles, ...languageSkills, ...systemSkills, ...moreRoadmaps].map(([meta, body]) => parseRoadmap(meta, body, shared, lessons)),
   // Guided course data is declared loosely typed; courses are already validated by the learning catalog.
   ...courses.map(fromGuidedCourse)
 ]);
@@ -68,6 +72,15 @@ if (byId.size !== roadmaps.length) throw new Error("Duplicate roadmap id");
 for (const roadmap of roadmaps) {
   const references = [...roadmap.related, ...roadmap.sections.flatMap(section => section.topics.flatMap(topic => topic.deepDive ? [topic.deepDive] : []))];
   for (const id of references) if (!byId.has(id)) throw new Error(`${roadmap.id} refers to unknown roadmap ${id}`);
+}
+
+// A lesson whose topic was renamed or removed would silently disappear, so it is an error too.
+for (const key of lessons.keys()) {
+  const [roadmapId, topicId] = key.includes("/") ? key.split("/") : [null, key];
+  const found = roadmapId
+    ? byId.get(roadmapId)?.sections.some(section => section.topics.some(topic => topic.id === topicId && !topic.shared))
+    : shared.has(topicId);
+  if (!found) throw new Error(`Lesson for unknown topic ${key}`);
 }
 
 export const roleRoadmaps = roadmaps.filter(roadmap => roadmap.kind === "role");

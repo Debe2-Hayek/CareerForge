@@ -46,6 +46,13 @@ test("home resumes at the next topic and degrades when storage is down", async (
   assert.ok(down.includes("temporarily unavailable"));
 });
 
+test("a useful head start from other roadmaps replaces the topic count", async () => {
+  const { RoadmapFinder } = await import("./roadmap-finder");
+  const item = { id: "backend", kind: "role" as const, title: "Backend Developer", area: "web" as const, topics: 47, inDepth: false, percent: null, search: "" };
+  assert.ok(renderToStaticMarkup(<RoadmapFinder items={[{ ...item, headStart: 24 }]} />).includes("24% already covered"));
+  assert.ok(renderToStaticMarkup(<RoadmapFinder items={[{ ...item, headStart: 3 }]} />).includes("47 topics"));
+});
+
 test("a roadmap opens straight on the map with no setup form", async () => {
   const html = await renderRoadmap("frontend", { enrollments: [], progress: {} });
   assert.ok(html.includes("Start: How the internet works"));
@@ -69,6 +76,11 @@ test("guided topics keep their full lessons inside the panel", async () => {
   const html = await renderRoadmap("python", { enrollments: [enrolled("python", "backend")], progress: {} }, { kind: "topic", id: "functions" });
   for (const text of ["Why it matters", "Example", "Practise", "You are done when", "Your goal", "Backend development"]) assert.ok(html.includes(text), text);
   assert.equal(html.includes("Machine learning</h3>"), false, "other specialisations stay out of the way");
+});
+
+test("compact topics teach the idea, a task and a self-test", async () => {
+  const html = await renderRoadmap("frontend", { enrollments: [], progress: {} }, { kind: "topic", id: "html" });
+  for (const text of ["The idea", "Try it", "Check yourself", "<details", "Learn it free"]) assert.ok(html.includes(text), text);
 });
 
 test("finished projects offer a portfolio entry built from their own facts", async () => {

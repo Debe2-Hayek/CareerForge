@@ -36,7 +36,7 @@ entries; currently React/SQL fundamentals checks can qualify selected CV skills.
 Checks use server-enforced 10-minute attempts, with a 100-minute extended-time
 option. Reload resumes the deadline; answer drafts are page-memory only.
 See [timed assessment behavior](docs/TIMED_SKILL_CHECKS.md).
-Learning roadmap offers 63 simple, free roadmaps (26 roles, 37 skills): open one,
+Learning roadmap offers 90 simple, free roadmaps (34 roles, 56 skills): open one,
 follow the boxes, tick topics as you learn. It includes project briefs, a library
 of openly licensed free courses and tutorials, and owner-only progress across
 devices; topics shared between roadmaps count everywhere. Python and JavaScript &

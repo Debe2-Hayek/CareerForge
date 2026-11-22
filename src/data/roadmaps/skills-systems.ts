@@ -363,10 +363,10 @@ export const systemSkills: RoadmapSource[] = [
 `],
 [{ id: "system-design", kind: "skill", title: "System Design", area: "cs", tagline: "Design systems that grow, fail safely and make sense.", keywords: ["system design", "distributed systems", "scalability"], courseTopics: ["System Design"], related: ["software-architect", "backend", "data-structures-algorithms"], roadmapSh: "system-design" }, `
 ## Method | Work from needs to design. | Estimate traffic for a service you use. | sdprimer
-- Requirements | Functional, quality and limits. | sdprimer
-- Estimation | Requests, storage and bandwidth. | sdprimer
-- Interfaces and data first | Contracts and models. | sdprimer
-- Latency and throughput | What users feel. | sdprimer
+- Requirements | Functional, quality and limits. | web:github.com/donnemartin/system-design-primer#how-to-approach-a-system-design-interview-question
+- Estimation | Requests, storage and bandwidth. | web:github.com/donnemartin/system-design-primer#back-of-the-envelope-calculations
+- Interfaces and data first | Contracts and models. | web:github.com/donnemartin/system-design-primer#step-3-design-core-components
+- Latency and throughput | What users feel. | web:github.com/donnemartin/system-design-primer#latency-vs-throughput
 ## Building blocks | Know each part. | Draw a request's journey.
 - @dns
 - @cdn
@@ -378,13 +378,13 @@ export const systemSkills: RoadmapSource[] = [
 ## Data | Choose and scale stores. | Pick a shard key and defend it.
 - @db-design
 - @db-indexes
-- Replication | Copies and lag. | sdprimer
-- Sharding | Split data. | sdprimer
+- Replication | Copies and lag. | web:github.com/donnemartin/system-design-primer#master-slave-replication
+- Sharding | Split data. | web:github.com/donnemartin/system-design-primer#sharding
 - @cap
 - Consistency models | Strong, causal and eventual. | web:jepsen.io/consistency
-- Search and analytics stores | Right store for the question. | sdprimer
+- Search and analytics stores | Right store for the question. | web:github.com/donnemartin/system-design-primer#sql-or-nosql
 ## Reliability | Expect failure. | Find every single point of failure.
-- Redundancy and failover | No single point. | sdprimer
+- Redundancy and failover | No single point. | web:github.com/donnemartin/system-design-primer#availability-patterns
 - Timeouts and retries | Backoff and jitter. | web:aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/
 - Circuit breakers | Stop cascades. | fowler:bliki/CircuitBreaker.html
 - Back pressure and limits | Protect the system. | sre:sre-book/handling-overload/
@@ -397,10 +397,10 @@ export const systemSkills: RoadmapSource[] = [
 - Unique identifiers | At scale. | wiki:Snowflake_ID
 - @event-driven
 ## Practise | Explain trade-offs aloud. | Design one system a week. | sdprimer
-- Design a URL shortener | Keys, reads and expiry. | sdprimer
-- Design a news feed | Fan-out choices. | sdprimer
-- Design a chat service | Presence and delivery. | sdprimer
-- Design a rate limiter | Algorithms and storage. | sdprimer
+- Design a URL shortener | Keys, reads and expiry. | web:github.com/donnemartin/system-design-primer#system-design-interview-questions-with-solutions
+- Design a news feed | Fan-out choices. | web:github.com/donnemartin/system-design-primer#system-design-interview-questions-with-solutions
+- Design a chat service | Presence and delivery. | web:github.com/donnemartin/system-design-primer#additional-system-design-interview-questions
+- Design a rate limiter | Algorithms and storage. | web:github.com/donnemartin/system-design-primer#additional-system-design-interview-questions
 * Design document | beginner | Design a link shortener. | Estimates; Diagram; Trade-offs | Design
 * Scaled prototype | intermediate | Build and load test it. | Cache; Queue; Measurements | Performance
 * Failure study | advanced | Break a prototype and fix it. | Fault injection; Report; Changes | Reliability

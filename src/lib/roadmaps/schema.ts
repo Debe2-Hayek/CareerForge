@@ -28,6 +28,16 @@ const guideSchema = z.object({
 }).strict();
 export type RoadmapGuide = z.infer<typeof guideSchema>;
 
+/** A short original lesson with a self-test; the in-depth paths use a full guide instead. */
+const lessonSchema = z.object({
+  idea: text(420),
+  points: z.array(text(120)).min(2).max(5),
+  practice: text(220),
+  question: text(200),
+  answer: text(260)
+}).strict();
+export type RoadmapLesson = z.infer<typeof lessonSchema>;
+
 export const roadmapTopicSchema = z.object({
   id: slugSchema,
   title: text(80),
@@ -38,6 +48,7 @@ export const roadmapTopicSchema = z.object({
   deepDive: slugSchema.nullable(),
   /** Shared topics mean the same thing everywhere, so completing one counts in every roadmap that uses it. */
   shared: z.boolean(),
+  lesson: lessonSchema.nullable(),
   guide: guideSchema.nullable()
 }).strict();
 export type RoadmapTopic = z.infer<typeof roadmapTopicSchema>;

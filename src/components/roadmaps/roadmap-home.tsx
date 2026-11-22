@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { LearningSnapshot } from "@/lib/learning/api";
 import { roadmaps, topicCount } from "@/lib/roadmaps/catalog";
-import { activeRoadmaps, suggestRoadmaps } from "@/lib/roadmaps/progress";
+import { activeRoadmaps, headStart, suggestRoadmaps } from "@/lib/roadmaps/progress";
 import { areaLabels } from "@/lib/roadmaps/schema";
 import { AreaIcon } from "./area-icon";
 import { LearnFooter, LearnHeader } from "./learn-header";
@@ -20,6 +20,7 @@ export function RoadmapHome({ snapshot, profile }: { snapshot: LearningSnapshot 
     topics: topicCount(roadmap),
     inDepth: roadmap.inDepth,
     percent: percentById.get(roadmap.id) ?? null,
+    headStart: percentById.has(roadmap.id) ? 0 : headStart(roadmap, snapshot),
     search: `${roadmap.title} ${areaLabels[roadmap.area]} ${roadmap.keywords.join(" ")}`.toLowerCase()
   }));
 

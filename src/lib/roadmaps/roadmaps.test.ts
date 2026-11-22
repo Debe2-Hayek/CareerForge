@@ -7,8 +7,8 @@ import { getRoadmap, isRoadmapGoal, roadmaps, roleRoadmaps, skillRoadmaps } from
 import { readLibraryQuery } from "./library-query";
 import { sectionsFor, summarize } from "./marks";
 import { catalogCredits, courseArea, coursesFor, courseTopicList, hostOf, openCourses, openTutorials, searchCourses, searchTutorials } from "./open-catalog";
-import { parseResources, parseRoadmap, parseSharedTopics, slugify } from "./parse";
-import { activeRoadmaps, marksFor, suggestRoadmaps, trackFor, trackShowing } from "./progress";
+import { parseLessons, parseResources, parseRoadmap, parseSharedTopics, slugify } from "./parse";
+import { activeRoadmaps, headStart, marksFor, suggestRoadmaps, trackFor, trackShowing } from "./progress";
 import { roadmapSchema } from "./schema";
 
 const settings = { goalId: "complete", level: "new" as const, weeklyHours: 6, format: "mixed" as const, contentVersion: 1, startedAt: "2026-11-21T10:00:00Z", lastActiveAt: "2026-11-21T10:00:00Z" };
@@ -73,6 +73,26 @@ test("the compact format rejects mistakes instead of publishing them", () => {
   const duplicate = parse("## One | Goal | | exercism\n- Same | A.\n- Same | B.\n## Two | Goal | | exercism\n- Other | C.");
   assert.equal(roadmapSchema.safeParse(duplicate).success, false);
   assert.equal(slugify("C++ & C# basics"), "cpp-and-csharp-basics");
+});
+
+test("the main roles teach every core topic, and shared lessons are consistent", () => {
+  for (const id of ["frontend", "backend", "full-stack", "data-analyst", "ai-engineer", "cyber-security"]) {
+    assert.deepEqual(allTopics(id).filter(topic => topic.kind === "core" && !topic.lesson).map(topic => topic.id), [], id);
+  }
+  for (const roadmap of roadmaps) for (const topic of allTopics(roadmap.id)) {
+    if (topic.shared) assert.ok(topic.lesson, `shared topic ${topic.id} has no lesson`);
+    assert.equal(Boolean(topic.lesson && topic.guide), false, "one kind of lesson per topic");
+  }
+  assert.throws(() => parseLessons("git = Only an idea"), /Malformed lesson/);
+  assert.throws(() => parseLessons("git = Idea. | One; Two | Do it. | Question without answer?"), /Malformed lesson/);
+  assert.throws(() => parseLessons("git = I. | A; B | P. | Q? => A.\ngit = I. | A; B | P. | Q? => A."), /Duplicate/);
+});
+
+test("a head start counts shared topics finished elsewhere", () => {
+  const backend = getRoadmap("backend")!;
+  assert.equal(headStart(backend, null), 0);
+  const some = headStart(backend, snapshot({ frontend: { topics: { internet: "completed", http: "completed", git: "known", github: "completed" }, projects: {} } }));
+  assert.ok(some > 0 && some < 100);
 });
 
 test("only core topics count, and skipped topics count as done", () => {

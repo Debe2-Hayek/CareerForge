@@ -51,6 +51,11 @@ export function activeRoadmaps(snapshot: LearningSnapshot | null): ActiveRoadmap
   });
 }
 
+/** Percent of a roadmap's core topics already done through other roadmaps. */
+export function headStart(roadmap: Roadmap, snapshot: LearningSnapshot | null): number {
+  return summarize(sectionsFor(roadmap, defaultGoal(roadmap)), marksFor(roadmap, snapshot)).percent;
+}
+
 export type Suggestion = { roadmap: Roadmap; reason: string };
 const words = (value: string) => ` ${value.toLowerCase().replace(/[^a-z0-9+#.]+/g, " ").replace(/\.(?=\s|$)/g, "").trim()} `;
 

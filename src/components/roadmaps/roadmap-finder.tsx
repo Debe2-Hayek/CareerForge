@@ -15,8 +15,13 @@ export type FinderItem = {
   inDepth: boolean;
   /** null when not started. */
   percent: number | null;
+  /** Percent already covered by topics finished in other roadmaps. */
+  headStart: number;
   search: string;
 };
+
+/** Below this a head start is noise, so the card keeps showing its size. */
+const worthShowing = 10;
 
 const groups = [
   { kind: "role", title: "Career roles", text: "Start here if you know the job you want." },
@@ -48,7 +53,7 @@ export function RoadmapFinder({ items }: { items: FinderItem[] }) {
           {list.map(item => <li key={item.id}>
             <Link href={`/learning-roadmap/${item.id}`} className={styles.card} data-area={item.area} data-started={item.percent !== null || undefined}>
               <span className={styles.icon}><AreaIcon area={item.area} /></span>
-              <span className={styles.cardText}><strong>{item.title}</strong><small>{item.topics} topics{item.inDepth ? " · full lessons" : ""}</small></span>
+              <span className={styles.cardText}><strong>{item.title}</strong><small>{item.headStart >= worthShowing ? `${item.headStart}% already covered` : `${item.topics} topics${item.inDepth ? " · full lessons" : ""}`}</small></span>
               {item.percent === null
                 ? <span className={styles.cardArrow} aria-hidden="true">→</span>
                 : <span className={styles.cardPercent}>{item.percent}%<span className="sr-only"> done</span></span>}

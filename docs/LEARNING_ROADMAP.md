@@ -15,7 +15,8 @@ they offered too many choices at once.
    states its goal and a small *Try it* task. Ordinary page scrolling (no canvas,
    zoom or pan); on narrow screens topics stack under their section.
    - The round button ticks a topic. The first tick starts the roadmap.
-   - Clicking a topic opens a side panel: summary, free resources, full courses
+   - Clicking a topic opens a side panel: summary, a short lesson (the idea, key
+     points, a task and a self-test) where one is written, free resources, full courses
      where the topic has its own roadmap, *Go deeper* link, To do / Learning /
      Done / Skip, previous and next. Keyboard: D, L, S, T and arrow keys. The
      open topic is in the URL (`?topic=`).
@@ -35,13 +36,16 @@ they offered too many choices at once.
 
 ## Content (22 November 2026)
 
-63 roadmaps (26 roles, 37 skills), about 1,700 topics, 205 project briefs, 1,194
-free courses and 457 tutorials.
+90 roadmaps (34 roles, 56 skills), about 2,200 topics, 286 project briefs, 1,194
+free courses and 457 tutorials. Every shared topic and every core topic of the six
+main roles (front end, back end, full stack, data analyst, AI engineer, cyber
+security) has a short lesson; Python and JavaScript & Web have full lessons.
 
 | Content | Location | Origin |
 | --- | --- | --- |
 | Role and skill roadmaps | `src/data/roadmaps/*.ts` | Original CareerForge text |
 | Topics shared between roadmaps | `src/data/roadmaps/shared.ts` | Original CareerForge text |
+| Short lessons | `src/data/roadmaps/lessons-*.ts` | Original CareerForge text |
 | Publishers and whole courses linked | `src/data/roadmaps/sources.ts` | Links only |
 | In-depth lessons | `src/data/learning/{python,web}.ts` | Original CareerForge text |
 | Free courses | `src/data/open-catalog/courses.json` | Free Programming Books, CC BY 4.0 |
@@ -106,20 +110,22 @@ Existing Python and web progress and goals carry over: topic ids are unchanged.
 
 ## Verification (22 November 2026)
 
-- 188 unit and render tests, lint, strict TypeScript and production build.
+- 192 unit and render tests, lint, strict TypeScript and production build.
 - `test-account-live.mjs --learning-only` passed against development (real Auth
   and database, temporary accounts removed): search, first tick starts a roadmap,
   panel with keyboard and deep links, rollback on failed save, shared credit,
   project evidence, guided goals, resume, 320/768/1440px on five pages, course
   search, API validation, clear progress. It found and fixed an overflow at 320px.
 - Edge review at 1440, 820 and 390px: no console errors, overflow or clipped labels.
-- Resource links: of 1,228, 1,205 resolved and 23 refuse automated
-  checks (not confirmed here); none broken, after replacing 19 dead links.
+- All 90 roadmaps checked in Edge at 1440 and 360px: no overflow, clipped labels,
+  overlapping boxes or console errors.
+- Resource links: every page resolved in at least one run (gnu.org throttles repeat checks); 44 of 1,522 refuse
+  automated checks and were not confirmed.
 
 ## Remaining work
 
-1. Per-topic depth: compact topics have a summary and links; only the two guided
-   paths have full lessons.
+1. Depth: about two thirds of topics have a summary and links but no lesson yet.
+   Short lessons were written without a subject-expert review.
 2. Course entries come from community lists; add ratings or levels if a reliable
    open source appears.
 3. Persist project evidence into portfolio records (today: prepared entry).

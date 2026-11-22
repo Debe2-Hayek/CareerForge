@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { test } from "node:test";
 import { curatedWorkshops } from "@/data/workshops/curated";
+import { pictureFor, pictures, topicPicture, type PictureKey } from "@/data/workshops/pictures";
 import { SourceError } from "@/lib/jobs/fetch";
 import { getRoadmap } from "@/lib/roadmaps/catalog";
 import { parseDeviceData } from "@/components/workshops/device-store";
@@ -389,4 +391,41 @@ test("availability hides only what has truly ended", () => {
   assert.equal(isAvailable(base, now), true);
   assert.equal(isAvailable(live("2026-11-01T12:00:00Z"), now), false);
   assert.equal(isAvailable(live("2026-11-01T12:00:00Z", { recordingUrl: "https://example.com/r" }), now), true);
+});
+
+test("every workshop has a local, openly licensed photo", () => {
+  const folder = "public/media/workshops";
+  const keys = Object.keys(pictures) as PictureKey[];
+  for (const key of keys) {
+    for (const width of [640, 1280]) {
+      const file = `${folder}/${key}-${width}.webp`;
+      assert.ok(existsSync(file), file);
+      assert.ok(statSync(file).size < 260_000, `${file} is too heavy`);
+    }
+    const photo = pictures[key];
+    assert.ok(["CC0 1.0", "Public domain"].includes(photo.license) && photo.caption && photo.author, key);
+    assert.equal(new URL(photo.page).protocol, "https:");
+    assert.match(photo.tone, /^#[0-9a-f]{6}$/);
+  }
+  assert.equal(readdirSync(folder).length, keys.length * 2, "no stray files");
+  // Each hand-checked workshop has its own picture, and a topic cover never repeats one of its cards.
+  const used = curatedWorkshops.map(pictureFor);
+  assert.equal(new Set(used).size, curatedWorkshops.length);
+  for (const category of workshopCategories) {
+    assert.ok(!curatedWorkshops.some(workshop => workshop.category === category && pictureFor(workshop) === topicPicture[category]), category);
+  }
+});
+
+test("feed and learner workshops get a related photo, always the same one", () => {
+  const photo = (title: string, category: Workshop["category"] = "AI & ML", id = "feed-1") => pictureFor({ id, title, category });
+  assert.equal(photo("Intro to Docker", "Cloud & DevOps"), "containers");
+  assert.equal(photo("Kubernetes for beginners", "Cloud & DevOps"), "helm");
+  assert.equal(photo("Giving AI Agents Reliable Access to the Web"), "fiber");
+  assert.equal(photo("The Real Cost of a Useful AI Feature"), "abacus");
+  assert.ok(["pipes", "patch-cables"].includes(photo("Database CI/CD", "Cloud & DevOps")));
+  assert.equal(photo("Anything at all", "Python"), photo("Anything at all", "Python"));
+  // Part of a word is not a subject, and inherited property names are not workshops.
+  assert.notEqual(photo("Dockerless thinking"), "containers");
+  for (const id of ["constructor", "toString", "__proto__"]) assert.ok(pictures[photo("Untitled", "Cybersecurity", id)]);
+  for (const category of workshopCategories) for (let index = 0; index < 30; index++) assert.ok(pictures[photo("Untitled", category, `id-${index}`)]);
 });

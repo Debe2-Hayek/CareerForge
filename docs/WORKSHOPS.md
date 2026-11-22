@@ -1,8 +1,10 @@
 # Workshops
 
 Discover free, hands-on computer science sessions at `/workshops`. Added
-22 November 2026 (M5). Calm on the surface: header, topic rail, one spotlight,
-search, one Filters button, cards and a detail panel.
+22 November 2026 (M5). Photo-led but simple to use: header, topic rail, one
+spotlight, search, one Filters button, a row of live sessions, cards and a detail
+panel. A search or filter shows one plain list. *Surprise me* opens a random
+workshop from the current list.
 
 ## Content
 
@@ -32,6 +34,21 @@ Popularity, seats and ratings are never shown because no source supports them.
 | Security Boulevard, DevOps.com | Calendar requests are refused (403) |
 | Company Luma calendars (Pulumi, Convex, MotherDuck and others) | Mix venues and online events without saying which |
 | Reactor listing pages | No public feed; verified events are curated by hand |
+| Automatic Reactor proposals | Microsoft's site terms limit use to personal and non-commercial and do not clearly allow automated collection, so no job collects its listings |
+
+## Pictures
+
+`src/data/workshops/pictures.ts` holds 36 photographs, all CC0 or public domain,
+each looked at before it was added. Files are local (`public/media/workshops`, two
+WebP widths); nothing is hot-linked and no publisher's logo or artwork is used.
+
+- Curated workshops: one hand-matched photo each (Docker: shipping containers).
+- Feed and learner workshops: the first subject found in the title, then the topic.
+- Photos are decorative (`alt=""`). The details panel shows the credit and source.
+- A missing file falls back to its colour. Tests check files, licences and matches.
+
+Motion lasts under three seconds, only on entry or hover, and stops with the
+reduced-motion setting.
 
 ## Architecture
 
@@ -104,9 +121,16 @@ the administrative connection and shows no account details.
 
 ## Staying current
 
-`npm run check:workshops` (weekly in GitHub Actions, read-only) fails when a link is
-gone or a live session's page no longer shows its title, date and time, and warns
-when sessions have ended or few remain. Expired sessions hide themselves meanwhile.
+`npm run check:workshops` (Tuesdays in GitHub Actions) fails when a link is gone or a
+live session's page no longer shows its title, date and time, and warns when sessions
+have ended, when fewer than three hand-checked or four live sessions remain, or when a
+feed cannot be read. The workflow then opens one issue, *Workshops need attention*,
+with the list and the steps; it updates that issue when the list changes and closes it
+when the check is clean. The job that runs project code can only read; the job that
+writes the issue runs no project code. Expired sessions hide themselves meanwhile.
+
+The live feed adds its own new sessions. Curated sessions are added by a person, who
+opens each event page first.
 
 ## Bookmarks and retention
 
@@ -126,7 +150,7 @@ series' roadmaps only.
 
 ## Verification (22 November 2026)
 
-- 22 unit tests: schema, lifecycle boundaries, countdowns, spotlight order,
+- 24 unit tests: schema, lifecycle boundaries, countdowns, spotlight order,
   filters, sorting, deduplication, time zones, hostile feed content, service
   fallback and caching, calendar round trip, submissions, storage damage, API.
 - `npm run db:validate:workshops` passed on development (always rolled back).

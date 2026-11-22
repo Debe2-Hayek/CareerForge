@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { AppIcon, type IconName } from "@/components/app-icons";
 import type { RailSelection } from "@/lib/workshops/discovery";
 import { useMounted } from "./hooks";
+import { areaOf } from "./workshop-card";
 import styles from "./workshops.module.css";
 
 export const railItems: readonly { id: RailSelection; slug: string; label: string; icon: IconName }[] = [
@@ -45,7 +46,7 @@ export function WorkshopRail({ selected, savedCount, onSelect }: { selected: Rai
       {railItems.map(item => {
         const name = item.id === "saved" ? `My Saved, ${savedCount} available` : item.label;
         return <li key={item.slug}>
-          <button type="button" aria-label={name} aria-pressed={selected === item.id} data-topic={item.slug} onClick={() => onSelect(item.id)}
+          <button type="button" aria-label={name} aria-pressed={selected === item.id} data-topic={item.slug} data-area={item.id === "all" || item.id === "saved" ? undefined : areaOf[item.id]} onClick={() => onSelect(item.id)}
             onPointerEnter={event => { if (event.pointerType === "mouse") show(event.currentTarget, item.label); }} onPointerLeave={() => setTip(null)}
             onFocus={event => { if (event.currentTarget.matches(":focus-visible")) show(event.currentTarget, item.label); }} onBlur={() => setTip(null)}>
             <AppIcon name={item.icon} />

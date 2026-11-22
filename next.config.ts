@@ -52,6 +52,7 @@ const nextConfig: NextConfig = {
         { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         { key: "Content-Security-Policy", value: "base-uri 'self'; object-src 'none'; frame-ancestors 'none'" }
       ] },
+      { source: "/media/workshops/:file", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
       ...noIndexSources.map(source => ({
         source,
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }]

@@ -28,6 +28,23 @@ export async function verifyWorkshopsLive(context) {
     await expect(page.getByRole("link", { name: "Workshops", exact: true }).first()).toHaveAttribute("aria-current", "page");
     await expect(page.getByText(/hand-checked workshops/)).toBeVisible();
 
+    step = "photos, live row and surprise";
+    const spotlight = page.getByRole("region").filter({ has: page.locator("#spotlight-title") });
+    await expect(spotlight.locator("img")).toHaveJSProperty("complete", true);
+    assert.ok(await spotlight.locator("img").evaluate(image => image.naturalWidth) > 0, "the spotlight photo loads");
+    const row = page.getByRole("region", { name: "Live sessions" });
+    await expect(row.locator("article").first()).toBeVisible();
+    const starts = await row.locator("article time[datetime]").evaluateAll(list => list.map(time => Date.parse(time.dateTime)));
+    assert.deepEqual(starts, [...starts].sort((a, b) => a - b), "live sessions are in date order");
+    await row.getByRole("button", { name: "Later sessions" }).click();
+    await expect.poll(() => row.locator("ul").evaluate(list => list.scrollLeft)).toBeGreaterThan(100);
+    await expect(row.getByRole("button", { name: "Earlier sessions" })).toBeEnabled();
+    await page.getByRole("button", { name: "Surprise me" }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("dialog").getByText(/^Photo:/)).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page).toHaveURL(/\/workshops$/);
+
     step = "icon rail";
     await rail("Python").click();
     await expect(rail("Python")).toHaveAttribute("aria-pressed", "true");
@@ -227,7 +244,7 @@ export async function verifyWorkshopsLive(context) {
     assert.equal((await put({ workshopId: "overthewire-bandit", saved: false })).status(), 200);
     await view.close();
     assert.deepEqual(errors, []);
-    console.log("PASS: workshops navigation, icon rail (mouse, keyboard, tooltip), search, combined filters, reset, account bookmarks with rollback, details, deep links and history, private submission, countdown to live to ended, calendar export, 320-1440px layouts, larger text, roadmap link and API.");
+    console.log("PASS: workshops photos, live row, surprise, navigation, icon rail (mouse, keyboard, tooltip), search, combined filters, reset, account bookmarks with rollback, details, deep links and history, private submission, countdown to live to ended, calendar export, 320-1440px layouts, larger text, roadmap link and API.");
   } catch (error) {
     await page.screenshot({ path: "test-results/workshops-failure.png", fullPage: true }).catch(() => {});
     error.message = `[workshops step: ${step}] ${error.message}`;

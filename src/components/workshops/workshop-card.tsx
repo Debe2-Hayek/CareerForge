@@ -1,10 +1,12 @@
 "use client";
 
-import { AppIcon } from "@/components/app-icons";
+import { AppIcon, type IconName } from "@/components/app-icons";
+import { pictureFor } from "@/data/workshops/pictures";
 import { callToAction, countdownTo, formatDuration, lifecycleOf } from "@/lib/workshops/lifecycle";
 import type { RoadmapArea } from "@/lib/roadmaps/schema";
 import type { Workshop, WorkshopCategory } from "@/lib/workshops/types";
-import { LocalTime, useMounted } from "./hooks";
+import { DateTile, LocalTime, useMounted } from "./hooks";
+import { Picture } from "./picture";
 import styles from "./workshops.module.css";
 
 /** Workshop topics share the roadmap accent colours, so a subject looks the same everywhere. */
@@ -12,12 +14,16 @@ export const areaOf: Record<WorkshopCategory, RoadmapArea> = {
   "AI & ML": "ai", "Web Dev": "web", Python: "programming", Cybersecurity: "security", "Cloud & DevOps": "cloud", "Systems & Algorithms": "cs"
 };
 
+export const topicIcon: Record<WorkshopCategory, IconName> = {
+  "AI & ML": "brain", "Web Dev": "code", Python: "python", Cybersecurity: "shield", "Cloud & DevOps": "cloud", "Systems & Algorithms": "cpu"
+};
+
 export const durationLabel = (workshop: Workshop) => `${workshop.durationEstimated || workshop.durationNote ? "≈ " : ""}${formatDuration(workshop.durationMinutes)}`;
 
-export function FormatLabel({ workshop, now }: { workshop: Workshop; now: number }) {
+export function FormatLabel({ workshop, now, withDay = true }: { workshop: Workshop; now: number; withDay?: boolean }) {
   switch (lifecycleOf(workshop, now)) {
     case "live": return <span className={styles.liveNow}><i aria-hidden="true" />Happening Now</span>;
-    case "upcoming": return <span className={styles.liveSoon}><i aria-hidden="true" /><LocalTime iso={workshop.startDateTime!} compact /></span>;
+    case "upcoming": return <span className={styles.liveSoon}><i aria-hidden="true" />Live <LocalTime iso={workshop.startDateTime!} compact withDay={withDay} /></span>;
     case "replay": return <span>Replay Available</span>;
     default: return <span>Start Anytime</span>;
   }
@@ -42,13 +48,17 @@ export function ActionLink({ workshop, now, primary = false }: { workshop: Works
 }
 
 export function WorkshopCard({ workshop, now, saved, onOpen, onToggle }: { workshop: Workshop; now: number; saved: boolean; onOpen: () => void; onToggle: () => void }) {
-  return <article className={styles.card} data-area={areaOf[workshop.category]}>
-    <div className={styles.cardTop}>
-      <FormatLabel workshop={workshop} now={now} />
+  const state = lifecycleOf(workshop, now);
+  return <article className={styles.card} data-area={areaOf[workshop.category]} data-state={state}>
+    <div className={styles.cover}>
+      <Picture name={pictureFor(workshop)} sizes="(max-width: 620px) 92vw, 380px" />
+      {state === "upcoming" && <DateTile iso={workshop.startDateTime!} />}
+      <p className={styles.chip}><FormatLabel workshop={workshop} now={now} withDay={false} /></p>
       <BookmarkButton saved={saved} title={workshop.title} onToggle={onToggle} />
     </div>
+    <p className={styles.topic}><AppIcon name={topicIcon[workshop.category]} />{workshop.category}</p>
     <h3><button type="button" data-workshop={workshop.id} aria-haspopup="dialog" onClick={onOpen}>{workshop.title}</button></h3>
-    <p>{workshop.outcomeHook}</p>
+    <p className={styles.hook}>{workshop.outcomeHook}</p>
     <div className={styles.cardFoot}>
       <span className={styles.meta}>
         <Difficulty workshop={workshop} />
@@ -76,10 +86,11 @@ function CountdownClock({ workshop, now }: { workshop: Workshop; now: number }) 
   </div>;
 }
 
-export function Spotlight({ workshop, now, onOpen }: { workshop: Workshop; now: number; onOpen: () => void }) {
+export function Spotlight({ workshop, now, saved, onOpen, onToggle }: { workshop: Workshop; now: number; saved: boolean; onOpen: () => void; onToggle: () => void }) {
   const state = lifecycleOf(workshop, now);
   const reason = state === "live" ? "Happening Now" : state === "upcoming" ? (workshop.isFeatured ? "Featured live session" : "Next live session") : workshop.badge ?? "Start here";
   return <section className={styles.spotlight} data-area={areaOf[workshop.category]} data-state={state} aria-labelledby="spotlight-title">
+    <Picture name={pictureFor(workshop)} sizes="(max-width: 760px) 100vw, 1140px" eager />
     <div className={styles.spotlightMain}>
       <p className={state === "live" ? styles.liveNow : styles.reason}>{state === "live" && <i aria-hidden="true" />}{reason}</p>
       <h2 id="spotlight-title">{workshop.outcomeHook}</h2>
@@ -94,7 +105,10 @@ export function Spotlight({ workshop, now, onOpen }: { workshop: Workshop; now: 
     </div>
     <div className={styles.spotlightSide}>
       {state === "upcoming" && <><CountdownClock workshop={workshop} now={now} /><p className={styles.when}><LocalTime iso={workshop.startDateTime!} /></p></>}
-      <ActionLink workshop={workshop} now={now} primary />
+      <div className={styles.spotlightActions}>
+        <ActionLink workshop={workshop} now={now} primary />
+        <BookmarkButton saved={saved} title={workshop.title} onToggle={onToggle} />
+      </div>
     </div>
   </section>;
 }

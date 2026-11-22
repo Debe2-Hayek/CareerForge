@@ -12,6 +12,7 @@ import { parseIcal, parseIcalTime } from "./ical";
 import { callToAction, countdownTo, endOf, formatDuration, isAvailable, lifecycleOf, nextTick } from "./lifecycle";
 import { configuredFeed, createWorkshopService, defaultFeeds, type FeedSource } from "./service";
 import { buildSubmission, validateDetails, validateEssentials, type SubmissionInput } from "./submission";
+import { parseApproved, parseOwnSuggestions, storedRecord, suggestionInputSchema } from "./suggestions";
 import { parseWorkshops, workshopCategories, workshopSchema, type Workshop } from "./types";
 
 // Generated times appear only here, in tests; the product never invents dates.
@@ -299,10 +300,11 @@ test("damaged device storage is ignored safely", () => {
   assert.deepEqual(ids(data.submissions), ["local-1"], "stored records cannot pose as curated or carry unsafe links");
 });
 
+const quiet: WorkshopAccess = { userId: "owner", setBookmark: async () => {}, approved: async () => [], suggestions: async () => [], addSuggestion: async () => {}, setSuggested: async () => true, removeSuggestion: async () => {} };
 const request = (body: unknown, method = "PUT", origin = "http://localhost:3000") => new Request("http://localhost:3000/api/v1/workshops/bookmarks", { method, headers: { Origin: origin }, ...(method === "GET" ? {} : { body: JSON.stringify(body) }) });
 test("the API checks origin, sign-in, shape, existence and rate before writing", async () => {
   const calls: unknown[] = [];
-  const access: WorkshopAccess = { userId: "owner", setBookmark: async (id, saved) => { calls.push([id, saved]); } };
+  const access: WorkshopAccess = { ...quiet, setBookmark: async (id, saved) => { calls.push([id, saved]); } };
   const catalog = async () => ({ workshops: [base], sources: [], generatedAt: new Date(now).toISOString() });
   const api = workshopHandlers(async () => access, catalog, () => 0);
   assert.equal((await api.bookmark(request({ workshopId: "sample", saved: true }, "PUT", "https://evil.example"))).status, 403);
@@ -325,6 +327,62 @@ test("the API checks origin, sign-in, shape, existence and rate before writing",
   const read = await api.GET(request(null, "GET"));
   assert.equal(read.status, 200);
   assert.equal(read.headers.get("cache-control"), "no-store");
+});
+
+test("meetups are never offered as live online sessions", () => {
+  const at = (location: string, summary = "Talk") => workshopsFromIcal(calendar(event(["UID:evt-9@luma", "DTSTART:20261202T160000Z", "DTEND:20261202T170000Z", `SUMMARY:${summary}`, "DESCRIPTION:https://luma.com/abc", `LOCATION:${location}`])), { ...feedConfig, onlineVenue: /^webinar\b/i }, now).workshops.length;
+  assert.equal(at("https://luma.com/event/evt-9"), 1);
+  assert.equal(at(""), 1);
+  assert.equal(at("Webinar\\, Boca Raton"), 1);
+  assert.equal(at("12 Main Street\\, London"), 0);
+  assert.equal(at("https://maps.example/venue"), 0);
+  assert.equal(at("https://luma.com/event/evt-9", "Summer happy hour"), 0);
+  assert.equal(at("https://luma.com/event/evt-9", "In-person workshop"), 0);
+});
+
+test("stored suggestions are stripped of privileges and validated on every read", async () => {
+  const built = await buildSubmission(draft, [], now);
+  assert.ok("workshop" in built);
+  const record = { ...storedRecord(built.workshop), badge: "Staff Pick", isFeatured: true, priority: 1, seatsRemaining: 3, joinUrl: "https://evil.example", verificationStatus: "verified", sourceType: "curated" };
+  const [mine] = parseOwnSuggestions([{ workshop_id: built.workshop.id, record, status: "pending", review_note: null }]);
+  assert.equal(mine.status, "pending");
+  assert.equal(mine.workshop.verificationStatus, "unverified");
+  assert.equal(mine.workshop.sourceType, "submission");
+  const [shown] = parseApproved([{ workshop_id: built.workshop.id, record, reviewed_on: "2026-12-01" }]);
+  assert.equal(shown.id, built.workshop.id.replace("local-", "community-"));
+  assert.equal(shown.sourceType, "community");
+  assert.equal(shown.lastVerifiedAt, "2026-12-01");
+  for (const item of [mine.workshop, shown]) assert.equal(item.badge ?? item.isFeatured ?? item.priority ?? item.seatsRemaining ?? item.joinUrl, undefined);
+  for (const bad of [null, "text", { ...record, registrationOrWatchUrl: "javascript:alert(1)" }, { ...record, title: "" }]) {
+    assert.deepEqual(parseApproved([{ workshop_id: built.workshop.id, record: bad, reviewed_on: "2026-12-01" }]), []);
+    assert.deepEqual(parseOwnSuggestions([{ workshop_id: built.workshop.id, record: bad, status: "private", review_note: null }]), []);
+  }
+  assert.deepEqual(parseApproved([{ workshop_id: "cs50p", record, reviewed_on: "2026-12-01" }]), [], "cannot pose as a curated id");
+  assert.equal(mergeWorkshops([shown], [mine.workshop]).length, 1, "the shared copy replaces the owner's card");
+});
+
+test("the suggestion API repeats every check and cannot approve anything", async () => {
+  const calls: unknown[] = [];
+  const access: WorkshopAccess = { ...quiet, addSuggestion: async workshop => { calls.push(["add", workshop.id]); }, setSuggested: async (id, on) => { calls.push([id, on]); return id !== "local-00000000000000ff"; }, removeSuggestion: async id => { calls.push(["remove", id]); } };
+  const catalog = async () => ({ workshops: [base], sources: [], generatedAt: "" });
+  const api = workshopHandlers(async () => access, catalog, () => 0, () => now);
+  const send = (body: unknown, origin?: string) => api.suggestion(request(body, "PUT", origin));
+  const id = "local-0123456789abcdef";
+  assert.equal((await send({ action: "suggest", workshopId: id }, "https://evil.example")).status, 403);
+  assert.equal((await workshopHandlers(async () => null, catalog, () => 0).suggestion(request({ action: "suggest", workshopId: id }))).status, 401);
+  for (const body of [{}, { action: "approve", workshopId: id }, { action: "suggest", workshopId: "cs50p" }, { action: "suggest", workshopId: id, status: "approved" }, { action: "add", input: { ...draft, status: "approved" } }]) assert.equal((await send(body)).status, 400, JSON.stringify(body));
+  assert.equal(suggestionInputSchema.safeParse({ action: "reject", workshopId: id }).success, false);
+  const invalid = await send({ action: "add", input: { ...draft, url: "https://www.example.com/sample/" } });
+  assert.equal(invalid.status, 400);
+  assert.ok((await invalid.json()).error.fields.url, "duplicates are refused with the field to fix");
+  assert.equal(calls.length, 0);
+  assert.equal((await send({ action: "add", input: draft })).status, 201);
+  assert.equal((await send({ action: "suggest", workshopId: id })).status, 200);
+  assert.equal((await send({ action: "withdraw", workshopId: "local-00000000000000ff" })).status, 409, "reviewed items cannot be changed");
+  assert.equal((await send({ action: "remove", workshopId: id })).status, 200);
+  assert.equal((await workshopHandlers(async () => access, catalog, () => 9).suggestion(request({ action: "remove", workshopId: id }))).status, 429);
+  const shown = await workshopHandlers(async () => ({ ...quiet, approved: async () => [make({ id: "community-0123456789abcdef", sourceType: "community", registrationOrWatchUrl: "https://example.com/new" })] }), catalog).GET(request(null, "GET"));
+  assert.equal((await shown.json()).workshops.length, 2);
 });
 
 test("availability hides only what has truly ended", () => {

@@ -44,6 +44,8 @@ export const workshopSchema = z.object({
   durationMinutes: z.number().int().min(5).max(60_000),
   /** True when the publisher does not state a length and CareerForge estimated it. */
   durationEstimated: z.boolean().optional(),
+  /** The publisher's own statement when it is a range; durationMinutes is then its middle. */
+  durationNote: text(90).optional(),
   seatsRemaining: z.number().int().min(0).max(100_000).optional(),
 
   prerequisites: z.array(text(140)).max(6),
@@ -61,7 +63,7 @@ export const workshopSchema = z.object({
 
   sourceId: text(120).optional(),
   sourceUrl: httpsUrlSchema.optional(),
-  sourceType: z.enum(["curated", "feed", "submission"]),
+  sourceType: z.enum(["curated", "feed", "submission", "community"]),
   lastVerifiedAt: z.iso.date().optional(),
   accessNotes: text(240).optional(),
   verificationStatus: z.enum(["verified", "unverified"]),

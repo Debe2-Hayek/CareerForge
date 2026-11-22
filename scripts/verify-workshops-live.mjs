@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { expect } from "@playwright/test";
 
 // Live end-to-end check of Workshops for a temporary signed-in account (run via
 // test:account:live against the development database only). Requires migration
 // 202611230001_workshop_bookmarks.sql.
+/** Runs the operator's review tool exactly as a person would. */
+const review = (...args) => execFileSync(process.execPath, ["--import", "tsx", "scripts/review-workshops.mjs", ...args], { encoding: "utf8" });
+
 export async function verifyWorkshopsLive(context) {
   const page = await context.newPage();
   const errors = [];
@@ -97,17 +101,19 @@ export async function verifyWorkshopsLive(context) {
 
     step = "private submission";
     await page.getByRole("button", { name: "Submit workshop" }).click();
+    await expect(page.getByText("Saved to your account and visible only to you.")).toBeVisible();
     const modal = page.getByRole("dialog", { name: "Add a workshop" });
     await modal.getByRole("button", { name: "Continue" }).click();
     await expect(modal.getByText("Enter a full address that starts with https://")).toBeVisible();
     await expect(modal.getByLabel("Workshop link")).toBeFocused();
     await modal.getByLabel("Workshop link").fill("https://docs.docker.com/learn/paths/get-started-with-docker-containers/?utm_source=x");
-    await modal.getByLabel("Title").fill("Another Docker course");
+    const title = `Another Docker course ${Date.now()}`;
+    await modal.getByLabel("Title").fill(title);
     await modal.getByLabel("Topic").selectOption("Cloud & DevOps");
     await modal.getByLabel("Format").selectOption("Self-Paced / Recorded");
     await modal.getByRole("button", { name: "Continue" }).click();
     await expect(modal.getByText("This workshop is already in the list.")).toBeVisible();
-    await modal.getByLabel("Workshop link").fill("https://example.com/my-course");
+    await modal.getByLabel("Workshop link").fill(`https://example.com/my-course/${Date.now()}`);
     await modal.getByRole("button", { name: "Continue" }).click();
     await modal.getByLabel("What will you be able to do?").fill("Write <b>useful</b> scripts.");
     await modal.getByLabel("Level").selectOption("Beginner");
@@ -120,8 +126,30 @@ export async function verifyWorkshopsLive(context) {
     await expect(page.getByText("Write <b>useful</b> scripts.")).toBeVisible();
     await page.reload();
     await page.getByLabel("Search workshops").fill("another docker");
-    await page.getByRole("button", { name: "Another Docker course", exact: true }).click();
-    await page.getByRole("button", { name: "Remove it" }).click();
+    const mine = page.getByRole("dialog", { name: title });
+    await page.getByRole("button", { name: title, exact: true }).click();
+    await expect(mine.getByText("Only you can see this.")).toBeVisible();
+    await mine.getByRole("button", { name: "Suggest it to everyone" }).click();
+    await expect(mine.getByText("Waiting for review.")).toBeVisible();
+
+    step = "operator review";
+    const entry = review("list").split("\n\n").find(block => block.includes(title));
+    assert.ok(entry, "the suggestion is waiting");
+    assert.equal(/@|user/i.test(entry), false, "no account details are shown");
+    const reference = /local-[0-9a-f]{16}#[0-9a-f]{32}/.exec(entry)[0];
+    assert.throws(() => review("approve", reference.replace(/.$/, last => last === "0" ? "1" : "0")), "only the exact reviewed text can be approved");
+    assert.match(review("approve", reference), /Approved: 1/);
+    await page.reload();
+    await expect(page.getByText("Approved. Other learners can now see it without your name.")).toBeHidden();
+    await page.keyboard.press("Escape").catch(() => {});
+    await page.goto("/workshops");
+    await page.getByLabel("Search workshops").fill("another docker");
+    await expect(page.getByText("Suggested by a learner")).toBeVisible();
+    await page.getByRole("button", { name: title, exact: true }).click();
+    await expect(mine.getByText("Approved. Other learners can now see it without your name.")).toBeVisible();
+    await mine.getByRole("button", { name: "Remove it" }).click();
+    await expect(mine).toHaveCount(0);
+    await page.reload();
     await page.getByLabel("Search workshops").fill("another docker");
     await expect(page.getByRole("heading", { name: "No workshops match" })).toBeVisible();
 

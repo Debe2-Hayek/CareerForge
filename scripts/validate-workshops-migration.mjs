@@ -1,5 +1,5 @@
 // Applies the workshop-bookmarks migration inside a transaction that is ALWAYS
-// rolled back, then verifies ownership isolation, duplicate prevention, the
+// rolled back (bookmarks and suggestions), then verifies ownership isolation, duplicate prevention, the
 // per-owner limit, id format and cascade. Nothing is persisted.
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -56,10 +56,45 @@ try {
   await rejects(save, [a, "one-too-many"], "23514");
   assert.equal((await client.query("delete from public.workshop_bookmarks where user_id = $1 and workshop_id = 'cs50p'", [a])).rowCount, 1);
 
+  // Suggestions: learners may add, suggest and withdraw, but never approve.
+  await client.query("reset role");
+  const second = await client.query("select to_regclass('public.workshop_suggestions') is not null as present");
+  if (!second.rows[0].present) await client.query((await readFile(new URL("../supabase/migrations/202611230002_workshop_suggestions.sql", import.meta.url), "utf8")).replace(/\r\n/g, "\n"));
+  const add = "insert into public.workshop_suggestions (user_id, workshop_id, record, status) values ($1, $2, $3, $4)";
+  const one = "local-0123456789abcdef", record = JSON.stringify({ title: "Example" });
+  const { rows: [guard] } = await client.query(`select (select relrowsecurity from pg_class where oid = 'public.workshop_suggestions'::regclass) as rls,
+    not has_table_privilege('anon', 'public.workshop_suggestions', 'select') as anon_denied,
+    not has_function_privilege('anon', 'public.careerforge_approved_workshops()', 'execute') as anon_function_denied,
+    not has_column_privilege('authenticated', 'public.workshop_suggestions', 'record', 'update') as record_immutable,
+    not has_column_privilege('authenticated', 'public.workshop_suggestions', 'review_note', 'update') as note_protected`);
+  assert.deepEqual(guard, { rls: true, anon_denied: true, anon_function_denied: true, record_immutable: true, note_protected: true });
+  await asUser(a);
+  await rejects(add, [a, one, record, "approved"], "42501");
+  await rejects(add, [b, one, record, "private"], "42501");
+  await rejects(add, [a, "cs50p", record, "private"], "23514");
+  await rejects(add, [a, one, JSON.stringify({ text: "x".repeat(5000) }), "private"], "23514");
+  assert.equal((await client.query(add, [a, one, record, "private"])).rowCount, 1);
+  await rejects(add, [a, one, record, "private"], "23505");
+  await rejects("update public.workshop_suggestions set status = 'approved' where user_id = $1", [a], "42501");
+  assert.equal((await client.query("update public.workshop_suggestions set status = 'pending' where user_id = $1", [a])).rowCount, 1);
+  assert.equal((await client.query("select * from public.careerforge_approved_workshops()")).rows.filter(row => row.workshop_id === one).length, 0, "pending is invisible to others");
+  await asUser(b);
+  assert.equal((await client.query("select * from public.workshop_suggestions")).rowCount, 0);
+  await client.query("reset role");
+  const approved = await client.query("update public.workshop_suggestions set status = 'approved' where user_id = $1 returning reviewed_at", [a]);
+  assert.ok(approved.rows[0].reviewed_at instanceof Date, "review time is server-set");
+  await asUser(b);
+  const visible = (await client.query("select * from public.careerforge_approved_workshops()")).rows.filter(row => row.workshop_id === one);
+  assert.equal(visible.length, 1);
+  assert.deepEqual(Object.keys(visible[0]).sort(), ["record", "reviewed_on", "workshop_id"], "the suggester is never returned");
+  await asUser(a);
+  await rejects("update public.workshop_suggestions set status = 'private' where user_id = $1", [a], "42501");
+  assert.equal((await client.query("delete from public.workshop_suggestions where user_id = $1", [a])).rowCount, 1, "owners can always remove their own");
+
   await client.query("reset role");
   await client.query("delete from auth.users where id = $1", [a]);
   assert.equal((await client.query("select count(*)::int as n from public.workshop_bookmarks where user_id = $1", [a])).rows[0].n, 0, "deleting an account removes its bookmarks");
-  console.log("PASS: workshop bookmarks isolation, anonymous denial, duplicates, id format, per-owner limit, server time and cascade (rolled back).");
+  console.log("PASS: workshop bookmarks isolation, anonymous denial, duplicates, id format, per-owner limit, server time and cascade; suggestions private by default, review only by operators, suggester never exposed (rolled back).");
 } catch (error) {
   console.error("Workshop migration validation failed:", error.code ?? error.message);
   process.exitCode = 1;

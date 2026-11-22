@@ -5,13 +5,27 @@ import { AppIcon } from "@/components/app-icons";
 import { SidePanel } from "@/components/roadmaps/side-panel";
 import { canAddToCalendar, googleCalendarUrl, icsFor } from "@/lib/workshops/calendar";
 import { lifecycleOf } from "@/lib/workshops/lifecycle";
+import type { SuggestionStatus } from "@/lib/workshops/suggestions";
 import type { Workshop } from "@/lib/workshops/types";
 import { LocalTime, type Notify } from "./hooks";
 import { ActionLink, areaOf, BookmarkButton, Difficulty, durationLabel } from "./workshop-card";
 import styles from "./workshops.module.css";
 
-export function WorkshopDetails({ workshop, now, saved, roadmapTitles, onToggle, onRemove, onClose, notify }: {
+function OwnStatus({ suggestion, onSuggest, onRemove }: { suggestion: { status: SuggestionStatus; note: string | null } | undefined; onSuggest: (suggested: boolean) => void; onRemove: () => void }) {
+  const remove = <button type="button" className={styles.textButton} onClick={onRemove}>Remove it</button>;
+  switch (suggestion?.status) {
+    case undefined: return <p>You added this on this device. Only you can see it, and CareerForge has not checked it. {remove}</p>;
+    case "private": return <p>Only you can see this. <button type="button" className={styles.textButton} onClick={() => onSuggest(true)}>Suggest it to everyone</button> or {remove}. Suggestions are checked before anyone else sees them, and your name is never shown.</p>;
+    case "pending": return <p>Waiting for review. Only you can see it until it is approved. <button type="button" className={styles.textButton} onClick={() => onSuggest(false)}>Withdraw</button> or {remove}.</p>;
+    case "approved": return <p>Approved. Other learners can now see it without your name. Removing it here removes it for everyone. {remove}</p>;
+    case "rejected": return <p>Not published{suggestion.note ? `: ${suggestion.note}` : "."} You can still use it yourself. {remove}</p>;
+  }
+}
+
+export function WorkshopDetails({ workshop, now, saved, roadmapTitles, suggestion, onSuggest, onToggle, onRemove, onClose, notify }: {
   workshop: Workshop; now: number; saved: boolean; roadmapTitles: Record<string, string>;
+  /** Review state of a workshop this learner added; undefined when it is kept on the device. */
+  suggestion: { status: SuggestionStatus; note: string | null } | undefined; onSuggest: (suggested: boolean) => void;
   onToggle: () => void; onRemove: () => void; onClose: () => void; notify: Notify;
 }) {
   const state = lifecycleOf(workshop, now);
@@ -56,7 +70,7 @@ export function WorkshopDetails({ workshop, now, saved, roadmapTitles, onToggle,
     <dl className={styles.facts}>
       {(state === "upcoming" || state === "live") && <div className={styles.factWide}><dt>When</dt><dd><LocalTime iso={workshop.startDateTime!} /></dd></div>}
       <div><dt>Level</dt><dd><Difficulty workshop={workshop} /></dd></div>
-      <div><dt>Length</dt><dd>{durationLabel(workshop)}{workshop.durationEstimated && <small>our estimate</small>}</dd></div>
+      <div><dt>Length</dt><dd>{durationLabel(workshop)}{workshop.durationNote ? <small>{workshop.durationNote}</small> : workshop.durationEstimated && <small>our estimate</small>}</dd></div>
       <div><dt>Format</dt><dd>{state === "replay" ? "Self-Paced / Recorded" : workshop.format}</dd></div>
       <div><dt>Cost</dt><dd>{workshop.priceType}</dd></div>
       <div className={styles.factWide}><dt>Host</dt><dd>{workshop.instructorOrHost}{workshop.platform !== workshop.instructorOrHost && <small>on {workshop.platform}</small>}</dd></div>
@@ -70,8 +84,10 @@ export function WorkshopDetails({ workshop, now, saved, roadmapTitles, onToggle,
 
     <footer className={styles.detailFoot}>
       {workshop.accessNotes && <p>{workshop.accessNotes}</p>}
-      {isPrivate
-        ? <p>You added this on this device. Only you can see it, and CareerForge has not checked it. <button type="button" className={styles.textButton} onClick={onRemove}>Remove it</button></p>
+      {isPrivate || suggestion
+        ? <OwnStatus suggestion={suggestion} onSuggest={onSuggest} onRemove={onRemove} />
+        : workshop.sourceType === "community"
+          ? <p>Suggested by a learner and reviewed {workshop.lastVerifiedAt}. CareerForge is not affiliated with the host.</p>
         : workshop.sourceType === "feed"
           ? <p>From the organiser’s public calendar, read {workshop.lastVerifiedAt}. Details can change, so confirm on the event page.</p>
           : <p>Checked on the publisher’s page {workshop.lastVerifiedAt}. CareerForge is not affiliated with the host.</p>}

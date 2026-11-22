@@ -15,7 +15,7 @@ export default async function WorkshopsPage({ searchParams }: { searchParams: Pr
   const ids = new Set(data.catalog.workshops.flatMap(workshop => workshop.relatedRoadmaps ?? []));
   const roadmapTitles = Object.fromEntries([...ids].flatMap(id => { const roadmap = getRoadmap(id); return roadmap ? [[id, roadmap.title]] : []; }));
   return <AppShell pageTitle="Workshops" privateAccount displayName={data.displayName || "Your workspace"}>
-    <WorkshopsExperience initialCatalog={data.catalog} initialBookmarks={data.bookmarks} deviceScope={data.deviceScope}
+    <WorkshopsExperience initialCatalog={data.catalog} initialBookmarks={data.bookmarks} initialOwn={data.own} deviceScope={data.deviceScope}
       initialNow={data.now} initialTopic={typeof topic === "string" ? topic : null} roadmapTitles={roadmapTitles} />
   </AppShell>;
 }

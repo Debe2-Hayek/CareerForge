@@ -39,13 +39,41 @@ export const curatedWorkshops: Workshop[] = [
     accessNotes: "Free registration with an email address.", relatedRoadmaps: ["data-analyst", "power-bi"]
   },
 
+  {
+    ...reactor, id: "reactor-27815", sourceId: "reactor:27815", title: "Strengthening Your Cloud Applications: Layer 7 Security Essentials",
+    outcomeHook: "Learn how web application firewalls stop real attacks.",
+    description: "Key ideas and practical steps for protecting web traffic: why application-layer security matters, how Azure's web application firewall and DDoS protection work, and how to deploy them well.",
+    instructorOrHost: "Microsoft Reactor", category: "Cybersecurity", difficulty: "Intermediate", startDateTime: "2026-12-08T02:00:00Z", durationMinutes: 60,
+    prerequisites: ["How HTTP works"], keyTakeaways: ["Why layer 7 security matters", "Web application firewalls", "Protection against denial of service"],
+    registrationOrWatchUrl: "https://developer.microsoft.com/en-us/reactor/events/27815/", sourceUrl: "https://developer.microsoft.com/en-us/reactor/events/27815/",
+    accessNotes: "Free registration with an email address.", relatedRoadmaps: ["cyber-security", "devsecops", "cloud-engineer"]
+  },
+  {
+    ...reactor, id: "reactor-27794", sourceId: "reactor:27794", title: "VS Code Live: Release Recap",
+    outcomeHook: "See the newest editor features you can use the same day.",
+    description: "A monthly live tour of the latest Visual Studio Code features with members of the team, useful from your first project onwards.",
+    instructorOrHost: "Microsoft Reactor", category: "Web Dev", difficulty: "Beginner", startDateTime: "2026-12-10T16:00:00Z", durationMinutes: 60,
+    prerequisites: [], keyTakeaways: ["New VS Code features", "Faster everyday editing", "Working with the team's tips"],
+    registrationOrWatchUrl: "https://developer.microsoft.com/en-us/reactor/events/27794/", sourceUrl: "https://developer.microsoft.com/en-us/reactor/events/27794/",
+    accessNotes: "Free registration with an email address.", relatedRoadmaps: ["frontend", "ai-coding"]
+  },
+  {
+    ...reactor, id: "reactor-27814", sourceId: "reactor:27814", title: "Bicep 101: Learning the Fundamentals of Microsoft's Infrastructure as Code Language",
+    outcomeHook: "Write and deploy your first infrastructure as code file.",
+    description: "An introduction for people new to infrastructure as code. The demo writes a Bicep file in VS Code, deploys it, reuses verified modules and previews each change before making it.",
+    instructorOrHost: "Microsoft Reactor", category: "Cloud & DevOps", difficulty: "Beginner", startDateTime: "2027-01-13T18:00:00Z", durationMinutes: 60,
+    prerequisites: [], keyTakeaways: ["What infrastructure as code solves", "A first Bicep file", "Previewing and deploying changes"],
+    registrationOrWatchUrl: "https://developer.microsoft.com/en-us/reactor/events/27814/", sourceUrl: "https://developer.microsoft.com/en-us/reactor/events/27814/",
+    accessNotes: "Free registration with an email address.", relatedRoadmaps: ["terraform", "devops", "cloud-engineer"]
+  },
+
   // ---- AI & ML ----
   {
     ...selfPaced, id: "google-ml-crash-course", title: "Machine Learning Crash Course", outcomeHook: "Train your first models and learn to judge whether they work.",
     description: "Google's fast introduction to machine learning with short videos, interactive visualisations and hands-on notebooks, from linear regression to neural networks and fairness.",
-    instructorOrHost: "Google", platform: "Google for Developers", category: "AI & ML", difficulty: "Beginner", priceType: "Free", durationMinutes: 900, durationEstimated: true,
+    instructorOrHost: "Google", platform: "Google for Developers", category: "AI & ML", difficulty: "Beginner", priceType: "Free", durationMinutes: 810,
     prerequisites: ["Basic Python", "School algebra"], keyTakeaways: ["How models learn from data", "Training and evaluating models", "Spotting overfitting and unfair results"],
-    registrationOrWatchUrl: "https://developers.google.com/machine-learning/crash-course", badge: "Staff Pick", priority: 2, relatedRoadmaps: ["machine-learning", "data-scientist", "ai-engineer"]
+    registrationOrWatchUrl: "https://developers.google.com/machine-learning/crash-course", accessNotes: "Length is the total of the module times Google lists.", badge: "Staff Pick", priority: 2, relatedRoadmaps: ["machine-learning", "data-scientist", "ai-engineer"]
   },
   {
     ...selfPaced, id: "dlai-prompt-engineering", title: "ChatGPT Prompt Engineering for Developers", outcomeHook: "Build a small app that gets dependable answers from a model.",
@@ -87,7 +115,7 @@ export const curatedWorkshops: Workshop[] = [
   {
     ...selfPaced, id: "cs50-web", title: "CS50's Web Programming with Python and JavaScript", outcomeHook: "Design and ship complete web apps with Django.",
     description: "Harvard's follow-on course to CS50: nine weeks of lectures and projects covering Git, Django, databases, JavaScript, testing, deployment and security.",
-    instructorOrHost: "Harvard University", platform: "CS50 OpenCourseWare", category: "Web Dev", difficulty: "Intermediate", priceType: "Free", durationMinutes: 4320, durationEstimated: true,
+    instructorOrHost: "Harvard University", platform: "CS50 OpenCourseWare", category: "Web Dev", difficulty: "Intermediate", priceType: "Free", durationMinutes: 5400, durationNote: "Harvard: 12 weeks, 6–9 hours a week",
     prerequisites: ["CS50x or some programming experience"], keyTakeaways: ["Server-side apps with Django", "Interactive front ends", "Testing and deployment"],
     registrationOrWatchUrl: "https://cs50.harvard.edu/web/", accessNotes: "Free on Harvard's site. A verified certificate through edX is paid and optional.", priority: 13, relatedRoadmaps: ["full-stack", "django", "backend"]
   },
@@ -95,8 +123,8 @@ export const curatedWorkshops: Workshop[] = [
   // ---- Python ----
   {
     ...selfPaced, id: "cs50p", title: "CS50's Introduction to Programming with Python", outcomeHook: "Write, test and share your own Python programs.",
-    description: "Harvard's ten-week introduction to Python for people with or without experience. Every week has a lecture, short videos and problems you solve yourself.",
-    instructorOrHost: "Harvard University", platform: "CS50 OpenCourseWare", category: "Python", difficulty: "Beginner", priceType: "Free", durationMinutes: 3600, durationEstimated: true,
+    description: "Harvard's introduction to Python for people with or without experience. Every week has a lecture, short videos and problems you solve yourself.",
+    instructorOrHost: "Harvard University", platform: "CS50 OpenCourseWare", category: "Python", difficulty: "Beginner", priceType: "Free", durationMinutes: 3240, durationNote: "Harvard: 9 weeks, 3–9 hours a week",
     prerequisites: [], keyTakeaways: ["Functions, loops and exceptions", "Libraries, files and unit tests", "A final project of your own"],
     registrationOrWatchUrl: "https://cs50.harvard.edu/python/", accessNotes: "Free on Harvard's site. A verified certificate through edX is paid and optional.", badge: "Staff Pick", priority: 1, relatedRoadmaps: ["python", "data-analyst", "backend"]
   },
@@ -133,7 +161,7 @@ export const curatedWorkshops: Workshop[] = [
   {
     ...selfPaced, id: "cs50-cybersecurity", title: "CS50's Introduction to Cybersecurity", outcomeHook: "Protect your accounts, data and code with confidence.",
     description: "Harvard's five-week course for technical and non-technical people: securing accounts, data, systems and software, and preserving privacy.",
-    instructorOrHost: "Harvard University", platform: "CS50 OpenCourseWare", category: "Cybersecurity", difficulty: "Beginner", priceType: "Free", durationMinutes: 1200, durationEstimated: true,
+    instructorOrHost: "Harvard University", platform: "CS50 OpenCourseWare", category: "Cybersecurity", difficulty: "Beginner", priceType: "Free", durationMinutes: 1200, durationNote: "Harvard: 5 weeks, 2–6 hours a week",
     prerequisites: [], keyTakeaways: ["How accounts and data are attacked", "Practical protections", "Thinking about trade-offs"],
     registrationOrWatchUrl: "https://cs50.harvard.edu/cybersecurity/", accessNotes: "Free on Harvard's site. A verified certificate through edX is paid and optional.", priority: 15, relatedRoadmaps: ["cyber-security", "it-support"]
   },
@@ -186,7 +214,7 @@ export const curatedWorkshops: Workshop[] = [
   {
     ...selfPaced, id: "cs50x-edx", title: "CS50's Introduction to Computer Science", outcomeHook: "Think like a computer scientist and build a final project.",
     description: "HarvardX's well-known introduction on edX: C, algorithms, memory, data structures, Python, SQL and the web, finishing with your own project.",
-    instructorOrHost: "Harvard University", platform: "edX", category: "Systems & Algorithms", difficulty: "Beginner", priceType: "Free Audit", durationMinutes: 6000, durationEstimated: true,
+    instructorOrHost: "Harvard University", platform: "edX", category: "Systems & Algorithms", difficulty: "Beginner", priceType: "Free Audit", durationMinutes: 8640, durationNote: "edX: 12 weeks, 6–18 hours a week",
     prerequisites: [], keyTakeaways: ["Algorithms and data structures", "Memory and how computers work", "A complete final project"],
     registrationOrWatchUrl: "https://www.edx.org/learn/computer-science/harvard-university-cs50-s-introduction-to-computer-science",
     accessNotes: "Auditing on edX is free; the verified certificate is paid. The same course is also free at cs50.harvard.edu/x.", priority: 19, relatedRoadmaps: ["computer-science", "c"]

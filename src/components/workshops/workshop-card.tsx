@@ -12,7 +12,7 @@ export const areaOf: Record<WorkshopCategory, RoadmapArea> = {
   "AI & ML": "ai", "Web Dev": "web", Python: "programming", Cybersecurity: "security", "Cloud & DevOps": "cloud", "Systems & Algorithms": "cs"
 };
 
-export const durationLabel = (workshop: Workshop) => `${workshop.durationEstimated ? "≈ " : ""}${formatDuration(workshop.durationMinutes)}`;
+export const durationLabel = (workshop: Workshop) => `${workshop.durationEstimated || workshop.durationNote ? "≈ " : ""}${formatDuration(workshop.durationMinutes)}`;
 
 export function FormatLabel({ workshop, now }: { workshop: Workshop; now: number }) {
   switch (lifecycleOf(workshop, now)) {
@@ -55,6 +55,7 @@ export function WorkshopCard({ workshop, now, saved, onOpen, onToggle }: { works
         <span>{durationLabel(workshop)}</span>
         <span>{workshop.priceType}</span>
         {workshop.submissionStatus === "private" && <span>Added by you</span>}
+        {workshop.sourceType === "community" && <span>Suggested by a learner</span>}
       </span>
       <ActionLink workshop={workshop} now={now} />
     </div>

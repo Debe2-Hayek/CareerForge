@@ -12,6 +12,8 @@ export type IcalSource = {
   organizer: string;
   platform: string;
   linkHosts: readonly string[];
+  /** Venue text that still means online, besides an empty venue or a link to the event itself. */
+  onlineVenue?: RegExp;
   defaultCategory: WorkshopCategory;
   /** Editorial estimate for the series, stated as such in the access note. */
   difficulty: WorkshopDifficulty;
@@ -47,6 +49,13 @@ function eventLink(event: IcalEvent, hosts: readonly string[]): string | null {
   return null;
 }
 
+/** Calendars mix online sessions with meetups; a street address is never "Live Online". */
+function isOnline(event: IcalEvent, config: IcalSource): boolean {
+  const venue = event.location.trim();
+  if (/\b(in[- ]person|on[- ]?site|happy hour|dinner|after ?party|breakfast)\b/i.test(event.summary)) return false;
+  return venue === "" || eventLink({ ...event, url: venue, description: "", location: "" }, config.linkHosts) !== null || Boolean(config.onlineVenue?.test(venue));
+}
+
 const idPart = (value: string) => value.replace(/@.*$/, "").replace(/[^A-Za-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
 
 export function workshopsFromIcal(source: string, config: IcalSource, now: number): { workshops: Workshop[]; rejected: number } {
@@ -56,6 +65,7 @@ export function workshopsFromIcal(source: string, config: IcalSource, now: numbe
   for (const event of events) {
     // Calendars keep years of history; finished events without a recording are not workshops to offer.
     if (event.end <= now) continue;
+    if (!isOnline(event, config)) { rejected++; continue; }
     const url = eventLink(event, config.linkHosts);
     const title = plain(event.summary, 140);
     const hosts = /Hosted by ([^\n]{2,100})/i.exec(event.description)?.[1];
@@ -97,7 +107,7 @@ export function workshopsFromJson(payload: unknown, now: number): { workshops: W
   if (!parsed.success) throw new Error("Feed is not a workshop list");
   const records = Array.isArray(parsed.data) ? parsed.data : parsed.data.workshops;
   const result = parseWorkshops(records.map(record => typeof record === "object" && record !== null
-    ? { ...record, sourceType: "feed", isFeatured: undefined, badge: undefined, priority: undefined, submissionStatus: undefined, lastVerifiedAt: new Date(now).toISOString().slice(0, 10) }
+    ? { ...record, sourceType: "feed", isFeatured: undefined, badge: undefined, priority: undefined, durationNote: undefined, submissionStatus: undefined, lastVerifiedAt: new Date(now).toISOString().slice(0, 10) }
     : record));
   // Remote ids live in their own space so they cannot replace a curated resource.
   return { ...result, workshops: result.workshops.map(workshop => ({ ...workshop, id: workshop.id.startsWith("feed-") ? workshop.id : `feed-${workshop.id}`.slice(0, 80) })) };

@@ -6,13 +6,14 @@ search, one Filters button, cards and a detail panel.
 
 ## Content
 
-- **Curated** (`src/data/workshops/curated.ts`): 20 self-paced resources and 3
-  Microsoft Reactor live sessions. Every page was opened on `lastVerifiedAt`.
-  Hooks and descriptions are original. `durationEstimated` marks a length the
-  publisher does not state (shown as "≈" and "our estimate").
+- **Curated** (`src/data/workshops/curated.ts`): 20 self-paced resources and 6
+  Microsoft Reactor live sessions (AI, web, security and cloud). Every page was opened on `lastVerifiedAt`.
+  Hooks and descriptions are original. `durationNote` quotes a range the
+  publisher states; `durationEstimated` marks a length nobody states ("our estimate").
 - **Live feed**: DataTalks.Club's public Luma calendar (iCalendar, UTC times).
-- **Private submissions**: stored in the learner's browser, shown only to them,
-  labelled "Added by you", never verified and never featured.
+- **Learner workshops**: kept in the account, shown only to their owner and labelled
+  "Added by you" until the owner suggests one and an operator approves it. Then
+  everyone sees it as "Suggested by a learner", without the suggester's name.
 
 Badges: only *Staff Pick* is used (editorial: official, free, practical).
 Popularity, seats and ratings are never shown because no source supports them.
@@ -25,6 +26,11 @@ Popularity, seats and ratings are never shown because no source supports them.
 | TeSS (ELIXIR) events API | `robots.txt` disallows AI agents |
 | ACCESS events API | Eastern times are labelled as UTC |
 | Meetup iCalendar | Terms restrict automated extraction; the adapter can read it, but it is off |
+| WiCyS calendar | Terms forbid automated collection; times unclear |
+| python.org calendars | Served by calendar.google.com, whose `robots.txt` disallows them |
+| Cloud Native Now webinars | Cost could not be confirmed |
+| Security Boulevard, DevOps.com | Calendar requests are refused (403) |
+| Company Luma calendars (Pulumi, Convex, MotherDuck and others) | Mix venues and online events without saying which |
 | Reactor listing pages | No public feed; verified events are curated by hand |
 
 ## Architecture
@@ -39,7 +45,8 @@ Popularity, seats and ratings are never shown because no source supports them.
 | Calendar export, submissions | `src/lib/workshops/{calendar,submission}.ts` |
 | API handlers, page data | `src/lib/workshops/{handlers,server}.ts` |
 | Interface | `src/components/workshops/*` |
-| Storage | `supabase/migrations/202611230001_workshop_bookmarks.sql` |
+| Learner workshops and review | `src/lib/workshops/suggestions.ts`, `scripts/review-workshops.mjs` |
+| Storage | `supabase/migrations/202611230001_workshop_bookmarks.sql`, `202611230002_workshop_suggestions.sql` |
 
 **Service**: sources load in parallel with a 6-second timeout, 1.5 MB limit, no
 redirects and a host allow-list; each record is validated on its own; results
@@ -71,13 +78,35 @@ JSON contract: an array, or `{ "workshops": [...] }`, of records in the Workshop
 model. Feed records cannot claim featured status, badges or curated ids. RSS is
 not supported: its dates are publication dates, not event times. iCalendar
 entries that are all-day, recurring, cancelled, without a time zone or with an
-unknown one are rejected.
+unknown one are rejected, and so is anything with a street address or an
+in-person title: it is never offered as "Live Online".
 
 ## API
 
 - `GET /api/v1/workshops` → `{ workshops, sources, generatedAt }` (signed in).
 - `PUT /api/v1/workshops/bookmarks` `{ workshopId, saved }` (signed in, same
   origin, 60 a minute).
+
+- `PUT /api/v1/workshops/suggestions` `{ action: add | suggest | withdraw | remove }`.
+
+## Reviewing suggestions
+
+```text
+npm run review:workshops -- list
+npm run review:workshops -- approve <id#fingerprint>
+npm run review:workshops -- reject <id#fingerprint> "Reason shown to the learner"
+```
+
+The fingerprint identifies the exact text reviewed. Learners cannot approve, edit
+a submitted record or see anyone else's; the database enforces this. Removing an
+approved workshop, or deleting the account, removes it for everyone. The tool uses
+the administrative connection and shows no account details.
+
+## Staying current
+
+`npm run check:workshops` (weekly in GitHub Actions, read-only) fails when a link is
+gone or a live session's page no longer shows its title, date and time, and warns
+when sessions have ended or few remain. Expired sessions hide themselves meanwhile.
 
 ## Bookmarks and retention
 
@@ -97,7 +126,7 @@ series' roadmaps only.
 
 ## Verification (22 November 2026)
 
-- 19 unit tests: schema, lifecycle boundaries, countdowns, spotlight order,
+- 22 unit tests: schema, lifecycle boundaries, countdowns, spotlight order,
   filters, sorting, deduplication, time zones, hostile feed content, service
   fallback and caching, calendar round trip, submissions, storage damage, API.
 - `npm run db:validate:workshops` passed on development (always rolled back).
@@ -108,10 +137,11 @@ series' roadmaps only.
 
 ## Limitations
 
-- Live events today come from one calendar plus three curated sessions, mostly
-  AI and data. Other topics have self-paced workshops only.
+- Python and Systems & Algorithms have no live session today, only self-paced
+  workshops. No source with clear permission and reliable times was found for them.
 - The feed gives title, time, host and link. Its level is a series estimate and
   has no prerequisites or outcomes.
-- Curated live sessions are entered by hand and disappear when they end.
-- Submissions are private to a browser; there is no review or publishing flow.
+- New curated live sessions are still added by hand; the weekly check says when.
+- Review is a command-line tool; there is no admin page.
+- 12 self-paced lengths are estimates because no publisher states one.
 - The app has one (dark) theme.

@@ -17,11 +17,12 @@ function Field({ id, label, error, hint, children }: { id: keyof SubmissionInput
 }
 
 /** Two short steps. The result is private to this device and never shown as verified. */
-export function SubmitWorkshop({ existing, onSave, onClose }: { existing: readonly Workshop[]; onSave: (workshop: Workshop) => boolean; onClose: () => void }) {
+export function SubmitWorkshop({ existing, inAccount, onSave, onClose }: { existing: readonly Workshop[]; inAccount: boolean; onSave: (workshop: Workshop, input: SubmissionInput) => Promise<SubmissionErrors | null>; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [input, setInput] = useState(blank);
   const [errors, setErrors] = useState<SubmissionErrors>({});
   const [step, setStep] = useState<1 | 2>(1);
+  const [saving, setSaving] = useState(false);
   const live = input.format === "Live Online";
 
   useEffect(() => { const element = dialog.current; if (element && !element.open) element.showModal(); }, []);
@@ -59,8 +60,12 @@ export function SubmitWorkshop({ existing, onSave, onClose }: { existing: readon
       showErrors(result.errors);
       return;
     }
-    if (onSave(result.workshop)) dialog.current?.close();
-    else setErrors({ url: "This browser is not allowing CareerForge to save. Check its storage settings." });
+    setSaving(true);
+    const refused = await onSave(result.workshop, input);
+    setSaving(false);
+    if (!refused) { dialog.current?.close(); return; }
+    setStep(1);
+    showErrors(refused);
   }
 
   return <dialog ref={dialog} className={styles.modal} aria-labelledby="submit-heading" onClose={onClose} onClick={event => { if (event.target === dialog.current) dialog.current?.close(); }}>
@@ -69,7 +74,7 @@ export function SubmitWorkshop({ existing, onSave, onClose }: { existing: readon
         <h2 id="submit-heading">Add a workshop</h2>
         <button type="button" className={styles.iconButton} aria-label="Close" onClick={() => dialog.current?.close()}><AppIcon name="close" /></button>
       </div>
-      <p className={styles.modalNote}>Saved on this device and visible only to you. CareerForge does not publish or check it.</p>
+      <p className={styles.modalNote}>{inAccount ? "Saved to your account and visible only to you. You can suggest it to everyone afterwards." : "Saved on this device and visible only to you. CareerForge does not publish or check it."}</p>
 
       {step === 1 ? <>
         <Field id="url" label="Workshop link" error={errors.url}><input {...bind("url")} type="url" inputMode="url" placeholder="https://" maxLength={500} autoComplete="off" /></Field>
@@ -90,7 +95,7 @@ export function SubmitWorkshop({ existing, onSave, onClose }: { existing: readon
 
       <div className={styles.modalFoot}>
         {step === 2 ? <button type="button" className={styles.textButton} onClick={() => setStep(1)}>Back</button> : <span />}
-        <button type="submit" className={`button primary ${styles.primary}`}>{step === 1 ? "Continue" : "Add workshop"}</button>
+        <button type="submit" disabled={saving} className={`button primary ${styles.primary}`}>{step === 1 ? "Continue" : "Add workshop"}</button>
       </div>
     </form>
   </dialog>;

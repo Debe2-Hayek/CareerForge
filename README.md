@@ -37,8 +37,8 @@ Checks use server-enforced 10-minute attempts, with a 100-minute extended-time
 option. Reload resumes the deadline; answer drafts are page-memory only.
 See [timed assessment behavior](docs/TIMED_SKILL_CHECKS.md).
 Workshops (`/workshops`) lists verified live sessions and hand-checked self-paced
-practice; see [workshops](docs/WORKSHOPS.md). Account bookmarks need migration
-`202611230001_workshop_bookmarks.sql`.
+practice; see [workshops](docs/WORKSHOPS.md). Account storage needs migrations
+`202611230001_workshop_bookmarks.sql` and `202611230002_workshop_suggestions.sql`.
 Learning roadmap offers 90 simple, free roadmaps (34 roles, 56 skills): open one,
 follow the boxes, tick topics as you learn. It includes project briefs, a library
 of openly licensed free courses and tutorials, and owner-only progress across

@@ -5,6 +5,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { AppIcon } from "@/components/app-icons";
 import { activeFilterCount, availableSavedCount, defaultFilters, discover, mergeWorkshops, spotlight, type DiscoveryFilters, type RailSelection } from "@/lib/workshops/discovery";
 import { isAvailable } from "@/lib/workshops/lifecycle";
+import type { OwnSuggestion, SuggestionInput } from "@/lib/workshops/suggestions";
 import type { WorkshopCatalog } from "@/lib/workshops/types";
 import { FilterPopover } from "./filter-popover";
 import { useBookmarks, useMounted, useNow, type Notify } from "./hooks";
@@ -18,13 +19,24 @@ const staleAfter = 30 * 60_000;
 /** A short first page; the rest is one button away. */
 const firstPage = 12;
 
+type Reply = { ok: true; body: unknown } | { ok: false; message: string; fields?: Record<string, string> };
+
+async function changeSuggestion(change: SuggestionInput): Promise<Reply> {
+  try {
+    const response = await fetch("/api/v1/workshops/suggestions", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(change) });
+    const body = await response.json().catch(() => null);
+    if (response.ok) return { ok: true, body };
+    return { ok: false, message: typeof body?.error?.message === "string" ? body.error.message : "Your change could not be saved. Please retry.", fields: body?.error?.fields };
+  } catch { return { ok: false, message: "You appear to be offline. Nothing was saved." }; }
+}
+
 function minutesAgo(iso: string, now: number) {
   const minutes = Math.max(0, Math.round((now - Date.parse(iso)) / 60_000));
   return minutes < 1 ? "just now" : minutes < 60 ? `${minutes} min ago` : `${Math.round(minutes / 60)} h ago`;
 }
 
-export function WorkshopsExperience({ initialCatalog, initialBookmarks, deviceScope, initialNow, initialTopic, roadmapTitles }: {
-  initialCatalog: WorkshopCatalog; initialBookmarks: string[] | null; deviceScope: string; initialNow: number; initialTopic: string | null; roadmapTitles: Record<string, string>;
+export function WorkshopsExperience({ initialCatalog, initialBookmarks, initialOwn, deviceScope, initialNow, initialTopic, roadmapTitles }: {
+  initialCatalog: WorkshopCatalog; initialBookmarks: string[] | null; initialOwn: OwnSuggestion[] | null; deviceScope: string; initialNow: number; initialTopic: string | null; roadmapTitles: Record<string, string>;
 }) {
   const searchParams = useSearchParams();
   const openId = searchParams.get("workshop");
@@ -40,7 +52,9 @@ export function WorkshopsExperience({ initialCatalog, initialBookmarks, deviceSc
 
   const notify = useCallback<Notify>((text, tone = "info") => setToast({ text, tone }), []);
   const { saved, toggle, usesAccount, device } = useBookmarks(initialBookmarks, deviceScope, notify);
-  const workshops = useMemo(() => mergeWorkshops(catalog.workshops, device.data.submissions), [catalog.workshops, device.data.submissions]);
+  const [own, setOwn] = useState(initialOwn);
+  // Once approved, the shared copy replaces the learner's own card.
+  const workshops = useMemo(() => mergeWorkshops(catalog.workshops, (own ?? []).map(item => item.workshop), device.data.submissions), [catalog.workshops, own, device.data.submissions]);
   const now = useNow(workshops, initialNow);
 
   useEffect(() => {
@@ -69,6 +83,9 @@ export function WorkshopsExperience({ initialCatalog, initialBookmarks, deviceSc
   const featured = useMemo(() => spotlight(workshops, now), [workshops, now]);
   const savedCount = useMemo(() => availableSavedCount(workshops, saved, now), [workshops, saved, now]);
   const opened = openId ? workshops.find(workshop => workshop.id === openId && isAvailable(workshop, now)) ?? null : null;
+  // An approved workshop carries a public id; its owner still manages the original.
+  const ownId = opened?.id.replace(/^community-/, "local-") ?? "";
+  const ownOpened = own?.find(item => item.workshop.id === ownId);
   // Private workshops exist only after the browser's storage has been read.
   const missing = Boolean(openId && !opened && mounted);
 
@@ -149,15 +166,37 @@ export function WorkshopsExperience({ initialCatalog, initialBookmarks, deviceSc
 
     {opened && <WorkshopDetails workshop={opened} now={now} saved={saved.has(opened.id)} roadmapTitles={roadmapTitles} notify={notify}
       onToggle={() => void toggle(opened.id, opened.title)} onClose={close}
-      onRemove={() => {
+      suggestion={ownOpened}
+      onSuggest={async suggested => {
+        const reply = await changeSuggestion({ action: suggested ? "suggest" : "withdraw", workshopId: ownId });
+        if (!reply.ok) { notify(reply.message, "error"); return; }
+        setOwn(current => current?.map(item => item.workshop.id === ownId ? { ...item, status: suggested ? "pending" : "private" } : item) ?? null);
+        notify(suggested ? "Sent for review." : "Suggestion withdrawn.");
+      }}
+      onRemove={async () => {
+        if (ownOpened) {
+          const reply = await changeSuggestion({ action: "remove", workshopId: ownId });
+          if (!reply.ok) { notify(reply.message, "error"); return; }
+          setOwn(current => current?.filter(item => item.workshop.id !== ownId) ?? null);
+          setCatalog(current => ({ ...current, workshops: current.workshops.filter(item => item.id !== opened.id) }));
+        }
         device.update(current => ({ bookmarks: current.bookmarks.filter(id => id !== opened.id), submissions: current.submissions.filter(item => item.id !== opened.id) }));
         notify("Workshop removed.");
         close();
       }} />}
-    {submitting && <SubmitWorkshop existing={workshops} onClose={() => setSubmitting(false)} onSave={workshop => {
+    {submitting && <SubmitWorkshop existing={workshops} inAccount={own !== null} onClose={() => setSubmitting(false)} onSave={async (workshop, input) => {
+      if (own !== null) {
+        // The server repeats every check; it needs the moment, not this device's wall clock.
+        const reply = await changeSuggestion({ action: "add", input: { ...input, startLocal: workshop.startDateTime ?? "" } });
+        if (!reply.ok) return reply.fields ?? { url: reply.message };
+        setOwn(current => [...(current ?? []), { workshop, status: "private", note: null }]);
+        notify("Added. Only you can see it.");
+        return null;
+      }
       const stored = device.update(current => ({ ...current, submissions: [...current.submissions.filter(item => item.id !== workshop.id), workshop].slice(-100) }));
-      if (stored) notify("Added. Only you can see it.");
-      return stored;
+      if (!stored) return { url: "This browser is not allowing CareerForge to save. Check its storage settings." };
+      notify("Added. Only you can see it.");
+      return null;
     }} />}
     <p className={styles.toast} role="status" aria-live="polite" data-tone={toast?.tone} data-visible={toast ? true : undefined}>{toast?.text ?? ""}</p>
   </div>;

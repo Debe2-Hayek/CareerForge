@@ -8,27 +8,28 @@ import { useMounted } from "./hooks";
 import { areaOf } from "./workshop-card";
 import styles from "./workshops.module.css";
 
-export const railItems: readonly { id: RailSelection; slug: string; label: string; icon: IconName }[] = [
-  { id: "all", slug: "all", label: "All Workshops", icon: "grid" },
-  { id: "AI & ML", slug: "ai", label: "AI & ML", icon: "brain" },
-  { id: "Web Dev", slug: "web", label: "Web Development", icon: "code" },
-  { id: "Python", slug: "python", label: "Python", icon: "python" },
-  { id: "Cybersecurity", slug: "security", label: "Cybersecurity", icon: "shield" },
-  { id: "Cloud & DevOps", slug: "cloud", label: "Cloud & DevOps", icon: "cloud" },
-  { id: "Systems & Algorithms", slug: "systems", label: "Systems & Algorithms", icon: "cpu" },
-  { id: "saved", slug: "saved", label: "My Saved", icon: "bookmark" }
+export const railItems: readonly { id: RailSelection; slug: string; label: string; name: string; icon: IconName }[] = [
+  { id: "all", slug: "all", label: "All Workshops", name: "All", icon: "grid" },
+  { id: "AI & ML", slug: "ai", label: "AI & ML", name: "AI & ML", icon: "brain" },
+  { id: "Web Dev", slug: "web", label: "Web Development", name: "Web", icon: "code" },
+  { id: "Python", slug: "python", label: "Python", name: "Python", icon: "python" },
+  { id: "Cybersecurity", slug: "security", label: "Cybersecurity", name: "Security", icon: "shield" },
+  { id: "Cloud & DevOps", slug: "cloud", label: "Cloud & DevOps", name: "Cloud", icon: "cloud" },
+  { id: "Systems & Algorithms", slug: "systems", label: "Systems & Algorithms", name: "Systems", icon: "cpu" },
+  { id: "saved", slug: "saved", label: "My Saved", name: "Saved", icon: "bookmark" }
 ];
 
-/** Icon-only topic rail: vertical on the right of the content, a scrollable strip on phones. */
+/** The topics above the ring: icons with names, or a scrollable strip of icons where there is no room for the names. */
 export function WorkshopRail({ selected, savedCount, onSelect }: { selected: RailSelection; savedCount: number; onSelect: (id: RailSelection) => void }) {
-  const [tip, setTip] = useState<{ label: string; x: number; y: number; below: boolean } | null>(null);
+  const [tip, setTip] = useState<{ label: string; x: number; y: number } | null>(null);
   const list = useRef<HTMLUListElement>(null);
   const mounted = useMounted();
 
   function show(element: HTMLElement, label: string) {
+    // The name is already on screen.
+    if (element.querySelector<HTMLElement>("[data-name]")?.offsetWidth) return;
     const box = element.getBoundingClientRect();
-    const strip = list.current ? getComputedStyle(list.current).flexDirection === "row" : false;
-    setTip(strip ? { label, x: box.left + box.width / 2, y: box.bottom + 8, below: true } : { label, x: box.left - 10, y: box.top + box.height / 2, below: false });
+    setTip({ label, x: box.left + box.width / 2, y: box.bottom + 8 });
   }
   function onKeyDown(event: KeyboardEvent<HTMLUListElement>) {
     const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];
@@ -50,11 +51,12 @@ export function WorkshopRail({ selected, savedCount, onSelect }: { selected: Rai
             onPointerEnter={event => { if (event.pointerType === "mouse") show(event.currentTarget, item.label); }} onPointerLeave={() => setTip(null)}
             onFocus={event => { if (event.currentTarget.matches(":focus-visible")) show(event.currentTarget, item.label); }} onBlur={() => setTip(null)}>
             <AppIcon name={item.icon} />
+            <span className={styles.railName} data-name>{item.name}</span>
             {item.id === "saved" && savedCount > 0 && <span className={styles.railCount} aria-hidden="true">{savedCount > 99 ? "99+" : savedCount}</span>}
           </button>
         </li>;
       })}
     </ul>
-    {mounted && tip && createPortal(<div className={styles.tip} data-below={tip.below || undefined} style={{ left: tip.x, top: tip.y }} aria-hidden="true">{tip.label}</div>, document.body)}
+    {mounted && tip && createPortal(<div className={styles.tip} style={{ left: tip.x, top: tip.y }} aria-hidden="true">{tip.label}</div>, document.body)}
   </nav>;
 }

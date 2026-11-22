@@ -61,11 +61,14 @@ body:has(dialog:modal) .ambient, body:has(dialog:modal) .ambient * { animation-p
 .theme-toggle svg { transition: transform .5s var(--ease); }
 .theme-toggle:hover svg { transform: rotate(40deg); }
 @media (pointer: coarse) { .theme-toggle { width: 44px; height: 44px; } }
-/* The background is drawn with light strokes; on paper they become soft ink. */
-:root[data-theme="light"] .ambient-canvas { filter: brightness(.55) saturate(1.5); opacity: .5; }
-:root[data-theme="light"] .ambient::before { opacity: .025; }
+/* On the light theme the engine draws in black ink on white (see ambient-background.tsx). */
+:root[data-theme="light"] .ambient { background: #ffffff; }
+:root[data-theme="light"] .ambient-canvas { opacity: .9; }
+:root[data-theme="light"] .ambient::before { opacity: .02; }
 :root[data-theme="light"] .ambient::after { display: none; }
-:root[data-theme="light"] .ambient-aurora { opacity: .5; }
+:root[data-theme="light"] .ambient-aurora { background: radial-gradient(circle, #00000012 0%, transparent 66%); }
+:root[data-theme="light"] .ambient-beam { background: linear-gradient(105deg, transparent 43%, #00000008 49%, #0000000b 51%, transparent 57%); }
+:root[data-theme="light"] .ambient-grid > span { background-image: linear-gradient(#0000000d 1px, transparent 1px), linear-gradient(90deg, #0000000d 1px, transparent 1px); }
 :root[data-theme="light"] .document-workspace .supplied-builder-page .pb:not(.pb-published) { background: var(--workspace-paper); }
 
 /* 4. Landing page --------------------------------------------------------- */
@@ -80,7 +83,7 @@ body:has(dialog:modal) .ambient, body:has(dialog:modal) .ambient * { animation-p
 .lp-pill { display: inline-flex; align-items: center; gap: 12px; padding: 9px 16px; border: 1px solid #3b4a30; border-radius: 999px; background: #1a2216b3; color: #c4d6ae; font: 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
 .lp-pill .live-dot { animation: lp-ping 2.4s ease-out infinite; }
 .lp-hero h1 { font-size: clamp(42px, 6vw, 84px); font-weight: 560; line-height: 1.04; letter-spacing: -.05em; margin: 26px 0 24px; text-wrap: balance; }
-.lp-gradient { background: linear-gradient(100deg, #c5ed85, #9be3c0 30%, #c7b0ed 55%, #c5ed85 80%); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; background-position: 65% 0; }
+.lp-gradient { background: linear-gradient(100deg, light-dark(#000000, #c5ed85), light-dark(#5c5c5c, #9be3c0) 30%, light-dark(#8a8a8a, #c7b0ed) 55%, light-dark(#000000, #c5ed85) 80%); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; background-position: 65% 0; }
 .lp-hero h1 .lp-gradient { color: transparent; }
 .lp-lede { max-width: 540px; color: #bfcab4; font-size: clamp(16px, 1.5vw, 19px); line-height: 1.75; }
 .lp-actions { display: flex; flex-wrap: wrap; gap: 14px; margin: 34px 0 0; }
@@ -182,7 +185,7 @@ body:has(dialog:modal) .ambient, body:has(dialog:modal) .ambient * { animation-p
 .viz-tracker span { padding: 10px 4px; border: 1px solid #2f3b27; border-radius: 6px; color: #8fa07f; font: 10px var(--mono); text-align: center; animation: lp-stage 8s steps(1) infinite; animation-delay: calc(var(--i) * 2s); }
 .viz-learning { gap: 10px; }
 .viz-step { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border: 1px solid #2b3624; border-radius: 8px; }
-.viz-step span { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: light-dark(#e9f2de, #26321f); color: var(--green); font: 11px var(--mono); flex-shrink: 0; }
+.viz-step span { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: light-dark(#ededed, #26321f); color: var(--green); font: 11px var(--mono); flex-shrink: 0; }
 .viz-step b { font-size: 13px; font-weight: 450; color: #c5cebd; }
 .viz-portfolio { gap: 10px; }
 .viz-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid #2b3624; border-radius: 8px; }
@@ -484,7 +487,7 @@ nav[data-ready] .app-nav-item.selected::before { opacity: 0; }
 .cmdk-search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 17px; letter-spacing: -.01em; }
 .cmdk-search input::placeholder { color: #6f7d62; }
 .cmdk-list { flex: 1; min-height: 0; margin: 0; padding: 8px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #3a4830 transparent; }
-.cmdk-heading { padding: 12px 12px 6px; color: light-dark(#566847, #6f8460); font: 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+.cmdk-heading { padding: 12px 12px 6px; color: light-dark(#5c5c5c, #6f8460); font: 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
 .cmdk-option { position: relative; display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 6px 10px; border: 1px solid transparent; border-radius: 12px; color: #b5c3a6; font-size: 14px; cursor: pointer; transition: background .12s, border-color .12s, color .12s; }
 .cmdk-option[data-active="true"] { border-color: #44582f; background: linear-gradient(95deg, #2a391d, #1b2516); color: #f0fbdc; }
 .cmdk-option[data-active="true"]::before { content: ""; position: absolute; left: -9px; top: 50%; width: 3px; height: 20px; margin-top: -10px; border-radius: 0 3px 3px 0; background: var(--green); box-shadow: 0 0 12px #c5ed85aa; }

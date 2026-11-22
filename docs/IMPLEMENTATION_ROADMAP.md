@@ -1,5 +1,12 @@
 # CareerForge implementation roadmap
 
+## The ring moves by itself; the light theme is white and black - verified locally, 22 November 2026
+
+Workshops: a horizontal topic bar with names above the ring, a ring that moves on every
+five seconds and waits while it is used (with a remembered pause), and arrows only for
+the keyboard. The light theme is white and black, with the background animation in black
+ink. Details: [WORKSHOPS.md](WORKSHOPS.md), [THEMES.md](THEMES.md).
+
 ## A 3D ring for Workshops and a light theme - verified locally, 22 November 2026
 
 Workshops opens with a 3D ring (the front card is the biggest; wheel, drag, swipe,

@@ -6,7 +6,7 @@ import { pictureFor } from "@/data/workshops/pictures";
 import { lifecycleOf } from "@/lib/workshops/lifecycle";
 import { frontOf, isClosed, offsetOf, placementOf } from "@/lib/workshops/ring";
 import type { Workshop } from "@/lib/workshops/types";
-import { DateTile, LocalTime } from "./hooks";
+import { DateTile, LocalTime, setRingPlaying, useRingMode } from "./hooks";
 import { Picture } from "./picture";
 import { ActionLink, areaOf, BookmarkButton, CountdownClock, Difficulty, durationLabel, FormatLabel, topicIcon } from "./workshop-card";
 import styles from "./workshops.module.css";
@@ -22,20 +22,33 @@ function styleOf(offset: number, count: number): Record<string, string> {
   };
 }
 
+/** How long a workshop stays at the front, and how long the ring leaves the learner alone after they turn it. */
+const dwell = 5000, rest = 12_000;
+/** How quickly the ring settles: brisk when turned by hand, soft when it moves by itself. */
+const brisk = 8.5, soft = 3.4;
+
 const calm = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
  * Workshops on a 3D ring. The position is a number that glides towards a whole
  * card; each frame only writes transforms, and React re-renders when another card
- * reaches the front.
+ * reaches the front. It moves on by itself, and waits while anyone is using it.
  */
-export function WorkshopRing({ workshops, now, saved, onOpen, onToggle }: { workshops: readonly Workshop[]; now: number; saved: ReadonlySet<string>; onOpen: (id: string) => void; onToggle: (workshop: Workshop) => void }) {
+export function WorkshopRing({ workshops, now, saved, held, onOpen, onToggle }: { workshops: readonly Workshop[]; now: number; saved: ReadonlySet<string>; /** Something else has the learner's attention. */ held: boolean; onOpen: (id: string) => void; onToggle: (workshop: Workshop) => void }) {
   const count = workshops.length;
   const [front, setFront] = useState(0);
+  /** Turned by hand, so the new workshop is announced. Automatic moves are silent. */
   const [moved, setMoved] = useState(false);
+  const mode = useRingMode();
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [resting, setResting] = useState(false);
+  const [seen, setSeen] = useState(false);
+  const restTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const section = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLUListElement>(null);
-  const motion = useRef({ position: 0, target: 0, frame: 0, last: 0, dragging: false });
+  const motion = useRef({ position: 0, target: 0, frame: 0, last: 0, dragging: false, rate: brisk });
   const drag = useRef<{ id: number; x: number; y: number; from: number; lastX: number; lastTime: number; speed: number; active: boolean } | null>(null);
   const justDragged = useRef(false);
   const active = Math.min(front, Math.max(0, count - 1));
@@ -56,7 +69,7 @@ export function WorkshopRing({ workshops, now, saved, onOpen, onToggle }: { work
     const step = (time: number) => {
       const elapsed = Math.min(.05, (time - state.last) / 1000);
       state.last = time;
-      if (!state.dragging) state.position += (state.target - state.position) * (1 - Math.exp(-elapsed * 8.5));
+      if (!state.dragging) state.position += (state.target - state.position) * (1 - Math.exp(-elapsed * state.rate));
       const settled = !state.dragging && Math.abs(state.target - state.position) < .0015;
       if (settled) state.position = state.target;
       paint();
@@ -66,20 +79,56 @@ export function WorkshopRing({ workshops, now, saved, onOpen, onToggle }: { work
   }, [paint]);
 
   const limit = useCallback((target: number) => isClosed(count) ? target : Math.min(count - 1, Math.max(0, target)), [count]);
+  /** Every turn by hand ends here: announce it, and leave the ring alone for a while. */
+  const byHand = useCallback(() => {
+    motion.current.rate = brisk;
+    setMoved(true);
+    setResting(true);
+    clearTimeout(restTimer.current);
+    restTimer.current = setTimeout(() => setResting(false), rest);
+  }, []);
   const go = useCallback((steps: number) => {
     const state = motion.current;
+    byHand();
     const next = state.target + steps;
     // The arrows go round and round, even where the cards stand on an open curve.
     state.target = isClosed(count) ? next : ((next % count) + count) % count;
-    setMoved(true);
     glide();
-  }, [count, glide]);
+  }, [byHand, count, glide]);
   const bring = (index: number) => {
     const state = motion.current;
     state.target = Math.round(state.target) + Math.round(offsetOf(index, Math.round(state.target), count));
-    setMoved(true);
+    byHand();
     glide();
   };
+
+  useEffect(() => () => clearTimeout(restTimer.current), []);
+
+  // Off screen or in a hidden tab there is nobody to move for.
+  useEffect(() => {
+    const element = section.current;
+    if (!element) return;
+    let onScreen = false;
+    const update = () => setSeen(onScreen && !document.hidden);
+    const observer = new IntersectionObserver(([entry]) => { onScreen = entry.isIntersecting; update(); }, { threshold: .4 });
+    observer.observe(element);
+    document.addEventListener("visibilitychange", update);
+    return () => { observer.disconnect(); document.removeEventListener("visibilitychange", update); };
+  }, []);
+
+  const canPlay = mode !== "still" && isClosed(count);
+  const running = canPlay && mode === "playing" && seen && !hovered && !focused && !resting && !held;
+  useEffect(() => {
+    if (!running) return;
+    const timer = setTimeout(() => {
+      const state = motion.current;
+      state.rate = soft;
+      state.target = Math.round(state.target) + 1;
+      setMoved(false);
+      glide();
+    }, dwell);
+    return () => clearTimeout(timer);
+  }, [running, active, glide]);
 
   // The ring turns into place once when it first appears.
   useEffect(() => {
@@ -125,6 +174,7 @@ export function WorkshopRing({ workshops, now, saved, onOpen, onToggle }: { work
   function onPointerDown(event: PointerEvent) {
     if (event.button !== 0 || count < 2) return;
     justDragged.current = false;
+    if (event.pointerType !== "mouse") byHand();
     drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY, from: motion.current.position, lastX: event.clientX, lastTime: event.timeStamp, speed: 0, active: false };
   }
   function onPointerMove(event: PointerEvent) {
@@ -156,7 +206,7 @@ export function WorkshopRing({ workshops, now, saved, onOpen, onToggle }: { work
     const state = motion.current;
     state.dragging = false;
     state.target = limit(Math.round(state.position - Math.max(-2, Math.min(2, held.speed * 320))));
-    setMoved(true);
+    byHand();
     glide();
     // The click that ends a drag is ignored; the next one counts again.
     setTimeout(() => { justDragged.current = false; }, 0);
@@ -175,8 +225,20 @@ export function WorkshopRing({ workshops, now, saved, onOpen, onToggle }: { work
 
   const current = workshops[active];
   if (!current) return null;
-  return <section className={styles.ring} data-area={areaOf[current.category]} aria-roledescription="carousel" aria-labelledby="ring-title" onKeyDown={onKeyDown}>
+  return <section className={styles.ring} data-area={areaOf[current.category]} aria-roledescription="carousel" aria-labelledby="ring-title" ref={section} onKeyDown={onKeyDown}
+    onPointerEnter={event => { if (event.pointerType === "mouse") setHovered(true); }} onPointerLeave={() => setHovered(false)}
+    onFocus={event => { if (event.target.matches(":focus-visible")) setFocused(true); }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
     <h2 id="ring-title" className="sr-only">Featured workshops</h2>
+    {count > 1 && <div className={styles.ringControls}>
+      {canPlay && <button type="button" className={styles.ringPause} aria-label={mode === "playing" ? "Pause the moving workshops" : "Let the workshops move"} title={mode === "playing" ? "Pause" : "Play"} onClick={() => setRingPlaying(mode !== "playing")}>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d={mode === "playing" ? "M6.5 5h3.6v14H6.5z M13.9 5h3.6v14h-3.6z" : "M8 5l11 7-11 7z"} /></svg>
+      </button>}
+      {canPlay && <span className={styles.ringTrack} aria-hidden="true"><i key={`${active}-${running}`} data-running={running || undefined} /></span>}
+      <p>{active + 1} of {count}</p>
+    </div>}
+    {/* For the keyboard and screen readers; seen only when reached with Tab. */}
+    {count > 1 && <button type="button" className={styles.ringArrow} aria-label="Previous workshop" onClick={() => go(-1)}><AppIcon name="chevron" /></button>}
+    {count > 1 && <button type="button" className={styles.ringArrow} data-next aria-label="Next workshop" onClick={() => go(1)}><AppIcon name="chevron" /></button>}
     <div className={styles.ringStage} ref={stage} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
       onClickCapture={event => { if (justDragged.current) { event.preventDefault(); event.stopPropagation(); } }}>
       <ul className={styles.ringList} ref={list}>
@@ -210,11 +272,6 @@ export function WorkshopRing({ workshops, now, saved, onOpen, onToggle }: { work
         })}
       </ul>
     </div>
-    {count > 1 && <div className={styles.ringControls}>
-      <button type="button" aria-label="Previous workshop" onClick={() => go(-1)}><AppIcon name="chevron" /></button>
-      <p><span className={styles.ringTrack} aria-hidden="true"><i style={{ width: `${100 / count}%`, transform: `translateX(${active * 100}%)` }} /></span><span>{active + 1} of {count}</span></p>
-      <button type="button" aria-label="Next workshop" onClick={() => go(1)}><AppIcon name="chevron" /></button>
-    </div>}
     <p className="sr-only" role="status" aria-live="polite">{moved ? `${active + 1} of ${count}: ${current.title}` : ""}</p>
   </section>;
 }

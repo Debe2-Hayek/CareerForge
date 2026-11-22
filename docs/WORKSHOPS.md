@@ -1,15 +1,19 @@
 # Workshops
 
 Discover free, hands-on computer science sessions at `/workshops`. Added
-22 November 2026 (M5). Photo-led but simple to use: header, topic rail (on the
-right, level with the middle of the screen), a 3D ring, search, one Filters button,
+22 November 2026 (M5). Photo-led but simple to use: header, a horizontal topic
+bar (icons with names, icons only where narrow), a 3D ring, search, one Filters button,
 cards and a detail panel. *Surprise me* opens a random workshop from the list.
 
 **Ring** (`src/lib/workshops/ring.ts`, `workshop-ring.tsx`): up to ten checked
 workshops of the chosen topic, live sessions first. The one at the front is the
-biggest and carries the details. Turn it with the wheel, a drag or swipe, the arrow
-keys, Home/End, the arrows, or by choosing a side card. The wheel stops at the first
-and last card so the page scrolls on. Every workshop is also in the list below; a
+biggest and carries the details. It moves on by itself every five seconds, and waits
+while the mouse or keyboard is on it, for 12 seconds after it was turned by hand, while a
+panel is open, and off screen. A pause button is remembered (`careerforge-ring`); it stays
+still with reduced motion or the site's motion off, and automatic moves are not announced.
+Turn it with the wheel, a drag or swipe, the arrow keys, Home/End, or a side card;
+previous and next buttons appear when reached with Tab. The wheel stops at the first and
+last card so the page scrolls on. Every workshop is also in the list below; a
 search or filter hides the ring. With reduced motion it jumps instead of gliding. It
 uses CSS 3D transforms only.
 
@@ -54,7 +58,7 @@ WebP widths); nothing is hot-linked and no publisher's logo or artwork is used.
 - Photos are decorative (`alt=""`). The details panel shows the credit and source.
 - A missing file falls back to its colour. Tests check files, licences and matches.
 
-Motion lasts under three seconds, only on entry or hover, and stops with the
+Other motion lasts under three seconds, only on entry or hover, and stops with the
 reduced-motion setting.
 
 ## Architecture

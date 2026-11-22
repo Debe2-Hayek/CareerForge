@@ -28,7 +28,7 @@ export async function verifyWorkshopsLive(context) {
     await expect(page.getByRole("link", { name: "Workshops", exact: true }).first()).toHaveAttribute("aria-current", "page");
     await expect(page.getByText(/hand-checked workshops/)).toBeVisible();
 
-    step = "ring, photos and surprise";
+    step = "ring and photos";
     const ring = page.getByRole("region", { name: "Featured workshops" });
     const front = ring.locator("li[data-front]");
     const place = text => expect(ring.locator("p", { hasText: /^\d+ of \d+$/ })).toHaveText(text);
@@ -48,7 +48,7 @@ export async function verifyWorkshopsLive(context) {
     await place("1 of 10");
     await settled();
     assert.equal(await page.evaluate(() => scrollY), 0, "the wheel turned the ring, not the page");
-    await ring.getByRole("button", { name: "Previous workshop" }).click();
+    await ring.getByRole("button", { name: "Previous workshop" }).press("Enter");
     await place("10 of 10");
     await settled();
     // Past the last card the page scrolls on, so nobody gets stuck.
@@ -84,6 +84,38 @@ export async function verifyWorkshopsLive(context) {
     await expect(ring).toHaveCount(0);
     await page.getByLabel("Search workshops").fill("");
     await expect(ring).toBeVisible();
+    step = "ring moves by itself";
+    const fresh = async () => { await page.mouse.move(4, 4); await page.reload(); await place("1 of 10"); };
+    await fresh();
+    await expect(ring.locator("p", { hasText: /^2 of 10$/ })).toBeVisible({ timeout: 11_000 });
+    assert.equal(await page.evaluate(() => document.querySelector("[aria-roledescription=carousel] [role=status]").textContent), "", "automatic moves are not announced");
+    // It waits while the mouse is over it, and after being turned by hand.
+    const over = await ring.boundingBox();
+    await page.mouse.move(over.x + over.width / 2, over.y + over.height / 2);
+    await page.waitForTimeout(1500);
+    const kept = await ring.locator("p", { hasText: /^\d+ of 10$/ }).innerText();
+    await page.waitForTimeout(6500);
+    await place(kept);
+    await page.mouse.wheel(0, 100);
+    await page.mouse.move(4, 4);
+    const turned = `${Number.parseInt(kept) + 1} of 10`;
+    await place(turned);
+    await page.waitForTimeout(6500);
+    await place(turned);
+    // The pause button, remembered.
+    await ring.getByRole("button", { name: "Pause the moving workshops" }).click();
+    await fresh();
+    await page.waitForTimeout(6500);
+    await place("1 of 10");
+    await expect(ring.getByRole("button", { name: "Let the workshops move" })).toBeVisible();
+    // Reduced motion: no movement and nothing to pause.
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.reload();
+    await expect(ring.getByRole("button", { name: /workshops move|moving workshops/ })).toHaveCount(0);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.reload();
+
+    step = "surprise";
     await page.getByRole("button", { name: "Surprise me" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.getByRole("dialog").getByText(/^Photo:/)).toBeVisible();
@@ -100,9 +132,15 @@ export async function verifyWorkshopsLive(context) {
     await expect(rail("Cybersecurity")).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(card("Web Security Academy")).toBeVisible();
-    await page.mouse.move(900, 20);
+    // Names beside the icons on a wide screen; a tooltip where there is no room for them.
+    await expect(rail("Python").getByText("Python", { exact: true })).toBeVisible();
+    assert.equal((await rail("Python").boundingBox()).y < (await page.getByLabel("Search workshops").boundingBox()).y, true, "the topics are above the list");
+    await page.setViewportSize({ width: 820, height: 1000 });
+    await expect(rail("Python").getByText("Python", { exact: true })).toBeHidden();
+    await page.mouse.move(4, 4);
     await rail("Python").hover();
     await expect(page.locator("body > div", { hasText: /^Python$/ })).toBeVisible();
+    await page.setViewportSize({ width: 1440, height: 1000 });
 
     step = "search and filters combine";
     await rail("All Workshops").click();
@@ -216,6 +254,7 @@ export async function verifyWorkshopsLive(context) {
     await expect(page.getByRole("heading", { name: "No workshops match" })).toBeVisible();
 
     step = "event lifecycle with a controlled clock";
+    await page.evaluate(() => localStorage.setItem("careerforge-ring", "off"));
     const event = "Durable Execution for .NET Workflows with Dapr, Aspire and Diagrid";
     for (const [time, check] of [
       ["2026-12-09T16:30:00Z", async () => {
@@ -257,7 +296,7 @@ export async function verifyWorkshopsLive(context) {
       }
       await view.goto("/workshops");
       const strip = await view.getByRole("navigation", { name: "Workshop topics" }).evaluate(element => getComputedStyle(element.querySelector("ul")).flexDirection);
-      assert.equal(strip, width <= 760 ? "row" : "column");
+      assert.equal(strip, "row");
       const small = await view.evaluate(() => [...document.querySelectorAll("nav[aria-label='Workshop topics'] button")].filter(button => button.getBoundingClientRect().width < 44 || button.getBoundingClientRect().height < 44).length);
       assert.equal(small, 0, "touch targets");
     }
@@ -266,11 +305,11 @@ export async function verifyWorkshopsLive(context) {
     await view.goto("/workshops");
     await view.addStyleTag({ content: "html { font-size: 200% }" });
     assert.equal(await view.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "overflow with larger text");
-    // A short screen scrolls the rail on its own.
-    await view.setViewportSize({ width: 1280, height: 380 });
+    // A narrow screen scrolls the topics on their own.
+    await view.setViewportSize({ width: 320, height: 700 });
     await view.goto("/workshops");
-    const scrolls = await view.locator("nav[aria-label='Workshop topics'] ul").evaluate(element => { element.scrollTop = 999; return element.scrollTop > 0; });
-    assert.equal(scrolls, true, "rail scrolls independently");
+    const scrolls = await view.locator("nav[aria-label='Workshop topics'] ul").evaluate(element => { element.scrollLeft = 999; return element.scrollLeft > 0; });
+    assert.equal(scrolls, true, "topics scroll independently");
 
     step = "roadmap link";
     await view.setViewportSize({ width: 1440, height: 1000 });
@@ -289,7 +328,7 @@ export async function verifyWorkshopsLive(context) {
     assert.equal((await put({ workshopId: "overthewire-bandit", saved: false })).status(), 200);
     await view.close();
     assert.deepEqual(errors, []);
-    console.log("PASS: workshops 3D ring (wheel, drag, keyboard, arrows, side cards), photos, surprise, navigation, icon rail (mouse, keyboard, tooltip), search, combined filters, reset, account bookmarks with rollback, details, deep links and history, private submission, countdown to live to ended, calendar export, 320-1440px layouts, larger text, roadmap link and API.");
+    console.log("PASS: workshops 3D ring (wheel, drag, keyboard, side cards, moving by itself, pause), photos, surprise, navigation, icon rail (mouse, keyboard, tooltip), search, combined filters, reset, account bookmarks with rollback, details, deep links and history, private submission, countdown to live to ended, calendar export, 320-1440px layouts, larger text, roadmap link and API.");
   } catch (error) {
     await page.screenshot({ path: "test-results/workshops-failure.png", fullPage: true }).catch(() => {});
     error.message = `[workshops step: ${step}] ${error.message}`;

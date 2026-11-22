@@ -4,7 +4,7 @@
 export type Theme = "dark" | "light";
 const key = "careerforge-theme";
 const changed = "careerforge-theme";
-export const themeColor: Record<Theme, string> = { dark: "#111411", light: "#f4f7f0" };
+export const themeColor: Record<Theme, string> = { dark: "#111411", light: "#ffffff" };
 
 /** Runs before the first paint, so a light page never flashes dark. Keep in step with `apply`. */
 export const themeScript = `try{if(localStorage.getItem("${key}")==="light")document.documentElement.dataset.theme="light"}catch(e){}`;

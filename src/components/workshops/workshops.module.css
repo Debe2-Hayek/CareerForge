@@ -17,14 +17,14 @@
 .page button, .modal button, .detailActions button { font-family: inherit; }
 
 .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; padding: 10px 0 24px; }
-.head h1 { width: max-content; max-width: 100%; margin: 0; padding-bottom: .06em; font-size: clamp(36px, 5vw, 60px); font-weight: 650; line-height: 1.04; letter-spacing: -.045em; background: linear-gradient(96deg, #f2f6ec 8%, #d7f5a0 46%, #9fe0ff 78%, #d3bfff); background-clip: text; -webkit-text-fill-color: transparent; }
+.head h1 { width: max-content; max-width: 100%; margin: 0; padding-bottom: .06em; font-size: clamp(36px, 5vw, 60px); font-weight: 650; line-height: 1.04; letter-spacing: -.045em; background: linear-gradient(96deg, light-dark(#000000, #f2f6ec) 8%, light-dark(#000000, #d7f5a0) 46%, light-dark(#4d4d4d, #9fe0ff) 78%, light-dark(#7a7a7a, #d3bfff)); background-clip: text; -webkit-text-fill-color: transparent; }
 .head p { margin: 8px 0 0; color: var(--soft); font-size: 16px; line-height: 1.5; }
 .head .ahead { display: flex; align-items: center; gap: 11px; width: max-content; max-width: 100%; margin-top: 14px; padding: 7px 16px 7px 14px; border: 1px solid #ff827940; border-radius: 99px; background: #ff82790f; color: #f6cfca; font-size: 14px; }
 .ahead strong { margin-right: 9px; color: #ffe9e6; font-weight: 600; }
 .pulse { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #ff8279; box-shadow: 0 0 0 4px #ff827926; }
 .head > div:first-child { min-width: 0; max-width: 100%; }
 .headActions { display: flex; align-items: center; gap: 8px 22px; flex-wrap: wrap; }
-.surprise { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 20px; border: 1px solid transparent; border-radius: 99px; background: linear-gradient(#171e15, #171e15) padding-box, linear-gradient(100deg, #c5ed85, #8fd6ff 55%, #cdb6ff) border-box; color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; transition: transform .2s, box-shadow .2s; }
+.surprise { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 20px; border: 1px solid transparent; border-radius: 99px; background: linear-gradient(#171e15, #171e15) padding-box, linear-gradient(100deg, light-dark(#000000, #c5ed85), light-dark(#8c8c8c, #8fd6ff) 55%, light-dark(#000000, #cdb6ff)) border-box; color: var(--ink); font-size: 15px; font-weight: 600; cursor: pointer; transition: transform .2s, box-shadow .2s; }
 .surprise:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px -10px #a9e0c8a8; }
 .surprise:active:not(:disabled) { transform: none; }
 .surprise:disabled { opacity: .5; cursor: default; }
@@ -34,28 +34,32 @@
 .textButton:hover:not(:disabled) { color: var(--ink); text-decoration-color: currentColor; }
 .textButton:disabled { opacity: .45; cursor: default; }
 
-/* ---------- Layout and rail ---------- */
-.layout { display: grid; grid-template-columns: minmax(0, 1fr) 68px; gap: 26px; align-items: start; }
-.content { grid-column: 1; grid-row: 1; min-width: 0; }
-/* First in the reading order, on the right edge of the page, level with the middle of the screen. */
-.rail { position: sticky; z-index: 2; top: max(16px, calc(50dvh - 236px)); grid-column: 2; grid-row: 1; min-width: 0; }
+/* ---------- Topic bar ---------- */
+.content { min-width: 0; }
+.rail { position: relative; container-type: inline-size; margin: 0 0 6px; }
 .rail ul {
-  display: flex; flex-direction: column; gap: 4px; max-height: calc(100dvh - 110px); margin: 0; padding: 8px; list-style: none; overflow: hidden auto; overscroll-behavior: contain;
-  border: 1px solid var(--line); border-radius: 20px; background: #141a12d9; scrollbar-width: thin; scrollbar-color: #3c4a35 transparent;
+  display: flex; gap: 4px; width: max-content; max-width: 100%; margin: 0 auto; padding: 7px; list-style: none; overflow: auto hidden; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none;
+  border: 1px solid var(--line); border-radius: 22px; background: #141a12d9; box-shadow: 0 18px 40px -30px #000;
 }
-.rail li:last-child { position: relative; margin-top: 9px; }
-.rail li:last-child::before { content: ""; position: absolute; inset: -7px 10px auto; border-top: 1px solid var(--line); }
-.rail button { position: relative; display: grid; place-items: center; width: 50px; height: 50px; padding: 0; border: 0; border-radius: 14px; background: none; color: color-mix(in srgb, var(--accent) 74%, #7f8b78); cursor: pointer; transition: background .18s, color .18s; }
+.rail li { flex: none; scroll-snap-align: center; }
+.rail li:last-child { position: relative; margin-left: 11px; }
+.rail li:last-child::before { content: ""; position: absolute; inset: 11px auto 11px -8px; border-left: 1px solid var(--line); }
+.rail button { position: relative; display: flex; align-items: center; justify-content: center; gap: 9px; min-width: 48px; height: 48px; padding: 0 16px 0 13px; border: 0; border-radius: 15px; background: none; color: color-mix(in srgb, var(--accent) 74%, #7f8b78); font-size: 14.5px; font-weight: 500; cursor: pointer; transition: background .18s, color .18s, box-shadow .18s; }
 .rail button:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
-.rail button svg { transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
-.rail button:hover svg { transform: scale(1.14); }
+.rail button svg { flex: none; transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+.rail button:hover svg { transform: scale(1.12); }
 .rail button:focus-visible { outline-offset: -2px; }
-.rail button[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 24%, transparent); color: var(--accent); box-shadow: 0 6px 22px -8px var(--accent); }
-.rail button[aria-pressed="true"]::before { content: ""; position: absolute; right: -8px; top: 14px; bottom: 14px; width: 3px; border-radius: 3px 0 0 3px; background: var(--accent); }
-.rail svg { width: 23px; height: 23px; }
+.rail button[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent), 0 8px 24px -12px var(--accent); }
+.rail svg { width: 21px; height: 21px; }
+:global(:root[data-theme="light"]) .rail button[aria-pressed="true"] { background: var(--accent); color: #ffffff; box-shadow: 0 10px 24px -14px #000000; }
+:global(:root[data-theme="light"]) .rail button[aria-pressed="true"] .railCount { background: #ffffff; color: #000000; }
+@container (max-width: 860px) {
+  .rail button { width: 52px; padding: 0; }
+  .rail .railName { display: none; }
+  .rail svg { width: 23px; height: 23px; }
+}
 .railCount { position: absolute; top: 5px; right: 4px; min-width: 18px; padding: 0 4px; border-radius: 99px; background: #c5ed85; color: #12190c; font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; }
-.tip { position: fixed; z-index: 70; padding: 7px 12px; border: 1px solid #43543a; border-radius: 9px; background: #0f140d; color: #f2f6ec; font-size: 13.5px; font-weight: 500; white-space: nowrap; pointer-events: none; transform: translate(-100%, -50%); box-shadow: 0 10px 26px #0008; animation: appear .12s ease; }
-.tip[data-below] { transform: translateX(-50%); }
+.tip { position: fixed; z-index: 70; padding: 7px 12px; border: 1px solid #43543a; border-radius: 9px; background: #0f140d; color: #f2f6ec; font-size: 13.5px; font-weight: 500; white-space: nowrap; pointer-events: none; transform: translateX(-50%); box-shadow: 0 10px 26px #0008; animation: appear .12s ease; }
 @keyframes appear { from { opacity: 0; } }
 
 /* ---------- Photos ---------- */
@@ -63,13 +67,17 @@
 .picture img { object-fit: cover; user-select: none; }
 
 /* ---------- Ring ---------- */
-.ring { position: relative; container-type: inline-size; margin: 0 0 22px; }
+.ring { position: relative; display: flex; flex-direction: column; container-type: inline-size; margin: 0 0 26px; }
 .ring::before { content: ""; position: absolute; z-index: -1; inset: -8% 4% 8%; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 32%, transparent), transparent); pointer-events: none; }
-.ringStage { --w: clamp(min(82cqw, 380px), 46cqw, 540px); --glow: 60px; position: relative; height: calc(var(--w) * .96 + var(--glow)); min-height: calc(535px + var(--glow)); margin-bottom: calc(-1 * var(--glow)); perspective: 1500px; perspective-origin: 50% 40%; overflow-x: clip; -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); touch-action: pan-y; user-select: none; cursor: grab; }
+.ringStage { --w: clamp(min(82cqw, 380px), 46cqw, 560px); --glow: 60px; position: relative; height: calc(var(--w) * .96 + var(--glow)); min-height: calc(535px + var(--glow)); margin-bottom: calc(-1 * var(--glow)); perspective: 1500px; perspective-origin: 50% 40%; overflow-x: clip; mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent), linear-gradient(0deg, transparent, #000 56px); mask-composite: intersect; touch-action: pan-y; user-select: none; cursor: grab; }
 .ringStage:active { cursor: grabbing; }
 .ringStage::after { content: ""; position: absolute; left: 50%; bottom: var(--glow); width: calc(var(--w) * 1.05); height: 46px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 34%, transparent), transparent); transform: translateX(-50%); pointer-events: none; }
 .ringList { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; transform-style: preserve-3d; }
-/* Photo cards stay dark in both themes. */
+/* Photo cards stay dark in both themes; in the light one their button and glow are black and white too. */
+:global(:root[data-theme="light"]) .ringItem { --green: #ffffff; --accent-ink: #111111; }
+:global(:root[data-theme="light"]) .ringItem .ringCard { border-color: #ffffff26; }
+:global(:root[data-theme="light"]) .ringItem[data-front] .ringCard { box-shadow: 0 50px 90px -40px #000000b3, 0 18px 40px -22px #00000073; }
+:global(:root[data-theme="light"]) .ring::before, :global(:root[data-theme="light"]) .ringStage::after { background: radial-gradient(closest-side, #00000017, transparent); }
 .ringItem { color-scheme: dark; --ink: #f2f6ec; --soft: #b9c6ae; --muted: #93a188; --green: #c5ed85; --accent-ink: #1c2911; position: absolute; left: 50%; top: calc((100% - var(--glow)) * .56); width: var(--w); height: max(440px, calc(var(--w) * .76)); will-change: transform; }
 .ringItem:not([data-front]) { cursor: pointer; }
 .ringCard { position: relative; isolation: isolate; display: flex; align-items: flex-end; height: 100%; overflow: hidden; border: 1px solid color-mix(in srgb, var(--accent) 40%, #2c3728); border-radius: 26px; background: #0d120c; color: #f2f6ec; transform: rotateY(var(--lean-x, 0deg)) rotateX(var(--lean-y, 0deg)); transition: transform .25s ease-out, box-shadow .4s, border-color .4s; box-shadow: 0 26px 50px -26px #000c; }
@@ -97,13 +105,18 @@
 .ringCard > .bookmark:hover { background: #0a0e09; }
 .ringCard > .bookmark[data-saved] { color: var(--accent); }
 .ringCard > .dateTile { left: 18px; top: 16px; }
-.ringControls { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 12px; }
-.ringControls button { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 1px solid var(--line-strong); border-radius: 50%; background: var(--surface); color: var(--ink); cursor: pointer; transition: border-color .18s, transform .18s; }
-.ringControls button:hover { border-color: var(--accent); transform: scale(1.06); }
-.ringControls button:last-child svg { transform: scaleX(-1); }
-.ringControls p { display: grid; justify-items: center; gap: 8px; min-width: 130px; margin: 0; color: var(--soft); font-size: 14px; font-variant-numeric: tabular-nums; }
-.ringTrack { width: 130px; height: 4px; overflow: hidden; border-radius: 9px; background: var(--line); }
-.ringTrack i { display: block; height: 100%; border-radius: 9px; background: var(--accent); transition: transform .3s; }
+.ringControls { position: relative; z-index: 1; order: 2; display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 44px; margin-top: 10px; }
+.ringControls p { margin: 0; color: var(--soft); font-size: 14px; font-variant-numeric: tabular-nums; }
+.ringPause { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--soft); cursor: pointer; transition: background .18s, color .18s; }
+.ringPause:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--ink); }
+.ringTrack { width: 150px; height: 4px; overflow: hidden; border-radius: 9px; background: var(--line); }
+.ringTrack i { display: block; height: 100%; border-radius: 9px; background: var(--accent); transform: scaleX(0); transform-origin: 0 50%; }
+.ringTrack i[data-running] { animation: fill 5s linear forwards; }
+@keyframes fill { to { transform: scaleX(1); } }
+.ringArrow { position: absolute; z-index: 4; left: 8px; top: 46%; display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border: 1px solid var(--line-strong); border-radius: 50%; background: var(--surface); color: var(--ink); opacity: 0; pointer-events: none; }
+.ringArrow[data-next] { left: auto; right: 8px; }
+.ringArrow[data-next] svg { transform: scaleX(-1); }
+.ringArrow:focus-visible { opacity: 1; pointer-events: auto; }
 .liveNow { margin: 0; color: var(--accent); font-size: 13.5px; font-weight: 600; }
 .countdown { display: grid; grid-auto-flow: column; grid-auto-columns: 62px; gap: 7px; }
 .countdown span { display: grid; justify-items: center; padding: 7px 4px 6px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 13%, #ffffff0a); color: #c3cfba; font-size: 12.5px; }
@@ -269,15 +282,8 @@
 
 /* ---------- Narrow screens ---------- */
 @media (max-width: 760px) {
-  .layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  .rail { position: static; grid-area: auto; margin: 0 -2px; }
-  .rail ul { flex-direction: row; max-height: none; padding: 6px; overflow: auto hidden; scroll-snap-type: x proximity; scrollbar-width: none; }
-  .rail li { flex: none; scroll-snap-align: start; }
-  .rail li:last-child { margin: 0 0 0 9px; }
-  .rail li:last-child::before { inset: 10px auto 10px -7px; border-top: 0; border-left: 1px solid var(--line); }
-  .rail button { width: 52px; height: 48px; }
-  .rail button[aria-pressed="true"]::before { left: 14px; right: 14px; top: auto; bottom: -6px; width: auto; height: 3px; border-radius: 3px 3px 0 0; }
-  .content { grid-area: auto; }
+  .rail { margin: 0 -2px 4px; }
+  .rail ul { padding: 6px; }
   .headActions { width: 100%; justify-content: space-between; }
   .ringStage { --w: min(82cqw, 400px); height: calc(530px + var(--glow)); }
   .ringItem { height: 450px; }

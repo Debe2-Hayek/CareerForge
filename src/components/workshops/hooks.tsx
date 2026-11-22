@@ -49,6 +49,33 @@ export function DateTile({ iso }: { iso: string }) {
   return <time className={styles.dateTile} dateTime={iso}><b>{format({ month: "short" })}</b> <strong>{format({ day: "numeric" })}</strong></time>;
 }
 
+// The ring moves by itself unless the learner paused it, turned the site's motion off, or asked their device for less motion.
+const ringKey = "careerforge-ring", motionKey = "careerforge-motion", reducedQuery = "(prefers-reduced-motion: reduce)";
+let pausedHere = false;
+export type RingMode = "playing" | "paused" | "still";
+function readRingMode(): RingMode {
+  if (window.matchMedia(reducedQuery).matches) return "still";
+  try {
+    if (localStorage.getItem(motionKey) === "off") return "still";
+    return (localStorage.getItem(ringKey) ?? (pausedHere ? "off" : "on")) === "off" ? "paused" : "playing";
+  } catch { return pausedHere ? "paused" : "playing"; }
+}
+function subscribeRing(callback: () => void) {
+  const query = window.matchMedia(reducedQuery);
+  query.addEventListener("change", callback);
+  for (const name of ["storage", ringKey, motionKey]) window.addEventListener(name, callback);
+  return () => {
+    query.removeEventListener("change", callback);
+    for (const name of ["storage", ringKey, motionKey]) window.removeEventListener(name, callback);
+  };
+}
+export const useRingMode = () => useSyncExternalStore<RingMode>(subscribeRing, readRingMode, () => "still");
+export function setRingPlaying(playing: boolean) {
+  pausedHere = !playing;
+  try { localStorage.setItem(ringKey, playing ? "on" : "off"); } catch { /* kept for this page only */ }
+  window.dispatchEvent(new Event(ringKey));
+}
+
 export type Notify = (text: string, tone?: "info" | "error") => void;
 
 /** Account bookmarks when available, otherwise this device. Changes show at once and roll back if saving fails. */

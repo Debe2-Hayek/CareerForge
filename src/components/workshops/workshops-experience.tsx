@@ -162,7 +162,7 @@ export function WorkshopsExperience({ initialCatalog, initialBookmarks, initialO
     <div className={styles.layout}>
       <WorkshopRail selected={rail} savedCount={mounted ? savedCount : initialBookmarks?.length ? savedCount : 0} onSelect={setRail} />
       <div className={styles.content}>
-        {!filtered && ring.length > 0 && <WorkshopRing key={rail} workshops={ring} now={now} saved={saved} onOpen={open} onToggle={workshop => void toggle(workshop.id, workshop.title)} />}
+        {!filtered && ring.length > 0 && <WorkshopRing key={rail} workshops={ring} now={now} saved={saved} held={opened !== null || submitting} onOpen={open} onToggle={workshop => void toggle(workshop.id, workshop.title)} />}
 
         <div className={styles.tools}>
           <div className={styles.search}>

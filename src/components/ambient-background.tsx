@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { readTheme, subscribeTheme, type Theme } from "@/lib/theme";
 
 /**
  * CareerForge ambient background.
@@ -16,6 +17,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
  *  5. Events         – click ripples, an occasional shooting comet, and a short light trail behind the cursor.
  *
  * The accent colour slowly travels green → mint → lilac as you scroll down the page.
+ * On the light theme everything is drawn in black ink on white paper, without the soft lights.
  *
  * Behaviour that matters for real use:
  *  - Calmer on in-app pages, fuller on the landing and sign-in pages (density and brightness ease between them).
@@ -50,6 +52,8 @@ const GREEN: RGB = [197, 237, 133];
 const MINT: RGB = [155, 227, 192];
 const LILAC: RGB = [199, 176, 237];
 const SPARK: RGB = [236, 252, 214];
+const BLACK: RGB = [0, 0, 0];
+const GRAPHITE: RGB = [92, 92, 92];
 const TINT_STOPS: readonly RGB[] = [GREEN, MINT, LILAC, MINT, GREEN];
 const PALETTE: ReadonlyArray<readonly [RGB, number]> = [[GREEN, 0.7], [MINT, 0.22], [LILAC, 0.08]];
 
@@ -84,7 +88,7 @@ function makeSprite(color: RGB) {
   return sprite;
 }
 
-type Engine = { setMotion: (paused: boolean, reduced: boolean) => void; setLevel: (level: number) => void };
+type Engine = { setTheme: (theme: Theme) => void; setMotion: (paused: boolean, reduced: boolean) => void; setLevel: (level: number) => void };
 
 function subscribePreference(callback: () => void) {
   window.addEventListener("storage", callback);
@@ -111,6 +115,7 @@ export function AmbientBackground() {
   const engineRef = useRef<Engine | null>(null);
   const storedPaused = useSyncExternalStore(subscribePreference, readPaused, () => false);
   const reduced = useSyncExternalStore(subscribeReduced, readReduced, () => false);
+  const theme = useSyncExternalStore<Theme>(subscribeTheme, readTheme, () => "dark");
   const [temporaryPaused, setTemporaryPaused] = useState<boolean | null>(null);
   const paused = temporaryPaused ?? storedPaused;
 
@@ -129,7 +134,8 @@ export function AmbientBackground() {
     let compact = window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 700;
     let quality = compact ? 0.7 : 1, workAverage = 0, frameCount = 0, pulseTimer = 0.6, cometTimer = 3.2, maxScroll = 1;
     let isPaused = readPaused(), isReduced = readReduced(), modalOpen = false;
-    let tint: RGB = GREEN, tint2: RGB = MINT;
+    let ink = readTheme() === "light";
+    let tint: RGB = ink ? BLACK : GREEN, tint2: RGB = ink ? GRAPHITE : MINT, spark: RGB = ink ? BLACK : SPARK;
     let sentPx = 9, sentPy = 9, sentSp = -1;
     let ribbons: Ribbon[] = [];
     const dots: Dot[] = [];
@@ -152,7 +158,7 @@ export function AmbientBackground() {
     /* ---------- construction ---------- */
 
     function makeDot(): Dot {
-      const color = pickColor();
+      const color = ink ? BLACK : pickColor();
       const heading = rand(0, Math.PI * 2);
       const speed = rand(5, 15);
       const bx = Math.cos(heading) * speed, by = Math.sin(heading) * speed;
@@ -295,7 +301,7 @@ export function AmbientBackground() {
       readScroll(dt);
       const progress = clamp(scroll.s / maxScroll, 0, 1);
       const hue = progress * 0.8 + 0.2 * (0.5 + 0.5 * Math.sin(clock * 0.07));
-      tint = tintAt(hue); tint2 = tintAt((hue + 0.3) % 1);
+      if (!ink) { tint = tintAt(hue); tint2 = tintAt((hue + 0.3) % 1); }
 
       pointer.sx += (pointer.tx - pointer.sx) * Math.min(1, dt * 3);
       pointer.sy += (pointer.ty - pointer.sy) * Math.min(1, dt * 3);
@@ -394,7 +400,7 @@ export function AmbientBackground() {
         }
       }
       const progress = clamp(scroll.s / maxScroll, 0, 1);
-      tint = tintAt(progress * 0.8 + 0.1); tint2 = tintAt((progress * 0.8 + 0.4) % 1);
+      if (!ink) { tint = tintAt(progress * 0.8 + 0.1); tint2 = tintAt((progress * 0.8 + 0.4) % 1); }
     }
 
     /* ---------- drawing ---------- */
@@ -422,7 +428,7 @@ export function AmbientBackground() {
           }
         }
       }
-      const colors = [tint, tint2, SPARK], widths = [1.5, 1.25, 1.1], strength = [0.58, 0.48, 0.78], lv = Math.min(level, 1);
+      const colors = [tint, tint2, spark], widths = [1.5, 1.25, 1.1], strength = [0.58, 0.48, 0.78], lv = Math.min(level, 1);
       g.lineCap = "round"; g.lineJoin = "round";
       for (let b = 0; b < 3; b++) {
         g.strokeStyle = rgba(colors[b], 1);
@@ -432,7 +438,7 @@ export function AmbientBackground() {
         }
       }
       g.fillStyle = rgba(tint, 1); g.globalAlpha = 0.85 * lv; g.fill(heads);
-      g.fillStyle = rgba(SPARK, 1); g.globalAlpha = 0.95 * lv; g.fill(sparks);
+      g.fillStyle = rgba(spark, 1); g.globalAlpha = 0.95 * lv; g.fill(sparks);
       g.globalAlpha = 1;
     }
 
@@ -441,8 +447,8 @@ export function AmbientBackground() {
       g.lineCap = "round"; g.lineJoin = "round";
       const lv = Math.min(level, 1);
 
-      // 1. Bokeh orbs.
-      for (const o of orbs) {
+      // 1. Bokeh orbs. Soft lights only read as light on a dark page; on white they would be smudges.
+      for (const o of ink ? [] : orbs) {
         const span = h + o.r * 2;
         const ox = o.x + (pointer.sx - 0.5) * -70 * o.depth;
         const oy = ((((o.y - scroll.s * 0.18 * o.depth + o.r) % span) + span) % span) - o.r;
@@ -545,11 +551,11 @@ export function AmbientBackground() {
       for (const c of comets) {
         const tx = c.x - c.ux * c.len, ty = c.y - c.uy * c.len;
         const streak = g.createLinearGradient(c.x, c.y, tx, ty);
-        streak.addColorStop(0, rgba(SPARK, 0.95)); streak.addColorStop(0.2, rgba(tint, 0.45)); streak.addColorStop(1, rgba(tint, 0));
+        streak.addColorStop(0, rgba(spark, 0.95)); streak.addColorStop(0.2, rgba(tint, 0.45)); streak.addColorStop(1, rgba(tint, 0));
         g.globalAlpha = lv; g.strokeStyle = streak; g.lineWidth = 1.8;
         g.beginPath(); g.moveTo(c.x, c.y); g.lineTo(tx, ty); g.stroke();
         g.fillStyle = rgba(tint, 1); g.globalAlpha = 0.25 * lv; disc(c.x, c.y, 9);
-        g.fillStyle = rgba(SPARK, 1); g.globalAlpha = 0.95 * lv; disc(c.x, c.y, 2.2);
+        g.fillStyle = rgba(spark, 1); g.globalAlpha = 0.95 * lv; disc(c.x, c.y, 2.2);
       }
       const now = performance.now();
       while (trailPoints.length && now - trailPoints[0].at > 480) trailPoints.shift();
@@ -635,6 +641,16 @@ export function AmbientBackground() {
     sizeObserver.observe(document.body);
 
     engineRef.current = {
+      setTheme(theme) {
+        const next = theme === "light";
+        if (next === ink) return;
+        ink = next;
+        tint = ink ? BLACK : GREEN; tint2 = ink ? GRAPHITE : MINT; spark = ink ? BLACK : SPARK;
+        // The nodes keep their own colour, so they are made again.
+        dots.length = 0; pulses.length = 0;
+        syncDots();
+        if (!running() && !document.hidden) render();
+      },
       setMotion(nextPaused, nextReduced) { isPaused = nextPaused; isReduced = nextReduced; sync(); },
       setLevel(next) { target = next; if (!running()) { level = next; syncStreamers(true); if (!document.hidden) render(); } }
     };
@@ -656,6 +672,7 @@ export function AmbientBackground() {
     };
   }, []);
 
+  useEffect(() => { engineRef.current?.setTheme(theme); }, [theme]);
   useEffect(() => { engineRef.current?.setMotion(paused, reduced); }, [paused, reduced]);
   useEffect(() => { engineRef.current?.setLevel(levelFor(pathname)); }, [pathname]);
 

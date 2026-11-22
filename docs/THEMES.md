@@ -6,7 +6,9 @@ tabs follow.
 
 - The stylesheets are written once, for the dark theme. At build time
   `postcss/light-theme.cjs` turns every hex color into `light-dark(light, dark)`: lightness
-  is turned over in OKLCH, hue kept, contrast kept. The dark color is never changed.
+  is turned over in OKLCH, contrast kept. The light theme is white and black: tinted
+  neutrals and the brand green become greys and black; topic, level, live, saved and error
+  colors keep their hue. The dark color is never changed.
 - To choose a light color by hand, write `light-dark(#light, #dark)`; it is left alone.
 - What looks the same in both themes is listed in `keep` in that file: CV and portfolio
   paper, published portfolios, print, the film. A dark block on a light page sets
@@ -14,7 +16,8 @@ tabs follow.
 - `color-scheme` on `:root` picks the theme (`data-theme="light"`). A short inline script
   sets it before the first paint, so there is no flash. Older browsers get an equivalent
   the bundler generates.
-- The background canvas keeps its drawing; a CSS filter turns its light strokes into ink.
+- The background animation is drawn in black ink on white, without its soft lights; the
+  dashboard film plays in black and white.
 
 **Checks**: `src/lib/light-theme.test.ts`, and on development
 `test-account-live.mjs --theme-only`, which opens every page in both themes, measures text

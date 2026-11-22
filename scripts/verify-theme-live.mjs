@@ -28,7 +28,9 @@ function audit() {
   };
   const over = (top, under) => top.slice(0, 3).map((v, i) => v * top[3] + under[i] * (1 - top[3]));
   const luminance = rgb => { const [r, g, b] = rgb.map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }); return .2126 * r + .7152 * g + .0722 * b; };
-  const paper = rgba(getComputedStyle(document.body).backgroundColor);
+  // The fixed background sits behind the page without being an ancestor of its text.
+  const ambient = document.querySelector(".ambient");
+  const paper = rgba(getComputedStyle(ambient?.checkVisibility() ? ambient : document.body).backgroundColor);
   const found = new Map();
   let measured = 0;
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -65,7 +67,7 @@ function audit() {
     const name = `${element.tagName.toLowerCase()}.${String(element.className?.baseVal ?? element.className).split(" ").slice(0, 2).join(".")} in .${String(element.parentElement?.className ?? "").split(" ")[0]}`;
     if (!found.has(name)) found.set(name, `${ratio.toFixed(2)} ${name} "${node.data.trim().slice(0, 30)}" rgb(${color.map(Math.round)}) on rgb(${background.map(Math.round)})`);
   }
-  return { measured, problems: [...found.values()] };
+  return { measured, problems: [...found.values()], paper: luminance(paper) };
 }
 
 export async function verifyThemeLive(context, anonymous) {
@@ -92,6 +94,7 @@ export async function verifyThemeLive(context, anonymous) {
         assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), theme, `${path} uses the ${theme} theme`);
         const result = await page.evaluate(audit);
         counts[theme] = result.problems.length;
+        assert.ok(theme === "light" ? result.paper > .9 : result.paper < .1, `${path}: the ${theme} page has brightness ${result.paper.toFixed(2)} behind it`);
         if (theme === "light") for (const problem of result.problems) console.log(`  ${path}: ${problem}`);
         if (folder) await page.screenshot({ path: `${folder}/${theme}${path.replace(/[^a-z0-9]+/gi, "-").replace(/^-$/, "-home")}.png`, fullPage: Boolean(process.env.THEME_FULL) });
       }
@@ -145,7 +148,7 @@ export async function verifyThemeLive(context, anonymous) {
             const button = [...document.querySelectorAll(".theme-toggle")].find(item => item.checkVisibility());
             if (!button) return "no theme button";
             const box = button.getBoundingClientRect();
-            if (box.width < 38 || box.left < 0 || box.right > innerWidth) return `theme button at ${Math.round(box.left)}-${Math.round(box.right)}`;
+            if (button.offsetWidth < 40 || box.left < 0 || box.right > innerWidth) return `theme button at ${Math.round(box.left)}-${Math.round(box.right)}`;
             const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
             return button.contains(hit) ? null : `theme button covered by ${hit?.className}`;
           });
@@ -156,6 +159,35 @@ export async function verifyThemeLive(context, anonymous) {
     await fit.close();
   }
 
+  // The moving background: black ink in the light theme, colour in the dark one, also after switching live.
+  const moving = await anonymous.newPage();
+  await moving.emulateMedia({ reducedMotion: "no-preference" });
+  await moving.setViewportSize({ width: 1280, height: 800 });
+  await moving.goto("/robots.txt");
+  await moving.evaluate(() => localStorage.setItem("careerforge-theme", "light"));
+  await moving.goto("/");
+  const drawing = async () => {
+    await moving.waitForTimeout(2500);
+    return moving.evaluate(() => {
+      const canvas = document.querySelector(".ambient-canvas"), { data } = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height);
+      let drawn = 0, coloured = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] < 40) continue;
+        drawn++;
+        if (Math.max(data[i], data[i + 1], data[i + 2]) - Math.min(data[i], data[i + 1], data[i + 2]) > 16) coloured++;
+      }
+      return { drawn, coloured };
+    });
+  };
+  const black = async when => { const now = await drawing(); assert.ok(now.drawn > 1500 && now.coloured / now.drawn < .01, `the light background is black ink ${when}: ${JSON.stringify(now)}`); };
+  await black("on arrival");
+  await moving.getByRole("button", { name: "Use the dark theme" }).first().click();
+  const dark = await drawing();
+  assert.ok(dark.coloured / dark.drawn > .3, `the dark background keeps its colour: ${JSON.stringify(dark)}`);
+  await moving.getByRole("button", { name: "Use the light theme" }).first().click();
+  await black("after switching");
+  await moving.close();
+
   // The button switches, is remembered, and other tabs follow.
   const page = await context.newPage();
   await page.goto("/dashboard");
@@ -165,7 +197,7 @@ export async function verifyThemeLive(context, anonymous) {
   assert.equal(await scheme(page), "dark", "dark is the default");
   await page.getByRole("button", { name: "Use the light theme" }).click();
   assert.equal(await scheme(page), "light");
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#f4f7f0");
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#ffffff");
   const second = await context.newPage();
   await second.goto("/features");
   assert.equal(await scheme(second), "light", "remembered");

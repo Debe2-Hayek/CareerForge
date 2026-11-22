@@ -5,11 +5,11 @@
 // as written and new styles get a light version without extra work. Which one applies
 // follows `color-scheme` (see :root in visual-system.css).
 //
-// To choose a light colour by hand, write light-dark(#light, #dark) in the stylesheet:
-// values that already use it are left alone. Things that look the same in both themes
-// (paper, published portfolios, print) are listed in `keep`.
+// To choose a light colour by hand, write light-dark(#light, #dark) in the stylesheet; it is
+// left alone, and so is any rule for one theme only (:root[data-theme="light"] ...). Things
+// that look the same in both themes (paper, published portfolios, print) are in `keep`.
 
-const keep = /\.cv-sheet|\.portfolio-(sheet|identity|headline|location|story|skills|source-note|empty-note|editorial\b(?!-layout))|\.viz-paper|\.lp-float-cv|\.published-site|\.pb \.cv|\.cv-page|\.hero-film|\.next-step|\.step-check|dateTile|::selection/;
+const keep = /\.cv-sheet|\.portfolio-(sheet|identity|headline|location|story|skills|source-note|empty-note|editorial\b(?!-layout))|\.viz-paper|\.lp-float-cv|\.published-site|\.pb \.cv|\.cv-page|\.hero-film|dateTile|::selection|\[data-theme=/;
 
 const srgbToLinear = c => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
 const linearToSrgb = c => c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055;
@@ -53,9 +53,9 @@ function parse(hex) {
 const two = value => Math.round(value).toString(16).padStart(2, "0");
 const write = (rgb, alpha) => `#${rgb.map(two).join("")}${alpha < 1 ? two(alpha * 255) : ""}`;
 
-// Dark lightness -> light lightness. Surfaces become near-white, hairlines a soft grey,
+// Dark lightness -> light lightness. Surfaces become white, hairlines a soft grey,
 // text dark; the middle keeps enough distance from white to stay readable as text.
-const curve = [[0, 0.95], [0.16, 0.955], [0.195, 0.966], [0.212, 0.99], [0.236, 0.988], [0.26, 0.958], [0.3, 0.925], [0.345, 0.89], [0.4, 0.835], [0.48, 0.75], [0.56, 0.6], [0.64, 0.51], [0.72, 0.46], [0.8, 0.4], [0.9, 0.3], [1, 0.2]];
+const curve = [[0, 0.97], [0.16, 0.985], [0.19, 1], [0.236, 1], [0.262, 0.968], [0.3, 0.94], [0.345, 0.905], [0.4, 0.85], [0.48, 0.76], [0.56, 0.6], [0.64, 0.51], [0.72, 0.46], [0.8, 0.4], [0.9, 0.3], [1, 0.15]];
 function mapLightness(L) {
   for (let i = 1; i < curve.length; i++) {
     if (L > curve[i][0]) continue;
@@ -72,16 +72,23 @@ function lightOf(hex, kind = "colour") {
   const [L, C, h] = toOklch(rgb);
   if (kind === "shadow") {
     // A shadow is still dark, only much softer; a coloured glow keeps its hue.
-    return L < 0.45 ? write([26, 36, 20], alpha * 0.26) : write(inGamut(0.62, Math.min(C, 0.13), h), alpha * 0.5);
+    return L < 0.45 ? write([0, 0, 0], alpha * 0.26) : write(inGamut(0.45, 0, h), alpha * 0.4);
   }
   let lightness = mapLightness(L), chroma = C;
-  if (L < 0.34) chroma = Math.min(C * 0.55, 0.035);
-  else if (C > 0.045 && L > 0.6) { lightness = Math.max(0.445, Math.min(0.485, lightness + 0.1)); chroma = C * 1.2; }
-  else if (C <= 0.045) chroma = C * 0.8;
+  const hue = ((h * 180) / Math.PI + 360) % 360;
+  const brand = hue > 95 && hue < 141;
+  // The light theme is white and black: the tinted neutrals and the brand green lose their colour.
+  // Colour stays where it means something (topics, levels, live, saved, errors).
+  if (brand || C <= 0.045) {
+    chroma = 0;
+    if (C > 0.075 && L > 0.6) lightness = 0.2;
+  } else if (L < 0.34) chroma = Math.min(C * 0.55, 0.035);
+  else if (L > 0.6) { lightness = Math.max(0.445, Math.min(0.485, lightness + 0.1)); chroma = C * 1.2; }
   return write(inGamut(lightness, chroma, h), alpha);
 }
 
-const colours = /url\((?:"[^"]*"|'[^']*'|[^)]*)\)|#[0-9a-f]{8}\b|#[0-9a-f]{6}\b|#[0-9a-f]{3,4}\b/gi;
+// light-dark() and url() are matched first so that nothing inside them is touched.
+const colours = /light-dark\([^()]*\)|url\((?:"[^"]*"|'[^']*'|[^)]*)\)|#[0-9a-f]{8}\b|#[0-9a-f]{6}\b|#[0-9a-f]{3,4}\b/gi;
 const isShadow = declaration => /shadow/.test(declaration.prop) || (declaration.prop === "filter" && declaration.value.includes("drop-shadow"));
 
 function keeps(node) {
@@ -95,7 +102,7 @@ function keeps(node) {
 const plugin = () => ({
   postcssPlugin: "careerforge-light-theme",
   Declaration(declaration) {
-    if (!declaration.value.includes("#") || declaration.value.includes("light-dark(") || /^(-webkit-)?mask/.test(declaration.prop)) return;
+    if (!declaration.value.includes("#") || /^(-webkit-)?mask/.test(declaration.prop)) return;
     if (/node_modules/.test(declaration.source?.input?.file ?? "") || keeps(declaration.parent)) return;
     // A modal's backdrop dims the page in both themes.
     if (declaration.parent.type === "rule" && /::backdrop/.test(declaration.parent.selector)) return;

@@ -1,5 +1,12 @@
 # CareerForge implementation roadmap
 
+## A 3D ring for Workshops and a light theme - verified locally, 22 November 2026
+
+Workshops opens with a 3D ring (the front card is the biggest; wheel, drag, swipe,
+keyboard) above the full list, and its topic rail moved to the right. The whole site
+has a light theme with a button in every header and in the command palette; dark stays
+the default and unchanged. Details: [WORKSHOPS.md](WORKSHOPS.md), [THEMES.md](THEMES.md).
+
 ## Livelier Workshops and a weekly alert - verified locally, 22 November 2026
 
 Every workshop now has a related photo (36, CC0 or public domain, served locally

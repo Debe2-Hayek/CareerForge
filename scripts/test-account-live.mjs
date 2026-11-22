@@ -6,6 +6,7 @@ import { verifyLearningLive } from "./verify-learning-live.mjs";
 import { verifyWorkshopsLive } from "./verify-workshops-live.mjs";
 import { verifyPortfolioLive } from "./verify-portfolio-live.mjs";
 import { verifySuppliedBuilderLive } from "./verify-supplied-builder-live.mjs";
+import { verifyThemeLive } from "./verify-theme-live.mjs";
 import { verifyProfileLayout } from "./verify-profile-layout.mjs";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
@@ -20,6 +21,7 @@ const portfolioOnly = process.argv.includes("--portfolio-only");
 const builderOnly = process.argv.includes("--builder-only");
 const learningOnly = process.argv.includes("--learning-only");
 const workshopsOnly = process.argv.includes("--workshops-only");
+const themeOnly = process.argv.includes("--theme-only");
 const users = [randomUUID(), randomUUID()].map(id => ({ id, email: `${id}@careerforge.invalid`, password: `Test-${randomUUID()}!` }));
 const db = new Client({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 15000, statement_timeout: 15000 });
 let browser;
@@ -89,7 +91,12 @@ try {
   await expect(a.page.getByLabel("Your skills", { exact: true })).toHaveValue("React, SQL");
   const aProfile = await (await a.context.request.get("/api/v1/profile")).json();
   assert.equal(aProfile.profile.name, "Live Test Owner A");
-  if (learningOnly) {
+  if (themeOnly) {
+    stage = "themes";
+    const anonymous = await browser.newContext({ baseURL });
+    await verifyThemeLive(a.context, anonymous);
+    await anonymous.close();
+  } else if (learningOnly) {
     stage = "focused learning roadmap journey";
     await verifyLearningLive(a.context);
     assert.deepEqual(errors, []);

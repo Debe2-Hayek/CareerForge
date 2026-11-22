@@ -52,6 +52,22 @@ body:has(dialog:modal) .ambient, body:has(dialog:modal) .ambient * { animation-p
 .motion-toggle:hover { border-color: #a5ca7d; color: #e2f8c3; background: #1c2417e6; }
 @media (pointer: coarse) { .motion-toggle { min-height: 44px; } }
 
+/* Theme toggle and what the light theme changes by hand. */
+.theme-toggle { display: grid; place-items: center; flex: none; width: 40px; height: 40px; padding: 0; border: 1px solid transparent; border-radius: 50%; background: transparent; color: var(--muted); transition: color .2s, background .2s, border-color .2s; }
+.account-header { flex-wrap: wrap; gap: 4px 12px; }
+.account-header-actions { display: flex; align-items: center; gap: 4px 14px; margin-left: auto; }
+@media (max-width: 420px) { .account-header-actions { gap: 4px; } .account-header-actions .text-button { white-space: nowrap; } .account-header-actions .text-button span { display: none; } }
+.theme-toggle:hover { border-color: var(--line); background: var(--raised); color: var(--ink); }
+.theme-toggle svg { transition: transform .5s var(--ease); }
+.theme-toggle:hover svg { transform: rotate(40deg); }
+@media (pointer: coarse) { .theme-toggle { width: 44px; height: 44px; } }
+/* The background is drawn with light strokes; on paper they become soft ink. */
+:root[data-theme="light"] .ambient-canvas { filter: brightness(.55) saturate(1.5); opacity: .5; }
+:root[data-theme="light"] .ambient::before { opacity: .025; }
+:root[data-theme="light"] .ambient::after { display: none; }
+:root[data-theme="light"] .ambient-aurora { opacity: .5; }
+:root[data-theme="light"] .document-workspace .supplied-builder-page .pb:not(.pb-published) { background: var(--workspace-paper); }
+
 /* 4. Landing page --------------------------------------------------------- */
 .lp { position: relative; }
 .lp .eyebrow { font-size: 11px; letter-spacing: .18em; }
@@ -166,7 +182,7 @@ body:has(dialog:modal) .ambient, body:has(dialog:modal) .ambient * { animation-p
 .viz-tracker span { padding: 10px 4px; border: 1px solid #2f3b27; border-radius: 6px; color: #8fa07f; font: 10px var(--mono); text-align: center; animation: lp-stage 8s steps(1) infinite; animation-delay: calc(var(--i) * 2s); }
 .viz-learning { gap: 10px; }
 .viz-step { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border: 1px solid #2b3624; border-radius: 8px; }
-.viz-step span { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #26321f; color: var(--green); font: 11px var(--mono); flex-shrink: 0; }
+.viz-step span { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: light-dark(#e9f2de, #26321f); color: var(--green); font: 11px var(--mono); flex-shrink: 0; }
 .viz-step b { font-size: 13px; font-weight: 450; color: #c5cebd; }
 .viz-portfolio { gap: 10px; }
 .viz-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid #2b3624; border-radius: 8px; }
@@ -174,7 +190,7 @@ body:has(dialog:modal) .ambient, body:has(dialog:modal) .ambient * { animation-p
 .viz-switch { position: relative; width: 36px; height: 20px; border-radius: 99px; background: #2a3524; flex-shrink: 0; }
 .viz-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #7d8c70; transition: transform .3s var(--ease); }
 .viz-switch.on { background: #6f9a45; }
-.viz-switch.on::after { background: #f0f9de; transform: translateX(16px); }
+.viz-switch.on::after { background: light-dark(#ffffff, #f0f9de); transform: translateX(16px); }
 .lp-more { margin-top: 28px; }
 .lp-more .text-button { min-height: 44px; font-size: 14px; }
 
@@ -468,7 +484,7 @@ nav[data-ready] .app-nav-item.selected::before { opacity: 0; }
 .cmdk-search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 17px; letter-spacing: -.01em; }
 .cmdk-search input::placeholder { color: #6f7d62; }
 .cmdk-list { flex: 1; min-height: 0; margin: 0; padding: 8px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #3a4830 transparent; }
-.cmdk-heading { padding: 12px 12px 6px; color: #6f8460; font: 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+.cmdk-heading { padding: 12px 12px 6px; color: light-dark(#566847, #6f8460); font: 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
 .cmdk-option { position: relative; display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 6px 10px; border: 1px solid transparent; border-radius: 12px; color: #b5c3a6; font-size: 14px; cursor: pointer; transition: background .12s, border-color .12s, color .12s; }
 .cmdk-option[data-active="true"] { border-color: #44582f; background: linear-gradient(95deg, #2a391d, #1b2516); color: #f0fbdc; }
 .cmdk-option[data-active="true"]::before { content: ""; position: absolute; left: -9px; top: 50%; width: 3px; height: 20px; margin-top: -10px; border-radius: 0 3px 3px 0; background: var(--green); box-shadow: 0 0 12px #c5ed85aa; }

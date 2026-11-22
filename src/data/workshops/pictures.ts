@@ -90,11 +90,6 @@ const byCategory: Record<WorkshopCategory, readonly PictureKey[]> = {
   "Systems & Algorithms": ["chess", "maze", "chip", "books"]
 };
 
-/** The cover of a whole topic; not used by that topic's own curated workshops. */
-export const topicPicture: Record<WorkshopCategory, PictureKey> = {
-  "AI & ML": "fiber", "Web Dev": "desk", Python: "dev-desk", Cybersecurity: "code-lines", "Cloud & DevOps": "servers", "Systems & Algorithms": "chess"
-};
-
 /** Spreads similar workshops over the matching photos; the same workshop always gets the same one. */
 function pick(keys: readonly PictureKey[], id: string): PictureKey {
   let hash = 7;

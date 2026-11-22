@@ -2,16 +2,17 @@ import assert from "node:assert/strict";
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { test } from "node:test";
 import { curatedWorkshops } from "@/data/workshops/curated";
-import { pictureFor, pictures, topicPicture, type PictureKey } from "@/data/workshops/pictures";
+import { pictureFor, pictures, type PictureKey } from "@/data/workshops/pictures";
 import { SourceError } from "@/lib/jobs/fetch";
 import { getRoadmap } from "@/lib/roadmaps/catalog";
 import { parseDeviceData } from "@/components/workshops/device-store";
 import { classify, workshopsFromIcal, workshopsFromJson, type IcalSource } from "./adapters";
 import { canAddToCalendar, foldLine, googleCalendarUrl, icsFor } from "./calendar";
-import { activeFilterCount, availableSavedCount, canonicalUrl, defaultFilters, discover, identityOf, mergeWorkshops, sortWorkshops, spotlight, type DiscoveryFilters } from "./discovery";
+import { activeFilterCount, availableSavedCount, canonicalUrl, defaultFilters, discover, identityOf, mergeWorkshops, sortWorkshops, type DiscoveryFilters } from "./discovery";
 import { workshopHandlers, WorkshopError, type WorkshopAccess } from "./handlers";
 import { parseIcal, parseIcalTime } from "./ical";
 import { callToAction, countdownTo, endOf, formatDuration, isAvailable, lifecycleOf, nextTick } from "./lifecycle";
+import { frontOf, isClosed, offsetOf, placementOf, ringSize, ringWorkshops } from "./ring";
 import { configuredFeed, createWorkshopService, defaultFeeds, type FeedSource } from "./service";
 import { buildSubmission, validateDetails, validateEssentials, type SubmissionInput } from "./submission";
 import { parseApproved, parseOwnSuggestions, storedRecord, suggestionInputSchema } from "./suggestions";
@@ -99,21 +100,54 @@ test("each state offers one honest action", () => {
   assert.equal(callToAction(base, now).label, "Start Learning");
 });
 
-test("the spotlight follows its order and never shows expired or private workshops", () => {
+test("the ring shows live sessions first and never expired, private or other topics' workshops", () => {
   const running = live("2026-12-01T11:30:00Z", { id: "running" });
-  const featured = live("2026-12-09T12:00:00Z", { id: "featured", isFeatured: true });
+  const later = live("2026-12-09T12:00:00Z", { id: "later" });
   const nearest = live("2026-12-02T12:00:00Z", { id: "nearest" });
-  const pick = make({ id: "pick", badge: "Staff Pick", priority: 5 });
-  const plain = make({ id: "plain", priority: 1 });
-  const expired = live("2026-11-01T12:00:00Z", { id: "expired", isFeatured: true });
-  const mine = live("2026-12-01T11:45:00Z", { id: "local-1", verificationStatus: "unverified", isFeatured: true });
-  const all = [expired, mine, plain, pick, nearest, featured, running];
-  assert.equal(spotlight(all, now)?.id, "running");
-  assert.equal(spotlight(all.filter(item => item !== running), now)?.id, "featured");
-  assert.equal(spotlight([expired, mine, plain, pick, nearest], now)?.id, "nearest");
-  assert.equal(spotlight([expired, mine, plain, pick], now)?.id, "pick");
-  assert.equal(spotlight([expired, mine, plain], now)?.id, "plain");
-  assert.equal(spotlight([expired, mine], now), null);
+  const second = make({ id: "second", priority: 5 });
+  const first = make({ id: "first", priority: 1 });
+  const expired = live("2026-11-01T12:00:00Z", { id: "expired" });
+  const mine = live("2026-12-01T11:45:00Z", { id: "local-1", verificationStatus: "unverified" });
+  const all = [second, expired, mine, later, first, nearest, running];
+  const ids = (list: Workshop[]) => list.map(item => item.id);
+  assert.deepEqual(ids(ringWorkshops(all, "all", now)), ["running", "nearest", "later", "first", "second"]);
+  assert.deepEqual(ringWorkshops(all, "saved", now), []);
+  assert.deepEqual(ringWorkshops([expired, mine], "all", now), []);
+  const other = workshopCategories.find(category => category !== base.category)!;
+  assert.deepEqual(ids(ringWorkshops([...all, make({ id: "other", category: other })], other, now)), ["other"]);
+  // Live sessions share the ring with things to start today, unless there are none.
+  const many = Array.from({ length: 14 }, (_, index) => live(`2026-12-${String(index + 3).padStart(2, "0")}T12:00:00Z`, { id: `live-${index}` }));
+  const courses = Array.from({ length: 14 }, (_, index) => make({ id: `course-${index}`, priority: index + 1 }));
+  const mixed = ids(ringWorkshops([...courses, ...many], "all", now));
+  assert.equal(mixed.length, ringSize);
+  assert.equal(mixed.filter(id => id.startsWith("live-")).length, 5);
+  assert.equal(ringWorkshops(many, "all", now).length, ringSize);
+});
+
+test("cards stand on a circle: the front one is biggest and the ring has no seam", () => {
+  for (const count of [3, 4, 7, 10]) {
+    assert.ok(isClosed(count));
+    const front = placementOf(0, count);
+    assert.deepEqual({ ...front, y: Math.abs(front.y), z: Math.abs(front.z) }, { x: 0, y: 0, z: 0, turn: 0, scale: 1, dim: 0, opacity: 1 });
+    for (let offset = 1; offset <= count / 2; offset++) {
+      const right = placementOf(offset, count), left = placementOf(-offset, count);
+      assert.ok(right.z < 0 && right.scale < 1 && right.dim > 0, `${offset} of ${count} is behind the front`);
+      assert.ok(Math.abs(right.x + left.x) < 1e-9 && Math.abs(right.z - left.z) < 1e-9, "both sides match");
+    }
+    // A card leaving on one side arrives on the other in the same place.
+    const gone = placementOf(count / 2, count), back = placementOf(-count / 2, count);
+    assert.ok(Math.abs(gone.x - back.x) < 1e-6 && Math.abs(gone.turn - back.turn) < 1e-6);
+    for (const position of [-23, -1, 0, 1, 9, 41]) {
+      const at = frontOf(position, count);
+      assert.ok(at >= 0 && at < count);
+      assert.equal(Math.abs(offsetOf(at, position, count)), 0);
+      for (let index = 0; index < count; index++) assert.ok(Math.abs(offsetOf(index, position, count)) <= count / 2);
+    }
+  }
+  assert.equal(isClosed(2), false);
+  assert.equal(frontOf(5, 2), 1);
+  assert.equal(frontOf(-3, 1), 0);
+  assert.equal(frontOf(0, 0), 0);
 });
 
 test("search, topic, saved and every filter work together", () => {
@@ -291,7 +325,7 @@ test("submissions are validated, deduplicated and always private", async () => {
   assert.equal(built.workshop.verificationStatus, "unverified");
   assert.equal(built.workshop.submissionStatus, "private");
   assert.match(built.workshop.id, /^local-[0-9a-f]{16}$/);
-  assert.equal(spotlight([built.workshop], now), null);
+  assert.deepEqual(ringWorkshops([built.workshop], "all", now), []);
   assert.ok("errors" in await buildSubmission(draft, [built.workshop], now), "cannot be added twice");
 });
 
@@ -408,12 +442,9 @@ test("every workshop has a local, openly licensed photo", () => {
     assert.match(photo.tone, /^#[0-9a-f]{6}$/);
   }
   assert.equal(readdirSync(folder).length, keys.length * 2, "no stray files");
-  // Each hand-checked workshop has its own picture, and a topic cover never repeats one of its cards.
+  // Each hand-checked workshop has its own picture.
   const used = curatedWorkshops.map(pictureFor);
   assert.equal(new Set(used).size, curatedWorkshops.length);
-  for (const category of workshopCategories) {
-    assert.ok(!curatedWorkshops.some(workshop => workshop.category === category && pictureFor(workshop) === topicPicture[category]), category);
-  }
 });
 
 test("feed and learner workshops get a related photo, always the same one", () => {

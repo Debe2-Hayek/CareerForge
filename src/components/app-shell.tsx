@@ -7,6 +7,8 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type Fo
 import { features, featureGroups, type FeatureIcon } from "@/lib/features";
 import { AppIcon, type IconName } from "./app-icons";
 import { CommandPalette, type PaletteItem } from "./command-palette";
+import { ThemeToggle } from "./theme-toggle";
+import { toggleTheme } from "@/lib/theme";
 
 // The icon set lives in app-icons.tsx; re-exported so existing imports from "./app-shell" keep working.
 export { AppIcon, type IconName } from "./app-icons";
@@ -151,13 +153,15 @@ export function AppShell({ children, pageTitle, displayName = "Your workspace", 
     }),
     ...(privateAccount ? [] : [{ id: "page-account", label: "My account", group: "Account", icon: "account" as IconName, href: "/account", keywords: "private profile settings", current: isActivePath(pathname, "/account") }]),
     { id: "act-sidebar", label: handleLabel, group: "Actions", icon: "panel", shortcut: "[", keywords: "navigation menu toggle collapse expand" },
-    { id: "act-motion", label: "Pause or resume background motion", group: "Actions", icon: "spark", keywords: "animation background reduce calm" }
+    { id: "act-motion", label: "Pause or resume background motion", group: "Actions", icon: "spark", keywords: "animation background reduce calm" },
+    { id: "act-theme", label: "Switch between dark and light", group: "Actions", icon: "spark", keywords: "theme light dark mode color appearance" }
   ];
   function pick(item: PaletteItem) {
     setPaletteOpen(false);
     if (item.href) router.push(item.href);
     else if (item.id === "act-sidebar") toggleSidebar();
     else if (item.id === "act-motion") toggleMotion();
+    else if (item.id === "act-theme") toggleTheme();
   }
 
   return <div className={`app-shell ${collapsed ? "sidebar-collapsed" : ""}`}>
@@ -177,7 +181,7 @@ export function AppShell({ children, pageTitle, displayName = "Your workspace", 
     <dialog className="navigation-drawer" ref={drawer} aria-label="Navigation" onClose={() => menuButton.current?.focus()} onClick={event => {
       if (event.target === event.currentTarget) { const bounds = event.currentTarget.getBoundingClientRect(); if (event.clientX > bounds.right || event.clientY > bounds.bottom) drawer.current?.close(); }
     }}><SidebarNav mobile pathname={pathname} items={navigationItems} privateAccount={privateAccount} applicationCount={applicationCount} displayName={displayName} initials={initials} collapsed={false} onNavigate={closeDrawer} /></dialog>
-    <div className="app-main"><header className="app-topbar"><button ref={menuButton} className="shell-icon-button mobile-menu-button" aria-label="Open navigation" aria-haspopup="dialog" onClick={() => { drawer.current?.showModal(); drawer.current?.querySelector<HTMLButtonElement>("button")?.focus(); }}><AppIcon name="menu" /></button><div className="app-breadcrumb"><span>CareerForge</span><span aria-hidden="true">/</span><strong>{pageTitle}</strong></div><div className="app-topbar-actions"><button type="button" className="cmdk-trigger" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" aria-label="Search pages and actions" onClick={() => setPaletteOpen(true)}><AppIcon name="search" /><span className="cmdk-trigger-text">Search or jump to…</span><kbd>{mac ? "⌘" : "Ctrl"} K</kbd></button><span className={`workspace-mode ${privateAccount ? "private-mode" : ""}`}><span />{privateAccount ? "Private account" : "Demo workspace"}</span>{accountActions ?? <Link className="shell-account-link" href="/account" aria-label="Open my account"><AppIcon name="account" /><span>My account</span></Link>}</div></header><main id="main-content" tabIndex={-1} className={`app-content ${contentClassName}`}>{children}</main></div>
+    <div className="app-main"><header className="app-topbar"><button ref={menuButton} className="shell-icon-button mobile-menu-button" aria-label="Open navigation" aria-haspopup="dialog" onClick={() => { drawer.current?.showModal(); drawer.current?.querySelector<HTMLButtonElement>("button")?.focus(); }}><AppIcon name="menu" /></button><div className="app-breadcrumb"><span>CareerForge</span><span aria-hidden="true">/</span><strong>{pageTitle}</strong></div><div className="app-topbar-actions"><button type="button" className="cmdk-trigger" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" aria-label="Search pages and actions" onClick={() => setPaletteOpen(true)}><AppIcon name="search" /><span className="cmdk-trigger-text">Search or jump to…</span><kbd>{mac ? "⌘" : "Ctrl"} K</kbd></button><ThemeToggle /><span className={`workspace-mode ${privateAccount ? "private-mode" : ""}`}><span />{privateAccount ? "Private account" : "Demo workspace"}</span>{accountActions ?? <Link className="shell-account-link" href="/account" aria-label="Open my account"><AppIcon name="account" /><span>My account</span></Link>}</div></header><main id="main-content" tabIndex={-1} className={`app-content ${contentClassName}`}>{children}</main></div>
     <CommandPalette open={paletteOpen} items={paletteItems} onClose={() => setPaletteOpen(false)} onPick={pick} />
   </div>;
 }

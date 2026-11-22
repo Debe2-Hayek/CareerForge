@@ -1,10 +1,17 @@
 # Workshops
 
 Discover free, hands-on computer science sessions at `/workshops`. Added
-22 November 2026 (M5). Photo-led but simple to use: header, topic rail, one
-spotlight, search, one Filters button, a row of live sessions, cards and a detail
-panel. A search or filter shows one plain list. *Surprise me* opens a random
-workshop from the current list.
+22 November 2026 (M5). Photo-led but simple to use: header, topic rail (on the
+right, level with the middle of the screen), a 3D ring, search, one Filters button,
+cards and a detail panel. *Surprise me* opens a random workshop from the list.
+
+**Ring** (`src/lib/workshops/ring.ts`, `workshop-ring.tsx`): up to ten checked
+workshops of the chosen topic, live sessions first. The one at the front is the
+biggest and carries the details. Turn it with the wheel, a drag or swipe, the arrow
+keys, Home/End, the arrows, or by choosing a side card. The wheel stops at the first
+and last card so the page scrolls on. Every workshop is also in the list below; a
+search or filter hides the ring. With reduced motion it jumps instead of gliding. It
+uses CSS 3D transforms only.
 
 ## Content
 

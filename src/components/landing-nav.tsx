@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { BrandMark } from "./career-visuals";
+import { ThemeToggle } from "./theme-toggle";
 
 /**
  * The landing-page navigation: a floating "island" instead of a full-width bar.
@@ -164,6 +165,7 @@ export function LandingNav() {
           {sections.map(section => <Link key={section.id} href={`#${section.id}`} className="lp-nl" aria-current={active === section.id ? "location" : undefined} {...hoverProps(section.id)}>{section.label}</Link>)}
           <Link href="/dashboard" className="lp-nl" {...hoverProps("login")}>Sign in</Link>
         </nav>
+        <ThemeToggle />
         <span className="lp-cta-wrap" ref={ctaWrap}><Link href="/register" className="button primary lp-island-cta">Create account <span aria-hidden="true">&#8599;</span></Link></span>
         <button type="button" ref={menuButton} className="lp-menu-btn" aria-label="Open menu" aria-haspopup="dialog" aria-expanded={menuOpen} onClick={() => { sheet.current?.showModal(); closeButton.current?.focus(); setMenuOpen(true); }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M4 8h16 M4 16h10" /></svg>

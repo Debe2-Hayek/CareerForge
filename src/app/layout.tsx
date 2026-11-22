@@ -9,6 +9,7 @@ import "./profile-start.css";
 import { AmbientBackground } from "@/components/ambient-background";
 import { SelfDiagnoseProvider } from "@/components/self-diagnose-provider";
 import { siteOrigin } from "@/lib/site-url";
+import { themeColor, themeScript } from "@/lib/theme";
 
 const title = "CareerForge — Build a career you can stand behind";
 const description = "Build a private, evidence-first career profile, complete supported skill checks, create your CV and track your next opportunities with CareerForge.";
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
     : undefined
 };
 
-export const viewport: Viewport = { themeColor: "#111411", colorScheme: "dark" };
+export const viewport: Viewport = { themeColor: themeColor.dark, colorScheme: "dark light" };
 
 export default function RootLayout({
   children
@@ -36,6 +37,7 @@ export default function RootLayout({
   return (
     // Extensions can add document-wrapper attributes; app descendants keep hydration checks.
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
+      <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
       <body suppressHydrationWarning>
         <div className="site-layer">{children}</div>
         <SelfDiagnoseProvider />

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { BrandMark } from "./career-visuals";
+import { ThemeToggle } from "./theme-toggle";
 
 // The shared layout keeps the mode indicator mounted across auth navigation.
 export function AuthFrame({ children }: { children: ReactNode }) {
@@ -11,7 +12,7 @@ export function AuthFrame({ children }: { children: ReactNode }) {
   return <div className="account-page">
     <header className="account-header">
       <Link className="brand" href="/"><BrandMark />CareerForge.</Link>
-      <Link className="text-button" href="/">Back to home <span aria-hidden="true">&#8599;</span></Link>
+      <div className="account-header-actions"><ThemeToggle /><Link className="text-button" href="/">Back to home <span aria-hidden="true">&#8599;</span></Link></div>
     </header>
     <main className="auth-layout">
       <section className="auth-story" key={registering ? "register" : "login"}>

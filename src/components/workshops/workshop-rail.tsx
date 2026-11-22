@@ -19,7 +19,7 @@ export const railItems: readonly { id: RailSelection; slug: string; label: strin
   { id: "saved", slug: "saved", label: "My Saved", icon: "bookmark" }
 ];
 
-/** Icon-only topic rail: vertical beside the content, a scrollable strip on phones. */
+/** Icon-only topic rail: vertical on the right of the content, a scrollable strip on phones. */
 export function WorkshopRail({ selected, savedCount, onSelect }: { selected: RailSelection; savedCount: number; onSelect: (id: RailSelection) => void }) {
   const [tip, setTip] = useState<{ label: string; x: number; y: number; below: boolean } | null>(null);
   const list = useRef<HTMLUListElement>(null);
@@ -28,7 +28,7 @@ export function WorkshopRail({ selected, savedCount, onSelect }: { selected: Rai
   function show(element: HTMLElement, label: string) {
     const box = element.getBoundingClientRect();
     const strip = list.current ? getComputedStyle(list.current).flexDirection === "row" : false;
-    setTip(strip ? { label, x: box.left + box.width / 2, y: box.bottom + 8, below: true } : { label, x: box.right + 10, y: box.top + box.height / 2, below: false });
+    setTip(strip ? { label, x: box.left + box.width / 2, y: box.bottom + 8, below: true } : { label, x: box.left - 10, y: box.top + box.height / 2, below: false });
   }
   function onKeyDown(event: KeyboardEvent<HTMLUListElement>) {
     const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];

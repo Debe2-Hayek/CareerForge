@@ -1,0 +1,80 @@
+"use client";
+
+import Link from "next/link";
+import { AppIcon } from "@/components/app-icons";
+import { SidePanel } from "@/components/roadmaps/side-panel";
+import { canAddToCalendar, googleCalendarUrl, icsFor } from "@/lib/workshops/calendar";
+import { lifecycleOf } from "@/lib/workshops/lifecycle";
+import type { Workshop } from "@/lib/workshops/types";
+import { LocalTime, type Notify } from "./hooks";
+import { ActionLink, areaOf, BookmarkButton, Difficulty, durationLabel } from "./workshop-card";
+import styles from "./workshops.module.css";
+
+export function WorkshopDetails({ workshop, now, saved, roadmapTitles, onToggle, onRemove, onClose, notify }: {
+  workshop: Workshop; now: number; saved: boolean; roadmapTitles: Record<string, string>;
+  onToggle: () => void; onRemove: () => void; onClose: () => void; notify: Notify;
+}) {
+  const state = lifecycleOf(workshop, now);
+  const isPrivate = workshop.submissionStatus === "private";
+  const googleUrl = canAddToCalendar(workshop, now) ? googleCalendarUrl(workshop) : null;
+  const roadmaps = (workshop.relatedRoadmaps ?? []).filter(id => roadmapTitles[id]);
+
+  async function copyLink() {
+    const url = new URL("/workshops", window.location.origin);
+    url.searchParams.set("workshop", workshop.id);
+    try { await navigator.clipboard.writeText(url.href); notify("Link copied."); } catch { notify(`Copy this link: ${url.href}`, "error"); }
+  }
+  function downloadIcs() {
+    const content = icsFor(workshop, Date.now());
+    if (!content) { notify("This session has already started.", "error"); return; }
+    const url = URL.createObjectURL(new Blob([content], { type: "text/calendar;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${workshop.id}.ics`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  return <SidePanel label={workshop.category} titleId="workshop-title" contentKey={workshop.id} area={areaOf[workshop.category]} onClose={onClose}>
+    <header className={styles.detailHead}>
+      {state === "live" && <p className={styles.liveNow}><i aria-hidden="true" />Happening Now</p>}
+      {state === "replay" && <p className={styles.reason}>Replay Available</p>}
+      <h2 id="workshop-title" tabIndex={-1}>{workshop.title}</h2>
+      <p className={styles.detailHook}>{workshop.outcomeHook}</p>
+    </header>
+
+    <div className={styles.detailActions}>
+      <ActionLink workshop={workshop} now={now} primary />
+      <div className={styles.secondaryRow}>
+        <BookmarkButton saved={saved} title={workshop.title} onToggle={onToggle} withLabel />
+        {!isPrivate && <button type="button" className={styles.secondary} onClick={() => void copyLink()}><AppIcon name="share" />Copy link</button>}
+        {googleUrl && <a className={styles.secondary} href={googleUrl} target="_blank" rel="noopener noreferrer"><AppIcon name="calendar" />Google Calendar<span className="sr-only"> (opens in a new tab)</span></a>}
+        {googleUrl && <button type="button" className={styles.secondary} onClick={downloadIcs}><AppIcon name="calendar" />Download .ics</button>}
+      </div>
+    </div>
+
+    <dl className={styles.facts}>
+      {(state === "upcoming" || state === "live") && <div className={styles.factWide}><dt>When</dt><dd><LocalTime iso={workshop.startDateTime!} /></dd></div>}
+      <div><dt>Level</dt><dd><Difficulty workshop={workshop} /></dd></div>
+      <div><dt>Length</dt><dd>{durationLabel(workshop)}{workshop.durationEstimated && <small>our estimate</small>}</dd></div>
+      <div><dt>Format</dt><dd>{state === "replay" ? "Self-Paced / Recorded" : workshop.format}</dd></div>
+      <div><dt>Cost</dt><dd>{workshop.priceType}</dd></div>
+      <div className={styles.factWide}><dt>Host</dt><dd>{workshop.instructorOrHost}{workshop.platform !== workshop.instructorOrHost && <small>on {workshop.platform}</small>}</dd></div>
+    </dl>
+
+    <section className={styles.detailBlock}><h3>About</h3><p>{workshop.description}</p></section>
+    {workshop.keyTakeaways.length > 0 && <section className={styles.detailBlock}><h3>What You’ll Learn</h3><ul className={styles.ticks}>{workshop.keyTakeaways.map(text => <li key={text}>{text}</li>)}</ul></section>}
+    {workshop.sourceType === "curated" && <section className={styles.detailBlock}><h3>Before you start</h3>
+      {workshop.prerequisites.length ? <ul className={styles.plainList}>{workshop.prerequisites.map(text => <li key={text}>{text}</li>)}</ul> : <p>No experience needed.</p>}</section>}
+    {roadmaps.length > 0 && <section className={styles.detailBlock}><h3>Fits these roadmaps</h3><ul className={styles.links}>{roadmaps.map(id => <li key={id}><Link href={`/learning-roadmap/${id}`}>{roadmapTitles[id]}</Link></li>)}</ul></section>}
+
+    <footer className={styles.detailFoot}>
+      {workshop.accessNotes && <p>{workshop.accessNotes}</p>}
+      {isPrivate
+        ? <p>You added this on this device. Only you can see it, and CareerForge has not checked it. <button type="button" className={styles.textButton} onClick={onRemove}>Remove it</button></p>
+        : workshop.sourceType === "feed"
+          ? <p>From the organiser’s public calendar, read {workshop.lastVerifiedAt}. Details can change, so confirm on the event page.</p>
+          : <p>Checked on the publisher’s page {workshop.lastVerifiedAt}. CareerForge is not affiliated with the host.</p>}
+    </footer>
+  </SidePanel>;
+}

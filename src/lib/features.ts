@@ -1,5 +1,5 @@
 /** Product navigation and report traceability. Status describes functionality, not page existence. */
-export type FeatureIcon = "overview" | "profile" | "checks" | "jobs" | "applications" | "cv" | "compass" | "courses" | "roadmap" | "projects" | "analysis" | "portfolio" | "agent" | "outcomes" | "assistant" | "simulator";
+export type FeatureIcon = "overview" | "profile" | "checks" | "jobs" | "applications" | "cv" | "compass" | "courses" | "roadmap" | "workshops" | "projects" | "analysis" | "portfolio" | "agent" | "outcomes" | "assistant" | "simulator";
 export type FeatureStatus = "Available" | "Pilot" | "Planned" | "Stretch";
 export type Feature = {
   id: string; label: string; href: string; icon: FeatureIcon; group: string;
@@ -13,6 +13,7 @@ export const features: readonly Feature[] = [
   { id: "skill-checks", label: "Skill checks", href: "/skill-checks", icon: "checks", group: "Career", module: "Assessment pilot", status: "Pilot", description: "React and SQL fundamentals checks. Only selected skills with a current passing check enter your CV." },
   { id: "academic-planner", label: "Academic planner", href: "/academic-planner", icon: "courses", group: "Learning", module: "M3", status: "Planned", description: "Connect your courses and degree progress to your career target." },
   { id: "learning-roadmap", label: "Learning roadmap", href: "/learning-roadmap", icon: "roadmap", group: "Learning", module: "M5 pilot", status: "Pilot", description: "Personalised, free learning paths with progress tracking, projects and portfolio evidence, plus career roadmaps that compare your profile with a target role." },
+  { id: "workshops", label: "Workshops", href: "/workshops", icon: "workshops", group: "Learning", module: "M5", status: "Available", description: "Free, hands-on computer science workshops: verified live sessions and self-paced practice you can start today." },
   { id: "projects", label: "Project ideas", href: "/projects", icon: "projects", group: "Learning", module: "M5", status: "Planned", description: "Build projects that demonstrate the skills your target career needs." },
   { id: "documents", label: "CV & Portfolio", href: "/documents", icon: "cv", group: "Documents", module: "M6", status: "Pilot", description: "Create an editable CV and portfolio with shared details, styles and PDF output. AI writing and saved builder drafts are not connected." },
   { id: "cv-analysis", label: "CV analysis", href: "/cv-analysis", icon: "analysis", group: "Documents", module: "M6", status: "Planned", description: "Understand how your CV meets a specific job's requirements." },

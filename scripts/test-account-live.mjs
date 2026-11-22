@@ -3,6 +3,7 @@ import { verifyTrackerLive } from "./verify-tracker-live.mjs";
 import { verifyCVLive } from "./verify-cv-live.mjs";
 import { verifyFeaturesLive } from "./verify-features-live.mjs";
 import { verifyLearningLive } from "./verify-learning-live.mjs";
+import { verifyWorkshopsLive } from "./verify-workshops-live.mjs";
 import { verifyPortfolioLive } from "./verify-portfolio-live.mjs";
 import { verifySuppliedBuilderLive } from "./verify-supplied-builder-live.mjs";
 import { verifyProfileLayout } from "./verify-profile-layout.mjs";
@@ -18,6 +19,7 @@ const assessmentOnly = process.argv.includes("--assessment-only");
 const portfolioOnly = process.argv.includes("--portfolio-only");
 const builderOnly = process.argv.includes("--builder-only");
 const learningOnly = process.argv.includes("--learning-only");
+const workshopsOnly = process.argv.includes("--workshops-only");
 const users = [randomUUID(), randomUUID()].map(id => ({ id, email: `${id}@careerforge.invalid`, password: `Test-${randomUUID()}!` }));
 const db = new Client({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 15000, statement_timeout: 15000 });
 let browser;
@@ -92,6 +94,11 @@ try {
     await verifyLearningLive(a.context);
     assert.deepEqual(errors, []);
     console.log("PASS: focused learning roadmap browser checks");
+  } else if (workshopsOnly) {
+    stage = "focused workshops journey";
+    await verifyWorkshopsLive(a.context);
+    assert.deepEqual(errors, []);
+    console.log("PASS: focused workshops browser checks");
   } else if (assessmentOnly || portfolioOnly || builderOnly) {
     if (!builderOnly) {
       stage = "focused timed-assessment and CV verification";

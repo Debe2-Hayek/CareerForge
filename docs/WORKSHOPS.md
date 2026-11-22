@@ -129,6 +129,10 @@ with the list and the steps; it updates that issue when the list changes and clo
 when the check is clean. The job that runs project code can only read; the job that
 writes the issue runs no project code. Expired sessions hide themselves meanwhile.
 
+Some sites refuse GitHub's servers. A refusal, time-out or outage is logged but raises
+no issue unless six or more pages fail together; a missing page (404, 410), an unknown
+domain or an expired certificate always does.
+
 The live feed adds its own new sessions. Curated sessions are added by a person, who
 opens each event page first.
 

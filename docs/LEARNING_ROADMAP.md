@@ -62,10 +62,12 @@ account, key or AI; dead, non-HTTPS and archive links are dropped).
 
 roadmap.sh was requested as the data source. Its repository licence forbids
 publishing its content "in any form", allowing only links, and its terms forbid
-copying, derivative works and automated access. CareerForge therefore does not
-fetch, store or adapt its content. It covers the same subjects with original
-roadmaps, links each roadmap to its roadmap.sh counterpart, and states that the
-two are not affiliated. Using the actual data would need written permission from
+copying, derivative works and automated access. The learner roadmaps therefore do
+not use its content: they cover the same subjects with original text, link to the
+roadmap.sh counterpart, and state that the two are not affiliated. Separately, the
+older product map sync (`scripts/sync-roadmap.ts`, weekly workflow) still reads
+topic file names from roadmap.sh's GitHub repository and stores those ids in
+`src/data/roadmap.json`; whether to keep it under the same licence is undecided. Using the actual data would need written permission from
 its owner. Imported catalogues permit redistribution; credits and licences appear
 on every page that uses them.
 

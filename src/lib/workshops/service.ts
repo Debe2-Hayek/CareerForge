@@ -98,6 +98,11 @@ export function createWorkshopService({
   }
 
   return {
+    now,
+    /** What is already in memory, without waiting for any source; curated content when nothing is. */
+    peek(): WorkshopCatalog {
+      return cached?.catalog ?? { workshops: curated.workshops, sources: [], generatedAt: new Date(now()).toISOString() };
+    },
     /** Cached for half an hour; simultaneous callers share one refresh. */
     async catalog(): Promise<WorkshopCatalog> {
       if (cached && now() - cached.at < ttlMs) return cached.catalog;

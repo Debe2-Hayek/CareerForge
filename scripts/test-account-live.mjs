@@ -97,8 +97,9 @@ try {
   } else if (workshopsOnly) {
     stage = "focused workshops journey";
     await verifyWorkshopsLive(a.context);
+    await verifyFeaturesLive(a.context);
     assert.deepEqual(errors, []);
-    console.log("PASS: focused workshops browser checks");
+    console.log("PASS: focused workshops and feature directory browser checks");
   } else if (assessmentOnly || portfolioOnly || builderOnly) {
     if (!builderOnly) {
       stage = "focused timed-assessment and CV verification";

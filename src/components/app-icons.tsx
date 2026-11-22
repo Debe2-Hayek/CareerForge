@@ -1,6 +1,6 @@
 import type { FeatureIcon } from "@/lib/features";
 
-export type IconName = FeatureIcon | "account" | "menu" | "close" | "panel" | "arrow" | "chevron" | "search" | "spark" | "return" | "grid" | "brain" | "code" | "python" | "shield" | "cloud" | "cpu" | "bookmark" | "filter" | "share" | "calendar" | "external" | "clock";
+export type IconName = FeatureIcon | "account" | "menu" | "close" | "panel" | "arrow" | "chevron" | "search" | "spark" | "return" | "features" | "grid" | "brain" | "code" | "python" | "shield" | "cloud" | "cpu" | "bookmark" | "filter" | "share" | "calendar" | "external" | "clock";
 
 /**
  * Duotone icon set. Every glyph is a crisp 1.7px line drawing on a 24px grid, plus an optional
@@ -12,6 +12,7 @@ const glyphs: Record<IconName, { line: string; soft?: string }> = {
   courses: { line: "M3 5.5c3-1 6-.8 9 1.5 3-2.3 6-2.5 9-1.5V18c-3-1-6-.8-9 1.5C9 17.2 6 17 3 18z M12 7v12.5", soft: "M3 5.5c3-1 6-.8 9 1.5v12.5C9 17.2 6 17 3 18z" },
   roadmap: { line: "M8 18h5a4 4 0 0 0 0-8h-2a4 4 0 0 1 0-4h5 M6 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4z M18 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", soft: "M6 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4z M18 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" },
   workshops: { line: "M3 4.5h18 M4.5 4.5v10h15v-10 M12 14.5v2.5 M8 21l4-4 4 4 M10.2 7.4v4.2l3.8-2.1z", soft: "M4.5 4.5h15v10h-15z" },
+  features: { line: "M7.5 3.5l3.7 6.5H3.8z M17 3.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4z M4.3 14.2h6.2v6.2H4.3z M17 13.4l3.9 3.9-3.9 3.9-3.9-3.9z", soft: "M7.5 3.5l3.7 6.5H3.8z M17 13.4l3.9 3.9-3.9 3.9-3.9-3.9z" },
   grid: { line: "M5 5h5v5H5z M14 5h5v5h-5z M5 14h5v5H5z M14 14h5v5h-5z", soft: "M5 5h5v5H5z M14 14h5v5h-5z" },
   brain: { line: "M12 5.2A2.7 2.7 0 0 0 7 6.4a2.8 2.8 0 0 0-2.2 4.2 3 3 0 0 0 .6 4.8A2.9 2.9 0 0 0 9.2 19a2.6 2.6 0 0 0 2.8-2.4z M12 5.2a2.7 2.7 0 0 1 5 1.2 2.8 2.8 0 0 1 2.2 4.2 3 3 0 0 1-.6 4.8 2.9 2.9 0 0 1-3.8 3.6 2.6 2.6 0 0 1-2.8-2.4z M8 10.5c1.2 0 2 .7 2 1.8 M16 10.5c-1.2 0-2 .7-2 1.8", soft: "M12 5.2A2.7 2.7 0 0 0 7 6.4a2.8 2.8 0 0 0-2.2 4.2 3 3 0 0 0 .6 4.8A2.9 2.9 0 0 0 9.2 19a2.6 2.6 0 0 0 2.8-2.4z" },
   code: { line: "M8 7l-5 5 5 5 M16 7l5 5-5 5 M13.6 4.5l-3.2 15" },

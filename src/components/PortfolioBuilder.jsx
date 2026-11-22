@@ -97,7 +97,7 @@ function themeVars(theme, custom, mode) {
 
 // CareerForge additions (all optional; without them the builder behaves as supplied):
 // initialState restores a saved draft; onStateChange reports edits so they can be saved.
-export default function PortfolioBuilder({ initialState, onStateChange } = {}) {
+export default function PortfolioBuilder({ initialState, onStateChange, notesCollapsed = false } = {}) {
   const [input, setInput] = useState(() => initialState?.notes ?? SAMPLE);
   const [data, setData] = useState(() => initialState?.data ?? ({ ...mockStructure(SAMPLE), ...DEMO_CONTACT }));
   const [view, setView] = useState("portfolio");
@@ -162,7 +162,7 @@ export default function PortfolioBuilder({ initialState, onStateChange } = {}) {
       <div className="pb" style={vars} data-mode={mode}>
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
-        <aside className="panel no-print">
+        <aside id="builder-notes-panel" className="panel no-print" aria-hidden={notesCollapsed || undefined} inert={notesCollapsed || undefined}>
           <h1>Turn rough notes into a portfolio and CV</h1>
           <p className="sub">Write it the way you'd tell a friend. The AI handles the polish.</p>
           <label htmlFor="raw">Your notes</label>

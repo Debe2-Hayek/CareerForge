@@ -5,6 +5,7 @@ import type { BuilderState, PublishedState } from "@/lib/portfolio-site";
 declare const PortfolioBuilder: ComponentType<{
   initialState?: BuilderState;
   onStateChange?: (state: BuilderState) => void;
+  notesCollapsed?: boolean;
 }>;
 export default PortfolioBuilder;
 

@@ -143,25 +143,44 @@ export function SuppliedDocumentBuilder({ initial, origin }: { initial: SiteStat
   const status = !storageAvailable ? "Saving unavailable" : savedLabel(saveState, savedAt);
 
   return <section className="supplied-builder-page" aria-label="CV and portfolio builder" data-notes-collapsed={notesCollapsed}>
-    <div className="supplied-builder-bar">
-      <p>
-        <strong>{storageAvailable ? "Your CV & portfolio" : "Sample builder"}</strong>
-        {" · "}
-        <span className="builder-save-state" data-state={saveState} role="status" aria-live="polite">{status}</span>
-        {liveUrl && <> · <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="builder-live-link">Live at /u/{site?.slug}<span className="sr-only"> (opens in a new tab)</span></a></>}
-        {site?.hasUnpublishedChanges && <span className="builder-unpublished"> · Unpublished changes</span>}
-      </p>
+    <header className="supplied-builder-bar">
+      <div className="builder-bar-summary">
+        <span className="builder-bar-kicker"><AppIcon name="portfolio" /> Document studio</span>
+        <div className="builder-bar-title">
+          <strong>{storageAvailable ? "Your CV & portfolio" : "Sample builder"}</strong>
+          <span className="builder-save-state" data-state={saveState} role="status" aria-live="polite">
+            <span className="builder-status-dot" aria-hidden="true" />{status}
+          </span>
+          {liveUrl && <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="builder-live-link">Live at /u/{site?.slug}<span className="sr-only"> (opens in a new tab)</span></a>}
+          {site?.hasUnpublishedChanges && <span className="builder-unpublished">Unpublished changes</span>}
+        </div>
+      </div>
       <div className="supplied-builder-tools">
-        <button type="button" className="builder-notes-toggle" aria-expanded={!notesCollapsed} aria-controls="raw" onClick={() => setNotesCollapsed(collapsed => !collapsed)}>
-          <AppIcon name="panel" /><span>{notesCollapsed ? "Show notes" : "Hide notes"}</span>
-        </button>
-        {storageAvailable && <button type="button" className="builder-publish-toggle" aria-expanded={panelOpen} aria-controls="builder-publish" onClick={() => {
-          setPanelOpen(open => !open);
-          if (!slug) setSlug(suggestSlug(latestName.current));
-        }}>{site?.isPublic ? "Manage live site" : "Publish website"}</button>}
-        <nav aria-label="Saved document tools">
-          <Link href="/cv/saved">Saved-profile CV</Link>
-          <Link href="/portfolio/publication">Profile portfolio</Link>
+        <div className="builder-primary-tools">
+          <button
+            type="button"
+            className="builder-notes-toggle"
+            aria-label={notesCollapsed ? "Show notes" : "Hide notes"}
+            aria-expanded={!notesCollapsed}
+            aria-controls="builder-notes-panel"
+            onClick={() => setNotesCollapsed(collapsed => !collapsed)}
+          >
+            <span className="builder-toggle-icon" aria-hidden="true"><AppIcon name="panel" /></span>
+            <span className="builder-toggle-copy" aria-hidden="true">
+              <strong>Notes editor</strong>
+              <small>{notesCollapsed ? "Show writing panel" : "Hide for a wider preview"}</small>
+            </span>
+            <span className="builder-toggle-chevron" aria-hidden="true"><AppIcon name="chevron" /></span>
+          </button>
+          {storageAvailable && <button type="button" className="builder-publish-toggle" aria-expanded={panelOpen} aria-controls="builder-publish" onClick={() => {
+            setPanelOpen(open => !open);
+            if (!slug) setSlug(suggestSlug(latestName.current));
+          }}><AppIcon name="portfolio" /><span>{site?.isPublic ? "Manage live site" : "Publish website"}</span><span className="builder-publish-chevron" aria-hidden="true"><AppIcon name="chevron" /></span></button>}
+        </div>
+        <nav className="builder-account-tools" aria-label="Saved document tools">
+          <span className="builder-tools-label">Account tools</span>
+          <Link href="/cv/saved"><AppIcon name="cv" /><span>Saved-profile CV</span></Link>
+          <Link href="/portfolio/publication"><AppIcon name="portfolio" /><span>Profile portfolio</span></Link>
         </nav>
       </div>
       {panelOpen && <div id="builder-publish" className="builder-publish" role="region" aria-label="Publish your portfolio website">
@@ -190,7 +209,7 @@ export function SuppliedDocumentBuilder({ initial, origin }: { initial: SiteStat
         </div>}
       </div>}
       {message && <p className="builder-message" role="alert">{message}{saveState === "conflict" && <> <button type="button" className="builder-secondary" onClick={() => location.reload()}>Reload latest</button></>}</p>}
-    </div>
-    <PortfolioBuilder initialState={initial?.draft ?? undefined} onStateChange={onStateChange} />
+    </header>
+    <PortfolioBuilder initialState={initial?.draft ?? undefined} onStateChange={onStateChange} notesCollapsed={notesCollapsed} />
   </section>;
 }

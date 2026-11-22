@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 
 import { nextTick } from "@/lib/workshops/lifecycle";
 import type { Workshop } from "@/lib/workshops/types";
 import { useDeviceStore } from "./device-store";
+import styles from "./workshops.module.css";
 
 const never = () => () => {};
 export const useMounted = () => useSyncExternalStore(never, () => true, () => false);
@@ -31,14 +32,21 @@ export function useNow(workshops: readonly Workshop[], initial: number): number 
 }
 
 /** A moment in the learner's own time zone; UTC until the browser's zone is known. */
-export function LocalTime({ iso, compact = false }: { iso: string; compact?: boolean }) {
+export function LocalTime({ iso, compact = false, withDay = true }: { iso: string; compact?: boolean; /** False beside a DateTile, which already shows the day. */ withDay?: boolean }) {
   const mounted = useMounted();
   const date = new Date(iso);
   const options: Intl.DateTimeFormatOptions = compact
-    ? { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }
+    ? { weekday: "short", ...(withDay ? { day: "numeric", month: "short" } as const : {}), hour: "numeric", minute: "2-digit" }
     : { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", timeZoneName: "short" };
   const label = new Intl.DateTimeFormat(mounted ? undefined : "en-GB", { ...options, ...(mounted ? {} : { timeZone: "UTC" }) }).format(date);
   return <time dateTime={iso}>{label}{mounted ? "" : compact ? " UTC" : ""}</time>;
+}
+
+/** The day as a small calendar leaf, in the learner's own time zone. */
+export function DateTile({ iso }: { iso: string }) {
+  const mounted = useMounted();
+  const format = (options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(mounted ? undefined : "en-GB", { ...options, ...(mounted ? {} : { timeZone: "UTC" }) }).format(new Date(iso));
+  return <time className={styles.dateTile} dateTime={iso}><b>{format({ month: "short" })}</b> <strong>{format({ day: "numeric" })}</strong></time>;
 }
 
 export type Notify = (text: string, tone?: "info" | "error") => void;

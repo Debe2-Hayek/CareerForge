@@ -1,16 +1,19 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { AppIcon } from "@/components/app-icons";
 import { activeFilterCount, availableSavedCount, defaultFilters, discover, mergeWorkshops, spotlight, type DiscoveryFilters, type RailSelection } from "@/lib/workshops/discovery";
-import { isAvailable } from "@/lib/workshops/lifecycle";
+import { topicPicture } from "@/data/workshops/pictures";
+import { isAvailable, lifecycleOf } from "@/lib/workshops/lifecycle";
 import type { OwnSuggestion, SuggestionInput } from "@/lib/workshops/suggestions";
-import type { WorkshopCatalog } from "@/lib/workshops/types";
+import type { Workshop, WorkshopCatalog, WorkshopCategory } from "@/lib/workshops/types";
 import { FilterPopover } from "./filter-popover";
-import { useBookmarks, useMounted, useNow, type Notify } from "./hooks";
+import { LocalTime, useBookmarks, useMounted, useNow, type Notify } from "./hooks";
+import { LiveRow } from "./live-row";
+import { Picture } from "./picture";
 import { SubmitWorkshop } from "./submit-workshop";
-import { Spotlight, WorkshopCard } from "./workshop-card";
+import { areaOf, Spotlight, WorkshopCard } from "./workshop-card";
 import { WorkshopDetails } from "./workshop-details";
 import { railItems, WorkshopRail } from "./workshop-rail";
 import styles from "./workshops.module.css";
@@ -18,6 +21,17 @@ import styles from "./workshops.module.css";
 const staleAfter = 30 * 60_000;
 /** A short first page; the rest is one button away. */
 const firstPage = 12;
+
+const topicLine: Record<WorkshopCategory, string> = {
+  "AI & ML": "Train models, build agents and learn what they can really do.",
+  "Web Dev": "Build things people open in a browser.",
+  Python: "One friendly language, from first script to real tools.",
+  Cybersecurity: "Break things legally, then learn to protect them.",
+  "Cloud & DevOps": "Ship software and keep it running.",
+  "Systems & Algorithms": "See how computers work underneath."
+};
+
+const anyOf = <T,>(list: readonly T[]): T | undefined => list[Math.floor(Math.random() * list.length)];
 
 type Reply = { ok: true; body: unknown } | { ok: false; message: string; fields?: Record<string, string> };
 
@@ -49,6 +63,7 @@ export function WorkshopsExperience({ initialCatalog, initialBookmarks, initialO
   const [toast, setToast] = useState<{ text: string; tone: "info" | "error" } | null>(null);
   const pushed = useRef(false);
   const trigger = useRef<string | null>(null);
+  const lastSurprise = useRef<string | null>(null);
 
   const notify = useCallback<Notify>((text, tone = "info") => setToast({ text, tone }), []);
   const { saved, toggle, usesAccount, device } = useBookmarks(initialBookmarks, deviceScope, notify);
@@ -113,22 +128,47 @@ export function WorkshopsExperience({ initialCatalog, initialBookmarks, initialO
     document.querySelector<HTMLElement>(`[data-workshop="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
   }, [openId]);
 
+  const topic = rail === "all" || rail === "saved" ? null : rail;
   const label = railItems.find(item => item.id === rail)?.label ?? "All Workshops";
   const filtered = Boolean(filters.query) || activeFilterCount(filters) > 0;
+  // Browsing without filters, live sessions get their own row; a search or filter shows one plain list.
+  const browsing = !filtered && rail !== "saved";
+  const spotlit = featured && rail === "all" && !filters.query ? featured : null;
+  const isLive = (workshop: Workshop) => ["live", "upcoming"].includes(lifecycleOf(workshop, now));
+  const live = browsing ? results.filter(workshop => isLive(workshop) && workshop.id !== spotlit?.id).sort((a, b) => Date.parse(a.startDateTime!) - Date.parse(b.startDateTime!)) : [];
+  const rest = browsing ? results.filter(workshop => !isLive(workshop)) : results;
+  const ahead = useMemo(() => workshops.filter(workshop => lifecycleOf(workshop, now) === "upcoming").sort((a, b) => Date.parse(a.startDateTime!) - Date.parse(b.startDateTime!)), [workshops, now]);
+  function surprise() {
+    const choices = results.filter(workshop => workshop.id !== lastSurprise.current);
+    const choice = anyOf(choices);
+    if (!choice) return;
+    lastSurprise.current = choice.id;
+    open(choice.id);
+  }
+  const cardFor = (workshop: Workshop, index: number) => <li key={workshop.id} style={{ "--i": Math.min(index, 11) } as CSSProperties}>
+    <WorkshopCard workshop={workshop} now={now} saved={saved.has(workshop.id)} onOpen={() => open(workshop.id)} onToggle={() => void toggle(workshop.id, workshop.title)} />
+  </li>;
   const reset = () => { setFilters(defaultFilters); setRail("all"); };
   const feeds = catalog.sources.filter(source => source.id !== "curated");
   const curatedCount = catalog.sources.find(source => source.id === "curated")?.count ?? 0;
 
   return <div className={styles.page}>
     <header className={styles.head}>
-      <div><h1>Workshops</h1><p>Free, hands-on computer science sessions. Pick a topic and start.</p></div>
-      <button type="button" className={styles.textButton} onClick={() => setSubmitting(true)}>Submit workshop</button>
+      <div>
+        <h1>Workshops</h1>
+        <p>Free, hands-on computer science sessions. Pick a topic and start.</p>
+        {ahead.length > 0 && <p className={styles.ahead}><i className={styles.pulse} aria-hidden="true" /><span><strong>{ahead.length} live {ahead.length === 1 ? "session" : "sessions"} ahead</strong> Next: <LocalTime iso={ahead[0].startDateTime!} compact /></span></p>}
+      </div>
+      <div className={styles.headActions}>
+        <button type="button" className={styles.surprise} disabled={!results.length} onClick={surprise}><AppIcon name="spark" />Surprise me</button>
+        <button type="button" className={styles.textButton} onClick={() => setSubmitting(true)}>Submit workshop</button>
+      </div>
     </header>
 
     <div className={styles.layout}>
       <WorkshopRail selected={rail} savedCount={mounted ? savedCount : initialBookmarks?.length ? savedCount : 0} onSelect={setRail} />
       <div className={styles.content}>
-        {featured && rail === "all" && !filters.query && <Spotlight workshop={featured} now={now} onOpen={() => open(featured.id)} />}
+        {spotlit && <Spotlight workshop={spotlit} now={now} saved={saved.has(spotlit.id)} onOpen={() => open(spotlit.id)} onToggle={() => void toggle(spotlit.id, spotlit.title)} />}
 
         <div className={styles.tools}>
           <div className={styles.search}>
@@ -139,23 +179,25 @@ export function WorkshopsExperience({ initialCatalog, initialBookmarks, initialO
           <FilterPopover filters={filters} onChange={setFilters} />
         </div>
 
-        <div className={styles.listHead}>
-          <h2>{label}</h2>
+        <div className={styles.listHead} data-area={topic ? areaOf[topic] : undefined} data-cover={topic ? true : undefined}>
+          {topic && <Picture name={topicPicture[topic]} sizes="(max-width: 760px) 100vw, 1140px" eager />}
+          <div><h2>{label}</h2>{topic && <p>{topicLine[topic]}</p>}</div>
           <p role="status" aria-live="polite">{results.length} {results.length === 1 ? "workshop" : "workshops"}{filtered && results.length > 0 && <button type="button" className={styles.textButton} onClick={() => setFilters(defaultFilters)}>Reset Filters</button>}</p>
         </div>
 
         {missing && <div className={styles.notice} role="status"><p>That workshop is no longer available.</p><button type="button" className={styles.textButton} onClick={close}>Dismiss</button></div>}
 
-        {results.length > 0
-          ? <ul className={styles.grid}>{(showAll ? results : results.slice(0, firstPage)).map(workshop => <li key={workshop.id}><WorkshopCard workshop={workshop} now={now} saved={saved.has(workshop.id)} onOpen={() => open(workshop.id)} onToggle={() => void toggle(workshop.id, workshop.title)} /></li>)}</ul>
-          : <div className={styles.empty}>
+        {live.length > 0 && <LiveRow key={rail} count={live.length}>{live.map(cardFor)}</LiveRow>}
+        {live.length > 0 && rest.length > 0 && <div className={styles.sectionHead}><h2>Start anytime</h2></div>}
+        {rest.length > 0 && <ul className={styles.grid} key={`grid-${rail}`}>{(showAll ? rest : rest.slice(0, firstPage)).map(cardFor)}</ul>}
+        {results.length === 0 && <div className={styles.empty}>
               <span aria-hidden="true"><AppIcon name={rail === "saved" ? "bookmark" : "search"} /></span>
               {rail === "saved" && savedCount === 0
                 ? <><h3>Nothing saved yet</h3><p>Use the bookmark on any workshop to keep it here.</p><button type="button" className={styles.secondary} onClick={reset}>Browse workshops</button></>
                 : <><h3>No workshops match</h3><p>Try another word or topic.</p><button type="button" className={styles.secondary} onClick={reset}>Reset Filters</button></>}
             </div>}
 
-        {!showAll && results.length > firstPage && <div className={styles.more}><button type="button" className={styles.secondary} onClick={() => setShowAll(true)}>Show all {results.length}</button></div>}
+        {!showAll && rest.length > firstPage && <div className={styles.more}><button type="button" className={styles.secondary} onClick={() => setShowAll(true)}>Show all {rest.length}</button></div>}
 
         <footer className={styles.sources}>
           <p>{curatedCount} hand-checked workshops{feeds.map(feed => <span key={feed.id}> · {feed.label}: {feed.state === "failed" ? (feed.count ? "temporarily unavailable, showing the last copy" : "temporarily unavailable") : feed.state === "empty" ? "no upcoming sessions" : `${feed.count} upcoming`}{feed.state !== "failed" && mounted ? `, checked ${minutesAgo(feed.checkedAt, now)}` : ""}</span>)}</p>

@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { AppIcon } from "@/components/app-icons";
+import { pictureFor, pictures } from "@/data/workshops/pictures";
 import { SidePanel } from "@/components/roadmaps/side-panel";
 import { canAddToCalendar, googleCalendarUrl, icsFor } from "@/lib/workshops/calendar";
 import { lifecycleOf } from "@/lib/workshops/lifecycle";
 import type { SuggestionStatus } from "@/lib/workshops/suggestions";
 import type { Workshop } from "@/lib/workshops/types";
 import { LocalTime, type Notify } from "./hooks";
-import { ActionLink, areaOf, BookmarkButton, Difficulty, durationLabel } from "./workshop-card";
+import { Picture } from "./picture";
+import { ActionLink, areaOf, BookmarkButton, Difficulty, durationLabel, FormatLabel } from "./workshop-card";
 import styles from "./workshops.module.css";
 
 function OwnStatus({ suggestion, onSuggest, onRemove }: { suggestion: { status: SuggestionStatus; note: string | null } | undefined; onSuggest: (suggested: boolean) => void; onRemove: () => void }) {
@@ -31,6 +33,8 @@ export function WorkshopDetails({ workshop, now, saved, roadmapTitles, suggestio
   const state = lifecycleOf(workshop, now);
   const isPrivate = workshop.submissionStatus === "private";
   const googleUrl = canAddToCalendar(workshop, now) ? googleCalendarUrl(workshop) : null;
+  const photoName = pictureFor(workshop);
+  const photo = pictures[photoName];
   const roadmaps = (workshop.relatedRoadmaps ?? []).filter(id => roadmapTitles[id]);
 
   async function copyLink() {
@@ -50,9 +54,11 @@ export function WorkshopDetails({ workshop, now, saved, roadmapTitles, suggestio
   }
 
   return <SidePanel label={workshop.category} titleId="workshop-title" contentKey={workshop.id} area={areaOf[workshop.category]} onClose={onClose}>
+    <div className={styles.detailCover}>
+      <Picture name={photoName} sizes="(max-width: 560px) 100vw, 520px" eager />
+      <p className={styles.chip}><FormatLabel workshop={workshop} now={now} /></p>
+    </div>
     <header className={styles.detailHead}>
-      {state === "live" && <p className={styles.liveNow}><i aria-hidden="true" />Happening Now</p>}
-      {state === "replay" && <p className={styles.reason}>Replay Available</p>}
       <h2 id="workshop-title" tabIndex={-1}>{workshop.title}</h2>
       <p className={styles.detailHook}>{workshop.outcomeHook}</p>
     </header>
@@ -91,6 +97,7 @@ export function WorkshopDetails({ workshop, now, saved, roadmapTitles, suggestio
         : workshop.sourceType === "feed"
           ? <p>From the organiser’s public calendar, read {workshop.lastVerifiedAt}. Details can change, so confirm on the event page.</p>
           : <p>Checked on the publisher’s page {workshop.lastVerifiedAt}. CareerForge is not affiliated with the host.</p>}
+      <p>Photo: <a href={photo.page} target="_blank" rel="noopener noreferrer">{photo.caption}<span className="sr-only"> (opens in a new tab)</span></a> by {photo.author}, {photo.license}.</p>
     </footer>
   </SidePanel>;
 }

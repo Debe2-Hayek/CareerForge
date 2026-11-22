@@ -1,14 +1,21 @@
 # CareerForge implementation roadmap
 
+## Livelier Workshops and a weekly alert - verified locally, 22 November 2026
+
+Every workshop now has a related photo (36, CC0 or public domain, served locally
+and credited). New photo spotlight, topic banners, a row of live sessions, *Surprise
+me* and short entrance motion. The weekly check opens, updates and closes one GitHub
+issue instead of only writing to a log. Microsoft Reactor listings are not collected
+automatically because its terms do not clearly allow it. Details: [WORKSHOPS.md](WORKSHOPS.md).
+
 ## Workshops and a reorganised All features - verified locally, 22 November 2026
 
 New `/workshops`: topic rail, spotlight, search, filters, details, account
 bookmarks, calendar export and private submissions, with 20 hand-checked
 resources, 6 verified Microsoft Reactor sessions and DataTalks.Club's live
 calendar. Learners can add workshops and suggest them for operator review. Roadmaps
-link to matching practice by stable id. Production needs migrations
-`202611230001_workshop_bookmarks` and `202611230002_workshop_suggestions`; until then
-both stay on the device. Details and evidence: [WORKSHOPS.md](WORKSHOPS.md).
+link to matching practice by stable id. Migrations
+`202611230001_workshop_bookmarks` and `202611230002_workshop_suggestions` are in production. Details and evidence: [WORKSHOPS.md](WORKSHOPS.md).
 
 `/features` now groups working tools by purpose (Learn, Show it, Find work, Your
 space) with one true line from the learner's records each, search, and planned

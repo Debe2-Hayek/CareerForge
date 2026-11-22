@@ -1,26 +1,76 @@
 name: Workshops freshness
 
-# Read-only: tells the maintainers when a hand-checked workshop moved, changed its
-# date or ended. It changes nothing and needs no secrets.
+# Once a week, checks the hand-checked workshops and keeps one GitHub issue in step
+# with the result: opened when a person has something to do, updated when that
+# changes, closed when the check is clean. It never edits the workshops themselves.
 on:
   schedule:
     - cron: "17 5 * * 2"
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
+
+concurrency:
+  group: workshops-freshness
 
 jobs:
+  # Runs the project's code, so it can only read.
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      report: ${{ steps.report.outputs.report }}
     env:
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run check:workshops
+      # A found problem exits 1 and is still a finished check. Without a report the check itself broke.
+      - run: npm run check:workshops -- --report "$RUNNER_TEMP/report.md" || test -f "$RUNNER_TEMP/report.md"
+      - id: report
+        run: |
+          end="end-$(openssl rand -hex 16)"
+          { echo "report<<$end"; cat "$RUNNER_TEMP/report.md"; echo; echo "$end"; } >> "$GITHUB_OUTPUT"
+
+  # Can write issues, so it runs no project code.
+  issue:
+    needs: check
+    if: always() && needs.check.result != 'cancelled'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TITLE: Workshops need attention
+      RESULT: ${{ needs.check.result }}
+      REPORT: ${{ needs.check.outputs.report }}
+      RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - run: |
+          if [ "$RESULT" != "success" ]; then
+            REPORT="The weekly check itself failed, so nothing was checked: $RUN"
+          fi
+          number=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number,title,author \
+            --jq "map(select(.title == env.TITLE and .author.is_bot)) | .[0].number // empty")
+          clean=$(printf '%s' "$REPORT" | tr -d '[:space:]')
+          if [ -z "$clean" ]; then
+            if [ -n "$number" ]; then gh issue close "$number" --comment "The weekly check is clean: $RUN"; fi
+            exit 0
+          fi
+          printf '%s\n' "$REPORT" > body.md
+          if [ -z "$number" ]; then
+            gh issue create --title "$TITLE" --body-file body.md
+          elif [ "$(gh issue view "$number" --json body --jq .body | tr -d '[:space:]')" != "$clean" ]; then
+            gh issue edit "$number" --body-file body.md
+            gh issue comment "$number" --body "The list above changed: $RUN"
+          fi

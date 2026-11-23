@@ -77,14 +77,16 @@ work under R1.
 ## Generation compatibility
 
 The editor posts `{ text }` to `/api/generate`. The authenticated,
-same-origin, bounded-input compatibility route returns HTTP 501 for valid
-requests, enabling the component's labeled demo fallback. The canonical versioned
-API retains the standard error shape; the alias returns the string expected by
-the supplied source. No AI provider or paid call is connected.
+same-origin, bounded-input compatibility route sends the notes to the AI service
+(DeepSeek via OpenRouter) when a key is set, validates the answer and removes every fact not
+found in the notes (see [AI.md](AI.md)), then returns the data object the
+supplied component expects. Errors are returned as the string it expects; the
+daily limit returns 429 with `Retry-After`. The canonical versioned API
+(`/api/v1/documents/generate`) returns `{ document }` and the standard error shape.
 
-The original `ANTHROPIC_API_KEY` setup suggestion remains source text. Adding a
-key alone does not activate generation. Real generation requires a server-side
-provider, validated grounded output and source facts instead of fictional fallback.
+Without a key, valid requests still return HTTP 501 and the component shows its
+labeled demo fallback. Its original `ANTHROPIC_API_KEY` hint remains unchanged
+source text; that message appears only in this fallback.
 
 ## Notes collapse, motion and accessibility
 

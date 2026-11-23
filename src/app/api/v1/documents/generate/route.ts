@@ -1,4 +1,5 @@
-import { documentDemoHandlers } from "@/lib/document-demo-handlers";
-import { authorizeDocumentDemo } from "@/lib/document-demo-server";
+import { documentGenerateHandlers } from "@/lib/ai/handlers";
+import { aiProvider, authorizeAi } from "@/lib/ai/server";
 
-export const { POST } = documentDemoHandlers(authorizeDocumentDemo);
+export const maxDuration = 60;
+export const { POST } = documentGenerateHandlers(authorizeAi, aiProvider);

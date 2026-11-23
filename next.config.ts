@@ -37,6 +37,8 @@ const noIndexSources = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // CV text extraction: load the PDF.js build as published (it relies on Node APIs).
+  serverExternalPackages: ["unpdf"],
   turbopack: {
     root: process.cwd()
   },

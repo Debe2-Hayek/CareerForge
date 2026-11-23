@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { z } from "zod";
 import { AiError, completeJson, type AiProvider } from "./provider";
 
-export type AiFeature = "profile_autofill" | "document_generate" | "evidence_check";
+export type AiFeature = "profile_autofill" | "document_generate" | "evidence_check" | "skill_bank_draft";
 export type Reservation =
   | { status: "cached"; output: unknown }
   | { status: "reserved"; runId: string; remaining: number }

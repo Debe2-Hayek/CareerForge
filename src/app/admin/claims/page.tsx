@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { ClaimReviewQueue } from "@/components/claim-review-queue";
+import { AdminTabs } from "@/components/admin-tabs";
 import { authorizeReview, readReviewQueue, type QueueItem } from "@/lib/claims/server";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,7 @@ export default async function Page() {
   return <AppShell pageTitle="Review claims" privateAccount>
     <div className="account-content">
       <div className="page-heading"><div><p className="eyebrow">ADMIN · REVIEW QUEUE</p><h1>Review claims<span>.</span></h1><p>Open each file and compare it with the claim: the name, the institution or company, the title and the dates. Approve only when the proof matches; reject with a reason the user will see.</p></div><span className="outline-label">{items.length} waiting</span></div>
+      <AdminTabs current="claims" />
       <ClaimReviewQueue items={items} />
     </div>
   </AppShell>;

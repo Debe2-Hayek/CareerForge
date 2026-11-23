@@ -24,7 +24,7 @@ test("assessment mutations deny foreign origins and anonymous access before grad
 test("assessment payloads cannot set owner, deadline, grade or arbitrary timing", async () => {
   let calls = 0;
   const handlers = skillCheckHandlers(async () => ({ ...access, start: async () => { calls++; return { session }; }, submit: async () => { calls++; return grade; } }));
-  for (const change of [{ ownerId: "other" }, { deadlineAt: "2099-01-01" }, { timingMode: "unlimited" }, { version: 2 }]) {
+  for (const change of [{ ownerId: "other" }, { deadlineAt: "2099-01-01" }, { timingMode: "unlimited" }, { version: 0 }, { version: -1 }, { skill: "" }]) {
     assert.equal((await handlers.session(request({ ...start, ...change }))).status, 400);
   }
   for (const change of [{ user_id: "other" }, { passed: true }, { score: 5 }, { skill: "React" }, { sessionId: "invalid" }, { answers: {} }]) {

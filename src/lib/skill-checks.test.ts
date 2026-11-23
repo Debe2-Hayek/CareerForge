@@ -2,9 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { eligibleCVSkills, checkSubmission, bankSchema, submissionResultSchema, checkSessionSchema, sessionActionSchema, type CheckResult } from "./skill-checks";
 const result: CheckResult = { skill: "React", version: 1, score: 4, passed: true, taken_at: "2026-10-23" };
-test("CV requires selected skills and a passing current supported check", () => {
+test("CV requires selected skills and a passing check for that skill", () => {
   assert.deepEqual(eligibleCVSkills(["react", "SQL", "TypeScript"], [result]), ["react"]);
-  for (const change of [{ passed: false }, { version: 0 }, { skill: "TypeScript" }]) assert.deepEqual(eligibleCVSkills(["React", "TypeScript"], [{ ...result, ...change }]), []);
+  for (const change of [{ passed: false }, { skill: "Docker" }]) assert.deepEqual(eligibleCVSkills(["React", "TypeScript"], [{ ...result, ...change }]), []);
+  // Any published skill can be checked now, and a pass on an earlier version still counts.
+  assert.deepEqual(eligibleCVSkills(["TypeScript"], [{ ...result, skill: "TypeScript", version: 3 }]), ["TypeScript"]);
   assert.deepEqual(eligibleCVSkills(["SQL"], [result]), []);
 });
 test("submissions cannot supply a pass or score and require a complete answer set", () => {
@@ -21,7 +23,7 @@ test("a saved assessment result must have consistent bounded grading and provena
   const saved = { skill: "React", version: 1, score: 4, total: 5, passed: true, takenAt: "2026-10-28T10:00:00+00:00" };
   assert.equal(submissionResultSchema.safeParse(saved).success, true);
   assert.equal(submissionResultSchema.safeParse({ ...saved, score: 2, passed: false }).success, true);
-  for (const change of [{ score: 3 }, { passed: false }, { total: 10 }, { score: 6 }, { score: 4.5 }, { version: 2 }, { skill: "Unknown" }, { takenAt: "yesterday" }]) {
+  for (const change of [{ score: 3 }, { passed: false }, { total: 10 }, { score: 6 }, { score: 4.5 }, { version: 0 }, { version: 1.5 }, { skill: "" }, { skill: "x".repeat(61) }, { takenAt: "yesterday" }]) {
     assert.equal(submissionResultSchema.safeParse({ ...saved, ...change }).success, false);
   }
 });

@@ -79,18 +79,21 @@ export async function authorizeReview(): Promise<(ReviewAccess & { client: Supab
 
 /** The owner's facts with their trust levels, for the verification page and profile ring. */
 export async function readClaimsOverview(client: SupabaseClient, userId: string, skills: string[]): Promise<ClaimItem[]> {
-  const [history, results, claims, evidence] = await Promise.all([
+  const [history, results, claims, evidence, catalog] = await Promise.all([
     historyAccess(client, userId).readAll(),
     readSkillResults(client, userId),
     client.from("claims").select("id,kind,education_id,experience_id,skill,source_revision,subject,status,status_note,decided_at,updated_at").eq("user_id", userId),
-    client.from("claim_evidence").select("claim_id").eq("user_id", userId)
+    client.from("claim_evidence").select("claim_id").eq("user_id", userId),
+    client.rpc("skill_check_catalog")
   ]);
   if (claims.error || evidence.error) throw new Error("Claims unavailable");
   const rows = z.array(claimRowSchema).parse(claims.data ?? []);
   const counts: Record<string, number> = {};
   for (const item of evidence.data ?? []) counts[item.claim_id] = (counts[item.claim_id] ?? 0) + 1;
   const passed = results.filter(result => result.passed).map(result => ({ skill: result.skill, takenAt: result.taken_at }));
-  return buildClaimItems(history, skills, passed, rows, counts);
+  // Skills with a published CareerForge check (any skill an admin has published).
+  const checkable = catalog.error ? undefined : z.array(z.object({ skill: z.string() }).loose()).catch([]).parse(catalog.data ?? []).map(bank => bank.skill);
+  return buildClaimItems(history, skills, passed, rows, counts, checkable);
 }
 
 const queueSchema = z.array(z.object({

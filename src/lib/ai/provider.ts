@@ -126,6 +126,15 @@ export function createFakeProvider(): AiProvider {
       if (/proof document/i.test(system)) {
         return { model, content: JSON.stringify({ readable: true, documentType: "diploma", personName: "Rana Haddad", issuer: "Lebanese American University", title: "Bachelor of Engineering in Computer Engineering", issueDate: "June 2020", startDate: "", endDate: "2020", certificateId: "LAU-2020-04417", verificationUrl: "", notes: ["Test AI: this reading is invented for development."] }) };
       }
+      if (/multiple-choice questions for CareerForge skill checks/i.test(system)) {
+        const skill = user.match(/<skill>([^<]{1,60})<\/skill>/)?.[1] ?? "this skill";
+        const questions = [0, 1, 2, 3, 4].map(n => ({
+          prompt: `Test AI question ${n + 1} about ${skill}: which option is the correct one?`,
+          options: ["Option A (test)", "Option B (test)", "Option C (test)"], answer: [1, 2, 0, 2, 1][n],
+          explanation: "Test AI: invented for development."
+        }));
+        return { model, content: JSON.stringify({ questions }) };
+      }
       // Autofill and builder: echo the first line of the source as a name; grounding removes the rest.
       const first = user.replace(/<\/?\w+>/g, "").trim().split(/\n|,|\./)[0]?.trim().slice(0, 60) ?? "";
       return { model, content: JSON.stringify({ name: first, headline: "", location: "", summary: "", education: [], experience: [], skills: [], projects: [], languages: [] }) };

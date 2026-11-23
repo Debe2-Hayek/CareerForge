@@ -48,7 +48,7 @@ function fromRow(row: ClaimRow | undefined, revision: string | null): Pick<Claim
 }
 
 /** Every education record, job and self-reported skill, with its current trust level. */
-export function buildClaimItems(history: ProfileHistory, skills: string[], passed: PassedCheck[], rows: ClaimRow[], evidenceCounts: Record<string, number>): ClaimItem[] {
+export function buildClaimItems(history: ProfileHistory, skills: string[], passed: PassedCheck[], rows: ClaimRow[], evidenceCounts: Record<string, number>, checkable: readonly string[] = checkableSkills): ClaimItem[] {
   const byEducation = new Map(rows.filter(row => row.education_id).map(row => [row.education_id, row]));
   const byExperience = new Map(rows.filter(row => row.experience_id).map(row => [row.experience_id, row]));
   const bySkill = new Map(rows.filter(row => row.skill).map(row => [row.skill!.toLowerCase(), row]));
@@ -64,7 +64,7 @@ export function buildClaimItems(history: ProfileHistory, skills: string[], passe
   const skillItems = skills.map(skill => {
     const check = passed.find(item => item.skill.toLowerCase() === skill.toLowerCase());
     const row = bySkill.get(skill.toLowerCase());
-    const checkAvailable = checkableSkills.some(name => name.toLowerCase() === skill.toLowerCase());
+    const checkAvailable = checkable.some(name => name.toLowerCase() === skill.toLowerCase());
     const base = { key: `skill:${skill.toLowerCase()}`, kind: "skill" as const, recordId: null, skill, title: skill, evidenceCount: count(row), checkAvailable: checkAvailable && !check };
     if (check) return { ...base, detail: "Skill", status: "verified" as const, note: null, date: check.takenAt, method: "CareerForge check" };
     return { ...base, detail: "Skill", method: row?.status === "reviewed" ? "Reviewer" : null, ...fromRow(row, null) };

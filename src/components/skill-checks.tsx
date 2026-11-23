@@ -130,7 +130,7 @@ export function SkillChecks({ banks, selected, results, initialSession = null }:
 
   return <div className="account-content">
     <div className="page-heading"><div><p className="eyebrow">EVIDENCE BEFORE CLAIMS</p><h1>Put your skills to work.</h1><p>Pass a basics check before a selected skill can appear on your CV.</p></div><Link className="button" href="/cv/saved">View my CV</Link></div>
-    <p className="muted-note">These five-question React/SQL checks assess limited fundamentals, not identity, professional proficiency or mastery. Pass mark: 4/5. Other skills remain self-reported and excluded from your CV until supported checks exist.</p>
+    <p className="muted-note">Each check has five questions prepared and approved by CareerForge reviewers and assesses fundamentals, not identity, professional proficiency or mastery. Pass mark: 4/5. Add a skill to your profile to take its check; skills without a check stay self-reported.</p>
     {message && <p className="notice" role="status">{message}</p>}
     {error && <p className="form-error" role="alert">{error}</p>}
     {(error || expired) && <button type="button" className="text-button" onClick={() => window.location.reload()}>Reload recorded results (clears local answers)</button>}
@@ -139,7 +139,7 @@ export function SkillChecks({ banks, selected, results, initialSession = null }:
       <div className="check-timing"><label htmlFor="check-timing-mode">Time allowance for a new attempt</label><select id="check-timing-mode" value={timingMode} disabled={pending || (!!session && !expired)} onChange={event => setTimingMode(event.target.value as "standard" | "extended")}><option value="standard">Standard · 10 minutes</option><option value="extended">Extended · 100 minutes</option></select><p className="muted-note">Choose extended time if you need more time to read or use assistive tools. Timing does not prove identity or detect dishonesty. Existing attempts keep their original allowance.</p></div>
       <div ref={checkList} className="check-grid">{banks.map(bank => {
         const included = selected.some(skill => skill.toLowerCase().trim() === bank.skill.toLowerCase());
-        const passed = results.some(result => result.skill === bank.skill && result.version === bank.version && result.passed);
+        const passed = results.some(result => result.skill.toLowerCase() === bank.skill.toLowerCase() && result.passed);
         const resumable = session?.skill === bank.skill;
         return <section className="panel check-card" key={bank.skill}>
           <p className="eyebrow">{passed ? "BASICS CHECK PASSED" : "NOT YET ASSESSED"}</p><h2>{bank.skill}</h2><p>Five questions · 4/5 to pass</p>

@@ -1,5 +1,14 @@
 # CareerForge implementation roadmap
 
+## R1: AI-drafted, admin-approved skill checks for any skill - verified on development with the test AI, 23 November 2026
+
+Admins draft five timed questions for any skill at `/admin/skill-checks` (with the AI or by hand);
+plain code blocks weak or broken questions; publishing creates the next version of that skill's
+server-graded check, without explanations. Students take checks for any published skill on their
+profile; passing marks it Verified. Only the latest version can be started and earlier passes stay
+valid. Built on PR #19 (migration order). Production needs 202611240004 and 202611240005.
+Details: [SKILL_CHECKS.md](SKILL_CHECKS.md).
+
 ## R1 part 2: AI proof check in the review queue - verified on development with the test AI, 23 November 2026
 
 Admins can ask the AI to read a proof file (PDF text or photo); plain code compares the name,

@@ -22,7 +22,7 @@ export const features: readonly Feature[] = [
   { id: "applications", label: "Applications", href: "/applications", icon: "applications", group: "Applications", module: "M7", status: "Available", description: "Save roles and update application statuses manually in your private tracker." },
   { id: "application-agent", label: "Application agent", href: "/application-agent", icon: "agent", group: "Applications", module: "M7", status: "Planned", description: "Prepare grounded applications, review the contents and approve supported submissions." },
   { id: "application-insights", label: "Application insights", href: "/application-insights", icon: "outcomes", group: "Applications", module: "M7", status: "Planned", description: "Use your recorded application outcomes to guide your next steps." },
-  { id: "career-assistant", label: "AI assistant", href: "/career-assistant", icon: "assistant", group: "Explore", module: "M9", status: "Stretch", description: "Ask career questions with context from your own profile." },
+  { id: "career-assistant", label: "AI assistant", href: "/career-assistant", icon: "assistant", group: "Explore", module: "M9", status: "Pilot", description: "Ask career questions; the assistant uses only the parts of your profile you choose to share." },
   { id: "graduation-simulator", label: "Graduation simulator", href: "/graduation-simulator", icon: "simulator", group: "Explore", module: "M8", status: "Stretch", description: "Explore how course delays could affect your graduation plan." },
 ];
 export type PlannedFeature = Feature & { steps: readonly [string, string, string]; prerequisite: string; startHref: string; startLabel: string };

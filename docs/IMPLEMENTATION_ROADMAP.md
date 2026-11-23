@@ -1,5 +1,13 @@
 # CareerForge implementation roadmap
 
+## M9: Career assistant - verified on development with the test AI, 23 November 2026
+
+`/career-assistant` answers career questions with only the parts of the profile the user ticks
+(profile and skills with trust badges, work and education, career matches). OpenAI (`gpt-6-luna`)
+when an OpenAI key is set, otherwise the existing DeepSeek/OpenRouter provider; plain-text replies
+with allow-listed internal links; 20 messages per day; chats not saved. Moves from Stretch to Pilot.
+Built on PR #23. Production needs 0004 to 0009. Details: [ASSISTANT.md](ASSISTANT.md).
+
 ## R1: Project interviews - verified on development with the test AI and test GitHub, 23 November 2026
 
 Students prove a public GitHub project with a one-time code, then answer four AI-written questions

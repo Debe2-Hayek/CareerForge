@@ -6,7 +6,9 @@ import type { z } from "zod";
  * use a fake and never spend credit.
  */
 /** images: data URLs (image/png or image/jpeg) sent with the user message, for document reading. */
-export type AiRequest = { system: string; user: string; maxTokens: number; images?: string[] };
+export type ChatTurn = { role: "user" | "assistant"; content: string };
+/** json (default true) asks for a JSON object; history holds earlier turns of a conversation. */
+export type AiRequest = { system: string; user: string; maxTokens: number; images?: string[]; json?: boolean; history?: ChatTurn[] };
 export type AiCompletion = { content: string; model: string };
 export type AiProvider = { complete(request: AiRequest): Promise<AiCompletion> };
 
@@ -15,10 +17,17 @@ export class AiError extends Error {
 }
 
 type ChatOptions = { apiKey: string; model?: string; timeoutMs?: number; fetchImpl?: typeof fetch };
-type ChatTarget = { url: string; model: string; extra: Record<string, unknown> };
+type ChatTarget = { url: string; model: string; extra: Record<string, unknown>; tokenParam?: "max_tokens" | "max_completion_tokens"; temperature?: boolean };
 
 export const DEEPSEEK = { url: "https://api.deepseek.com/chat/completions", model: "deepseek-flash" } as const;
 export const OPENROUTER = { url: "https://openrouter.ai/api/v1/chat/completions", model: "deepseek/deepseek-v4.1-flash" } as const;
+/** OpenAI's lowest-cost current model (developers.openai.com, 23 November 2026); override with OPENAI_MODEL. */
+export const OPENAI = { url: "https://api.openai.com/v1/chat/completions", model: "gpt-6-luna" } as const;
+
+/** OpenAI: current models take max_completion_tokens; temperature is left at the default because support is not documented for every model. */
+export function createOpenAIProvider({ model = OPENAI.model, ...options }: ChatOptions): AiProvider {
+  return chatProvider(options, { url: OPENAI.url, model, extra: {}, tokenParam: "max_completion_tokens", temperature: false });
+}
 
 /** DeepSeek's own API: thinking is turned off with its `thinking` switch. */
 export function createDeepSeekProvider({ model = DEEPSEEK.model, ...options }: ChatOptions): AiProvider {
@@ -34,7 +43,7 @@ export function createOpenRouterProvider({ model = OPENROUTER.model, ...options 
   return chatProvider(options, { url: OPENROUTER.url, model, extra: { reasoning: { effort: "none" }, provider: { data_collection: "deny", require_parameters: true, sort: "price" } } });
 }
 
-export type AiProviderInfo = { provider: AiProvider; service: "openrouter" | "deepseek" | "fake" };
+export type AiProviderInfo = { provider: AiProvider; service: "openrouter" | "deepseek" | "openai" | "fake" };
 
 /** Picks the configured service. An OpenRouter key (sk-or-) also works in DEEPSEEK_API_KEY. */
 export function providerFromEnv(env: Record<string, string | undefined>, fetchImpl?: typeof fetch): AiProviderInfo | null {
@@ -50,10 +59,22 @@ export function providerFromEnv(env: Record<string, string | undefined>, fetchIm
   return null;
 }
 
-/** OpenAI-compatible chat call: JSON output, bounded time and tokens. */
-function chatProvider({ apiKey, timeoutMs = 45000, fetchImpl = fetch }: Omit<ChatOptions, "model">, { url, model, extra }: ChatTarget): AiProvider {
+/**
+ * The chat assistant prefers OpenAI (OPENAI_API_KEY, or the local OpenAI_KEY name) and falls
+ * back to the general provider, so it works with whichever key is configured.
+ */
+export function chatProviderFromEnv(env: Record<string, string | undefined>, fetchImpl?: typeof fetch): AiProviderInfo | null {
+  if (env.AI_FAKE === "1" && env.NODE_ENV !== "production" && !env.VERCEL) return { service: "fake", provider: createFakeProvider() };
+  const key = (env.OPENAI_API_KEY ?? env.OpenAI_KEY)?.trim();
+  const model = env.OPENAI_MODEL?.trim();
+  if (key) return { service: "openai", provider: createOpenAIProvider({ apiKey: key, model: model && /^[A-Za-z0-9._:-]{1,100}$/.test(model) ? model : undefined, fetchImpl }) };
+  return providerFromEnv(env, fetchImpl);
+}
+
+/** OpenAI-compatible chat call: JSON output by default, bounded time and tokens. */
+function chatProvider({ apiKey, timeoutMs = 45000, fetchImpl = fetch }: Omit<ChatOptions, "model">, { url, model, extra, tokenParam = "max_tokens", temperature = true }: ChatTarget): AiProvider {
   return {
-    async complete({ system, user, maxTokens, images = [] }) {
+    async complete({ system, user, maxTokens, images = [], json = true, history = [] }) {
       const userContent = images.length ? [{ type: "text", text: user }, ...images.map(url => ({ type: "image_url", image_url: { url } }))] : user;
       let response: Response;
       try {
@@ -62,10 +83,10 @@ function chatProvider({ apiKey, timeoutMs = 45000, fetchImpl = fetch }: Omit<Cha
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
             model,
-            messages: [{ role: "system", content: system }, { role: "user", content: userContent }],
-            response_format: { type: "json_object" },
-            temperature: 0,
-            max_tokens: maxTokens,
+            messages: [{ role: "system", content: system }, ...history.map(turn => ({ role: turn.role, content: turn.content })), { role: "user", content: userContent }],
+            ...(json ? { response_format: { type: "json_object" } } : {}),
+            ...(temperature ? { temperature: json ? 0 : 0.4 } : {}),
+            [tokenParam]: maxTokens,
             stream: false,
             ...extra
           }),
@@ -125,6 +146,10 @@ export function createFakeProvider(): AiProvider {
       const model = "careerforge-test-ai";
       if (/proof document/i.test(system)) {
         return { model, content: JSON.stringify({ readable: true, documentType: "diploma", personName: "Rana Haddad", issuer: "Lebanese American University", title: "Bachelor of Engineering in Computer Engineering", issueDate: "June 2020", startDate: "", endDate: "2020", certificateId: "LAU-2020-04417", verificationUrl: "", notes: ["Test AI: this reading is invented for development."] }) };
+      }
+      if (/You are CareerForge's career assistant/i.test(system)) {
+        const shared = [...system.matchAll(/^## (.+)$/gm)].map(match => match[1]);
+        return { model, content: `Test AI: you asked "${user.slice(0, 80)}". I can see: ${shared.join(", ") || "nothing from your profile"}. A good next step is to prove a skill at /skill-checks.` };
       }
       if (/interview a student about a software project/i.test(system)) {
         const paths = [...user.matchAll(/<file path="([^"]+)">/g)].map(match => match[1]);

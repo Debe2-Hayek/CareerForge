@@ -14,30 +14,35 @@ const result: ProfileAutofill = {
   removed: [{ field: "Institution", value: "<b>Harvard</b>" }]
 };
 const noop = () => {};
+const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/&#x27;/g, "'").replace(/\s+/g, " ");
 
-test("review lists suggestions, existing values, removed facts and the self-declared label", () => {
+test("review lists suggestions, existing values, removed facts and the self-declared rule", () => {
   const html = renderToStaticMarkup(<ProfileAutofillReview result={result} cached={false} remaining={4} profile={{ ...emptyProfile, name: "Rana", skills: ["react"] }} dirty={false} onSaved={noop} onDiscard={noop} />);
-  for (const text of ["Check what the AI found", "Self-declared until verified", "AI requests left today: 4", "Replaces: Rana", "Lebanese American University", "add exact months later", "Murex", "Languages found: Arabic", "Removed because they weren&#x27;t in your text (1)"]) assert.ok(html.includes(text), text);
+  const plain = text(html);
+  for (const phrase of ["Check what the AI found", "self-declared", "Left today 4", "Removed 1", "Replaces: Rana", "Lebanese American University", "Year only", "Murex", "Languages found: Arabic", "1 suggestion removed: not found in your text"]) assert.ok(plain.includes(phrase), phrase);
   // A skill already in the profile (case-insensitive) is not offered again.
   assert.equal(html.includes(">React<"), false);
   assert.ok(html.includes("Java"));
   // AI text is escaped, never rendered as markup.
   assert.equal(html.includes("<b>Harvard</b>"), false);
   assert.ok(html.includes("&lt;b&gt;Harvard&lt;/b&gt;"));
+  // Empty fields are pre-selected; an existing name is replaced only if the user ticks it.
+  assert.match(plain, /5 items selected/);
 });
 
 test("review blocks saving over unsaved form edits and explains cached answers", () => {
   const html = renderToStaticMarkup(<ProfileAutofillReview result={result} cached remaining={null} profile={emptyProfile} dirty onSaved={noop} onDiscard={noop} />);
-  assert.ok(html.includes("No AI use counted"));
-  assert.ok(html.includes("unsaved edits in the form below"));
-  assert.match(html, /<button[^>]*disabled=""[^>]*>Save \d+ selected<\/button>/);
+  const plain = text(html);
+  assert.ok(plain.includes("did not use an AI request"));
+  assert.ok(plain.includes("unsaved edits in the form below"));
+  assert.match(html, /<button[^>]*disabled=""[^>]*>Save \d+ to my profile<\/button>/);
 });
 
 test("the start card asks for consent naming DeepSeek before any AI action", () => {
+  const plain = text(renderToStaticMarkup(<ProfileCVStart profile={emptyProfile} onSaved={noop} />));
+  for (const phrase of ["DeepSeek", "servers in China", "file is not stored", "Drop your CV here", "40 more characters to go"]) assert.ok(plain.includes(phrase), phrase);
   const html = renderToStaticMarkup(<ProfileCVStart profile={emptyProfile} onSaved={noop} />);
-  assert.ok(html.includes("DeepSeek"));
-  assert.ok(html.includes("servers are in China"));
-  assert.ok(html.includes("is not stored"));
-  assert.match(html, /<button[^>]*disabled=""[^>]*>Read my CV with AI<\/button>/);
-  assert.match(html, /<button[^>]*disabled=""[^>]*>Suggest my details<\/button>/);
+  assert.match(html, /<button[^>]*disabled=""[^>]*>.*?Read my CV with AI<\/button>/);
+  assert.match(html, /<button[^>]*disabled=""[^>]*>.*?Suggest my details<\/button>/);
+  assert.match(html, /aria-current="step"[^>]*>.*?Agree/);
 });

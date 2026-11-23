@@ -126,6 +126,19 @@ export function createFakeProvider(): AiProvider {
       if (/proof document/i.test(system)) {
         return { model, content: JSON.stringify({ readable: true, documentType: "diploma", personName: "Rana Haddad", issuer: "Lebanese American University", title: "Bachelor of Engineering in Computer Engineering", issueDate: "June 2020", startDate: "", endDate: "2020", certificateId: "LAU-2020-04417", verificationUrl: "", notes: ["Test AI: this reading is invented for development."] }) };
       }
+      if (/careful career adviser for CareerForge/i.test(system)) {
+        let facts: { matchedSkills?: string[]; missingSkills?: string[]; job?: { title?: string } } = {};
+        try { facts = JSON.parse(user.replace(/^<analysis>\n|\n<\/analysis>$/g, "")); } catch { /* keep defaults */ }
+        const matched = facts.matchedSkills ?? [];
+        const missing = facts.missingSkills ?? [];
+        return { model, content: JSON.stringify({
+          summary: `Test AI: you already bring ${matched.slice(0, 2).join(" and ") || "a starting point"} for this ${facts.job?.title ?? "role"}.`,
+          strengths: matched.slice(0, 2).map(skill => `Your ${skill} skill is listed for this job.`),
+          gaps: missing.slice(0, 2).map(skill => ({ item: skill, suggestion: `Test AI: build a small project that uses ${skill}.` })),
+          // Deliberately unsafe tip so the guard can be seen removing it in development.
+          cvTips: ["Lead with the project that is closest to this job.", ...(missing[0] ? [`List ${missing[0]} among your skills.`] : [])]
+        }) };
+      }
       if (/multiple-choice questions for CareerForge skill checks/i.test(system)) {
         const skill = user.match(/<skill>([^<]{1,60})<\/skill>/)?.[1] ?? "this skill";
         const questions = [0, 1, 2, 3, 4].map(n => ({

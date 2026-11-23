@@ -1,5 +1,13 @@
 # CareerForge implementation roadmap
 
+## M6: CV analysis against a job - verified on development with the test AI, 23 November 2026
+
+`/cv-analysis` scores the saved profile against a saved job, any listing or a pasted posting:
+skills (proof counts more), experience, role fit and education, with next steps, all in code.
+"Explain with AI" recomputes the score on the server and a code guard removes AI claims that are
+not in the profile. CV analysis moves from Planned to Pilot. Built on PR #20 (migration order).
+Production needs 202611240004, 0005 and 0006. Details: [CV_ANALYSIS.md](CV_ANALYSIS.md).
+
 ## R1: AI-drafted, admin-approved skill checks for any skill - verified on development with the test AI, 23 November 2026
 
 Admins draft five timed questions for any skill at `/admin/skill-checks` (with the AI or by hand);

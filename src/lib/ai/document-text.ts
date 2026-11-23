@@ -18,7 +18,7 @@ export function tidyText(text: string): string {
 const isPdf = (bytes: Uint8Array) => bytes.length > 4 && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46;
 const isZip = (bytes: Uint8Array) => bytes.length > 4 && bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04;
 
-async function pdfText(bytes: Uint8Array): Promise<string> {
+export async function pdfText(bytes: Uint8Array): Promise<string> {
   const { getDocumentProxy, extractText } = await import("unpdf");
   const pdf = await getDocumentProxy(bytes, { maxImageSize: 1 });
   try {

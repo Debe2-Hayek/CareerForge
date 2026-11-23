@@ -4,6 +4,8 @@ import { failure, isSameOrigin, json } from "../account/http";
 import { readBoundedJson } from "../account/request-body";
 import { privateWriteLimit } from "../account/attempt-limit";
 import { EVIDENCE_MAX_BYTES, evidenceType, type ClaimKind } from "./model";
+import { AiError } from "../ai/provider";
+import { AiLimitError } from "../ai/runner";
 
 export class ClaimError extends Error {
   constructor(public code: string, message: string, public status: number) { super(message); }
@@ -93,6 +95,38 @@ export function claimReviewHandlers(authorize: () => Promise<ReviewAccess | null
     catch (error) {
       if (error instanceof ClaimError) return failure(error.code, error.message, error.status);
       return failure("CLAIMS_UNAVAILABLE", "The decision could not be saved. Please try again.", 503);
+    }
+  }
+  return { POST };
+}
+
+export type CheckAccess = { userId: string; check(evidenceId: string): Promise<unknown> };
+const checkSchema = z.object({ evidenceId: z.uuid() }).strict();
+
+/** POST /api/v1/admin/claims/check: an admin asks the AI to read one proof file. */
+export function claimCheckHandlers(authorize: () => Promise<CheckAccess | null>, limit: Limit = privateWriteLimit) {
+  async function POST(request: Request) {
+    if (!isSameOrigin(request)) return failure("FORBIDDEN", "This request must come from CareerForge.", 403);
+    let access: CheckAccess | null;
+    try { access = await authorize(); }
+    catch { return failure("AUTH_UNAVAILABLE", "Your session could not be verified. Please try again.", 503); }
+    if (!access) return failure("FORBIDDEN", "Reviewer access is required.", 403);
+    const input = checkSchema.safeParse(await readBoundedJson(request, 1024));
+    if (!input.success) return failure("INVALID_INPUT", "Choose a proof file to check.", 400);
+    const denied = limited(limit, "review", access.userId);
+    if (denied) return denied;
+    try { return json({ check: await access.check(input.data.evidenceId) }); }
+    catch (error) {
+      if (error instanceof ClaimError) return failure(error.code, error.message, error.status);
+      if (error instanceof AiLimitError) {
+        const response = failure(error.code, error.message, 429);
+        if (error.retryAfter) response.headers.set("Retry-After", String(error.retryAfter));
+        return response;
+      }
+      if (error instanceof AiError) return error.code === "AI_TIMEOUT"
+        ? failure("AI_TIMEOUT", "The AI took too long. Try again.", 504)
+        : failure("AI_UNAVAILABLE", "The AI could not read this file right now. Open it and review it yourself.", 503);
+      return failure("CLAIMS_UNAVAILABLE", "The check could not be completed. Please try again.", 503);
     }
   }
   return { POST };

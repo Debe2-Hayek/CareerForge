@@ -48,6 +48,26 @@ If verification data cannot load, the profile still opens and those steps show a
 - Test accounts for manual checks on development: `scripts/dev-test-accounts.mjs` writes
   passwords to the git-ignored `.deployment/dev-test-accounts.txt`.
 
+## AI proof check (part 2)
+
+In the review queue each file has an **AI pre-check** (`POST /api/v1/admin/claims/check`):
+
+- The AI only **reads** the file: PDF text (`unpdf`) or the image itself (vision). It returns
+  the person's name, issuer, title, dates, certificate number, verification address and up to
+  five neutral notes (`src/lib/claims/evidence-check.ts`, prompt `evidence-check.v1`).
+- **Plain code compares** that with the claim and the owner's name: Matches / Does not match /
+  Not found on the document / Compare yourself (different scripts, partial wording).
+  Overall: Consistent, Needs your attention, or Could not be read (scanned PDF without text).
+- Only admins can run and store checks (`record_evidence_check`), so owners cannot plant a
+  favourable result. Results are hints: the panel reminds reviewers that fakes can read perfectly.
+- Cost: runs only when clicked; cached per file fingerprint; 60 per admin per day (migration
+  `202611240004_evidence_checks.sql`), within the 150-per-day site limit.
+- Development "test AI": start the dev server with `AI_FAKE=1` to click through without credits.
+  It is ignored in production and on Vercel, and its results are labelled "test AI, not real".
+- Live check: `scripts/verify-ai-check-live.mjs` (PDF and photo, both checked, stored, reload,
+  student denied). Passed on development with the test AI on 23 November 2026; rerun it with the
+  real AI once credits are added (2 AI calls).
+
 ## Limitations and next steps
 
 - Files of a deleted account stay in storage (database rows are deleted); a cleanup job
@@ -56,5 +76,5 @@ If verification data cannot load, the profile still opens and those steps show a
   site-wide loading boundary streams before the role check. No queue data is loaded, and
   the review API returns 403.
 - Badges are not yet shown on the public portfolio or the saved-profile CV.
-- Part 2: AI reads uploaded certificates and flags mismatches before review; automatic
-  checks of issuer verification links; prepared, timed questions for more skills.
+- Next: scanned PDFs (page images), automatic checks of issuer verification links, and
+  AI-prepared, admin-approved timed questions for more skills.

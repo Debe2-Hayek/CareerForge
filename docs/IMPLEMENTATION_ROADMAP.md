@@ -1,5 +1,57 @@
 # CareerForge implementation roadmap
 
+## M9: Career assistant - verified on development with the test AI, 23 November 2026
+
+`/career-assistant` answers career questions with only the parts of the profile the user ticks
+(profile and skills with trust badges, work and education, career matches). OpenAI (`gpt-6-luna`)
+when an OpenAI key is set, otherwise the existing DeepSeek/OpenRouter provider; plain-text replies
+with allow-listed internal links; 20 messages per day; chats not saved. Moves from Stretch to Pilot.
+Built on PR #23. Production needs 0004 to 0009. Details: [ASSISTANT.md](ASSISTANT.md).
+
+## R1: Project interviews - verified on development with the test AI and test GitHub, 23 November 2026
+
+Students prove a public GitHub project with a one-time code, then answer four AI-written questions
+about exact lines of their code (quotes copied by code) within a 20-minute database deadline. The
+reviewer's AI review re-reads the repository at the recorded commit, flags forged questions, scores
+answers 0-2, and a human decides. Also fixes rejected claim rows turning pink (a class collided with
+the tracker's `.status-rejected`). Built on PR #22. Production needs 0004 to 0008.
+Details: [PROJECT_INTERVIEWS.md](PROJECT_INTERVIEWS.md).
+
+## M2: Career analysis - verified on development with the test AI, 23 November 2026
+
+`/career-analysis` ranks all 34 careers for the user and shows one in detail: a code score from
+the career roadmap (Critical = core foundations, Important = later core topics, Optional never
+counts) and the user's evidence (proven 1.0, profile 0.8, learned on a roadmap 0.7, in progress 0.3),
+gaps by priority with links to learn, and an optional AI coach whose priorities must be real gaps.
+Career analysis moves from Planned to Pilot. Built on PR #21. Production needs 0004 to 0007.
+Details: [CAREER_ANALYSIS.md](CAREER_ANALYSIS.md).
+
+## M6: CV analysis against a job - verified on development with the test AI, 23 November 2026
+
+`/cv-analysis` scores the saved profile against a saved job, any listing or a pasted posting:
+skills (proof counts more), experience, role fit and education, with next steps, all in code.
+"Explain with AI" recomputes the score on the server and a code guard removes AI claims that are
+not in the profile. CV analysis moves from Planned to Pilot. Built on PR #20 (migration order).
+Production needs 202611240004, 0005 and 0006. Details: [CV_ANALYSIS.md](CV_ANALYSIS.md).
+
+## R1: AI-drafted, admin-approved skill checks for any skill - verified on development with the test AI, 23 November 2026
+
+Admins draft five timed questions for any skill at `/admin/skill-checks` (with the AI or by hand);
+plain code blocks weak or broken questions; publishing creates the next version of that skill's
+server-graded check, without explanations. Students take checks for any published skill on their
+profile; passing marks it Verified. Only the latest version can be started and earlier passes stay
+valid. Built on PR #19 (migration order). Production needs 202611240004 and 202611240005.
+Details: [SKILL_CHECKS.md](SKILL_CHECKS.md).
+
+## R1 part 2: AI proof check in the review queue - verified on development with the test AI, 23 November 2026
+
+Admins can ask the AI to read a proof file (PDF text or photo); plain code compares the name,
+institution, title and dates with the claim and shows match / mismatch per field. Only admins can
+run and store checks; results are hints, cached per file, 60 per admin per day. A development-only
+test AI (`AI_FAKE=1`) lets the flow be clicked through without credits; the live check passed with
+it. Still to verify with the real AI once OpenRouter credits are added. Production needs migration
+202611240004. Details: [CLAIMS.md](CLAIMS.md).
+
 ## R1 part 1: proof, review and trust badges; profile strength ring - verified on development, 23 November 2026
 
 Every education record, job and skill now has a trust level (Self-declared, Proof submitted,

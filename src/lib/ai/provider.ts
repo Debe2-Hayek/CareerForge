@@ -13,28 +13,57 @@ export class AiError extends Error {
   constructor(public code: "AI_UNAVAILABLE" | "AI_INVALID_OUTPUT" | "AI_TIMEOUT", message: string) { super(message); }
 }
 
-const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
-const DEFAULT_MODEL = "deepseek-flash";
+type ChatOptions = { apiKey: string; model?: string; timeoutMs?: number; fetchImpl?: typeof fetch };
+type ChatTarget = { url: string; model: string; extra: Record<string, unknown> };
 
-type DeepSeekOptions = { apiKey: string; model?: string; timeoutMs?: number; fetchImpl?: typeof fetch };
+export const DEEPSEEK = { url: "https://api.deepseek.com/chat/completions", model: "deepseek-flash" } as const;
+export const OPENROUTER = { url: "https://openrouter.ai/api/v1/chat/completions", model: "deepseek/deepseek-v4.1-flash" } as const;
 
-/** OpenAI-compatible DeepSeek chat client: JSON output, thinking off, bounded time and tokens. */
-export function createDeepSeekProvider({ apiKey, model = DEFAULT_MODEL, timeoutMs = 45000, fetchImpl = fetch }: DeepSeekOptions): AiProvider {
+/** DeepSeek's own API: thinking is turned off with its `thinking` switch. */
+export function createDeepSeekProvider({ model = DEEPSEEK.model, ...options }: ChatOptions): AiProvider {
+  return chatProvider(options, { url: DEEPSEEK.url, model, extra: { thinking: { type: "disabled" } } });
+}
+
+/**
+ * DeepSeek models through OpenRouter. Thinking off, only hosts that do not store
+ * request data (`data_collection: "deny"`) and that support every parameter sent,
+ * cheapest first.
+ */
+export function createOpenRouterProvider({ model = OPENROUTER.model, ...options }: ChatOptions): AiProvider {
+  return chatProvider(options, { url: OPENROUTER.url, model, extra: { reasoning: { effort: "none" }, provider: { data_collection: "deny", require_parameters: true, sort: "price" } } });
+}
+
+export type AiProviderInfo = { provider: AiProvider; service: "openrouter" | "deepseek" };
+
+/** Picks the configured service. An OpenRouter key (sk-or-) also works in DEEPSEEK_API_KEY. */
+export function providerFromEnv(env: Record<string, string | undefined>, fetchImpl?: typeof fetch): AiProviderInfo | null {
+  const model = env.AI_MODEL?.trim();
+  const options = { model: model && /^[A-Za-z0-9._:/~-]{1,100}$/.test(model) ? model : undefined, fetchImpl };
+  const openRouter = env.OPENROUTER_API_KEY?.trim();
+  const deepSeek = env.DEEPSEEK_API_KEY?.trim();
+  if (openRouter) return { service: "openrouter", provider: createOpenRouterProvider({ apiKey: openRouter, ...options }) };
+  if (deepSeek?.startsWith("sk-or-")) return { service: "openrouter", provider: createOpenRouterProvider({ apiKey: deepSeek, ...options }) };
+  if (deepSeek) return { service: "deepseek", provider: createDeepSeekProvider({ apiKey: deepSeek, ...options }) };
+  return null;
+}
+
+/** OpenAI-compatible chat call: JSON output, bounded time and tokens. */
+function chatProvider({ apiKey, timeoutMs = 45000, fetchImpl = fetch }: Omit<ChatOptions, "model">, { url, model, extra }: ChatTarget): AiProvider {
   return {
     async complete({ system, user, maxTokens }) {
       let response: Response;
       try {
-        response = await fetchImpl(DEEPSEEK_URL, {
+        response = await fetchImpl(url, {
           method: "POST",
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
             model,
             messages: [{ role: "system", content: system }, { role: "user", content: user }],
             response_format: { type: "json_object" },
-            thinking: { type: "disabled" },
             temperature: 0,
             max_tokens: maxTokens,
-            stream: false
+            stream: false,
+            ...extra
           }),
           signal: AbortSignal.timeout(timeoutMs),
           cache: "no-store"
@@ -48,11 +77,13 @@ export function createDeepSeekProvider({ apiKey, model = DEFAULT_MODEL, timeoutM
         void response.body?.cancel().catch(() => {});
         throw new AiError("AI_UNAVAILABLE", `The AI service returned ${response.status}.`);
       }
-      const body = await response.json().catch(() => null) as { model?: unknown; choices?: { message?: { content?: unknown }; finish_reason?: unknown }[] } | null;
+      const body = await response.json().catch(() => null) as { model?: unknown; error?: unknown; choices?: { message?: { content?: unknown }; finish_reason?: unknown }[] } | null;
+      // OpenRouter can report an upstream failure inside a 200 body.
+      if (body?.error) throw new AiError("AI_UNAVAILABLE", "The AI service reported an error.");
       const choice = body?.choices?.[0];
       const content = typeof choice?.message?.content === "string" ? choice.message.content : "";
       if (choice?.finish_reason === "length") throw new AiError("AI_INVALID_OUTPUT", "The AI answer was cut off.");
-      return { content, model: typeof body?.model === "string" ? body.model.slice(0, 80) : model };
+      return { content, model: typeof body?.model === "string" ? body.model.slice(0, 100) : model };
     }
   };
 }

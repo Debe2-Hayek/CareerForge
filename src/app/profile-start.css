@@ -117,8 +117,9 @@
 .profile-ai-item:has(input:focus-visible), .profile-ai-skill:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 2px; }
 .profile-ai-group:disabled .profile-ai-item, .profile-ai-group:disabled .profile-ai-skill { cursor: default; opacity: .7; }
 
-/* Save bar: stays in view while a long list of suggestions scrolls. */
-.profile-ai-actions { position: sticky; bottom: 12px; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin: 0 -10px -10px; padding: 12px 14px; border: 1px solid #435638; border-radius: 12px; background: #1a2116; box-shadow: 0 12px 30px #00000059; }
+/* Save bar: stays in view while a long list of suggestions scrolls. It sits just above
+   the site-wide motion toggle (fixed 16px from the bottom, 38px tall) so they never overlap. */
+.profile-ai-actions { position: sticky; bottom: 64px; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin: 0 -10px -10px; padding: 12px 14px; border: 1px solid #435638; border-radius: 12px; background: #1a2116; box-shadow: 0 12px 30px #00000059; }
 .profile-ai-actions p { margin: 0; font-size: 12px; line-height: 1.6; }
 .profile-ai-count { color: var(--muted); }
 .profile-ai-done { color: #c6e49e; }
@@ -138,7 +139,7 @@
   .profile-ai-notes textarea { font-size: 16px; }
   .profile-ai-stats { width: 100%; }
   .profile-ai-stats div { flex: 1; min-width: 0; }
-  .profile-ai-actions { bottom: 8px; margin: 0 -6px -6px; }
+  .profile-ai-actions { bottom: 58px; margin: 0 -6px -6px; }
   .profile-ai-buttons { width: 100%; justify-content: space-between; }
   .profile-ai-buttons .button { flex: 1; }
 }

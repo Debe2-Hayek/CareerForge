@@ -1,15 +1,12 @@
 import "server-only";
 import { createClient } from "../supabase/server";
-import { createDeepSeekProvider, type AiProvider } from "./provider";
+import { providerFromEnv, type AiProvider } from "./provider";
 import type { AiAccess } from "./handlers";
 import type { AiFeature, Reservation } from "./runner";
 
-/** DeepSeek is used only when DEEPSEEK_API_KEY is set on the server. */
+/** OpenRouter (OPENROUTER_API_KEY, or an sk-or- key) or DeepSeek directly (DEEPSEEK_API_KEY). Server-only. */
 export function aiProvider(): AiProvider | null {
-  const apiKey = process.env.DEEPSEEK_API_KEY?.trim();
-  if (!apiKey) return null;
-  const model = process.env.DEEPSEEK_MODEL?.trim();
-  return createDeepSeekProvider({ apiKey, model: model && /^[A-Za-z0-9._:-]{1,80}$/.test(model) ? model : undefined });
+  return providerFromEnv(process.env)?.provider ?? null;
 }
 
 /** Signed-in user plus the owner-scoped AI ledger RPCs. */

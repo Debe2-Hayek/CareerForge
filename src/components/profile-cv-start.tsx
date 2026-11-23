@@ -97,7 +97,7 @@ export function ProfileCVStart({ disabled = false, profile, dirty = false, onSav
     <label className={`profile-ai-consent${consent ? " agreed" : ""}`}>
       <input type="checkbox" checked={consent} onChange={event => { setConsent(event.target.checked); setError(""); }} disabled={locked} />
       <span className="profile-ai-consent-icon" aria-hidden="true"><AppIcon name="shield" /></span>
-      <span><strong>I agree to send my CV text or notes to DeepSeek</strong> to get suggestions. DeepSeek is an AI service with servers in China. Your file is not stored; the answer is kept privately for 30 days so the same text never uses AI twice.</span>
+      <span><strong>I agree to send my CV text or notes to OpenRouter</strong>, a US AI service, to get suggestions from a DeepSeek AI model. CareerForge asks OpenRouter to use only hosts that don&apos;t store your data. Your file is not stored; the answer is kept privately in CareerForge for 30 days so the same text never uses AI twice.</span>
     </label>
 
     <div className="profile-start-options">

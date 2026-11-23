@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { z } from "zod";
-import { AiError, completeJson, createDeepSeekProvider } from "./provider";
+import { AiError, completeJson, createDeepSeekProvider, providerFromEnv } from "./provider";
 import { SourceText } from "./grounding";
 
 function fakeFetch(reply: () => Response | Promise<Response>) {
@@ -71,4 +71,37 @@ test("grounding matches whole words in order, verbatim contacts and prose withou
   assert.equal(dated.hasMonth(2019, 6), true);
   assert.equal(dated.hasMonth(2020, 3), false);
   assert.equal(dated.hasMonth(2019, 1), false);
+});
+
+test("an OpenRouter key routes to DeepSeek on OpenRouter with thinking off and data-storing hosts excluded", async () => {
+  const { impl, seen } = fakeFetch(() => Response.json({ model: "deepseek/deepseek-v4.1-flash", choices: [{ message: { content: "{}" }, finish_reason: "stop" }] }));
+  const info = providerFromEnv({ DEEPSEEK_API_KEY: " sk-or-v1-test " }, impl);
+  assert.equal(info?.service, "openrouter");
+  const result = await info!.provider.complete({ system: "json", user: "x", maxTokens: 100 });
+  assert.equal(result.model, "deepseek/deepseek-v4.1-flash");
+  assert.equal(seen[0].url, "https://openrouter.ai/api/v1/chat/completions");
+  const body = JSON.parse(String(seen[0].init.body));
+  assert.equal(body.model, "deepseek/deepseek-v4.1-flash");
+  assert.deepEqual(body.reasoning, { effort: "none" });
+  assert.deepEqual(body.provider, { data_collection: "deny", require_parameters: true, sort: "price" });
+  assert.equal(body.thinking, undefined, "DeepSeek's own switch is not sent to OpenRouter");
+  assert.equal((seen[0].init.headers as Record<string, string>).Authorization, "Bearer sk-or-v1-test");
+});
+
+test("service selection: OpenRouter key first, then a direct DeepSeek key, then none; unsafe model names ignored", async () => {
+  const { impl, seen } = fakeFetch(() => Response.json({ choices: [{ message: { content: "{}" }, finish_reason: "stop" }] }));
+  assert.equal(providerFromEnv({ OPENROUTER_API_KEY: "sk-or-v1-a", DEEPSEEK_API_KEY: "sk-direct" })?.service, "openrouter");
+  const direct = providerFromEnv({ DEEPSEEK_API_KEY: "sk-direct", AI_MODEL: "bad model\"name" }, impl);
+  assert.equal(direct?.service, "deepseek");
+  await direct!.provider.complete({ system: "json", user: "x", maxTokens: 5 });
+  assert.equal(seen[0].url, "https://api.deepseek.com/chat/completions");
+  assert.equal(JSON.parse(String(seen[0].init.body)).model, "deepseek-flash");
+  assert.equal(providerFromEnv({}), null);
+  assert.equal(providerFromEnv({ DEEPSEEK_API_KEY: "   " }), null);
+});
+
+test("an error reported inside a 200 body is a failure, not an empty answer", async () => {
+  const { impl } = fakeFetch(() => Response.json({ error: { code: 502, message: "upstream" } }));
+  const provider = providerFromEnv({ OPENROUTER_API_KEY: "sk-or-v1-x" }, impl)!.provider;
+  await assert.rejects(provider.complete({ system: "json", user: "x", maxTokens: 5 }), (error: AiError) => error.code === "AI_UNAVAILABLE");
 });

@@ -1,15 +1,16 @@
 # CareerForge implementation roadmap
 
-## First AI: profile autofill and Generate with AI (DeepSeek) - verified locally, 23 November 2026
+## First AI: profile autofill and Generate with AI (DeepSeek via OpenRouter) - verified on development, 23 November 2026
 
 The profile's "Have a CV?" card now works: upload a PDF/Word CV or write about yourself,
-DeepSeek suggests details, education and work records, plain-code grounding removes
-anything not in your own text, and you tick what to save (as self-declared). The CV &
-Portfolio **Generate with AI** button uses the same pipeline. Per-user and site-wide daily
-limits, a 30-day cache and the prompt/model record live in the new `ai_runs` migration
-(report 15.1–15.5). Unit tests (fake provider), lint, typecheck and build pass. Not yet
-verified: a live DeepSeek call and the signed-in flow, because the migration is not applied
-to development or production yet. Next under R1: claim records and verification badges.
+DeepSeek's model (through OpenRouter) suggests details, education and work records,
+plain-code grounding removes anything not in your own text, and you tick what to save (as
+self-declared). The CV & Portfolio **Generate with AI** button uses the same pipeline.
+Per-user and site-wide daily limits, a 30-day cache and the prompt/model record live in the
+`ai_runs` migrations (report 15.1–15.5). Unit tests (fake provider), lint, typecheck and
+build pass. Live on development (`scripts/verify-ai-live.mjs`): CV read in 4.5 s, review,
+save, cache hit on the same CV and builder generation, two AI calls in total. Production
+needs both migrations and the key. Next under R1: claim records and verification badges.
 Details: [AI.md](AI.md).
 
 ## The ring moves by itself; the light theme is white and black - verified locally, 22 November 2026

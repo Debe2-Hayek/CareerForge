@@ -38,9 +38,9 @@ test("review blocks saving over unsaved form edits and explains cached answers",
   assert.match(html, /<button[^>]*disabled=""[^>]*>Save \d+ to my profile<\/button>/);
 });
 
-test("the start card asks for consent naming DeepSeek before any AI action", () => {
+test("the start card asks for consent naming OpenRouter and DeepSeek before any AI action", () => {
   const plain = text(renderToStaticMarkup(<ProfileCVStart profile={emptyProfile} onSaved={noop} />));
-  for (const phrase of ["DeepSeek", "servers in China", "file is not stored", "Drop your CV here", "40 more characters to go"]) assert.ok(plain.includes(phrase), phrase);
+  for (const phrase of ["OpenRouter", "DeepSeek AI model", "don't store your data", "file is not stored", "Drop your CV here", "40 more characters to go"]) assert.ok(plain.includes(phrase), phrase);
   const html = renderToStaticMarkup(<ProfileCVStart profile={emptyProfile} onSaved={noop} />);
   assert.match(html, /<button[^>]*disabled=""[^>]*>.*?Read my CV with AI<\/button>/);
   assert.match(html, /<button[^>]*disabled=""[^>]*>.*?Suggest my details<\/button>/);

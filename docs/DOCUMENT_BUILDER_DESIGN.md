@@ -77,8 +77,8 @@ work under R1.
 ## Generation compatibility
 
 The editor posts `{ text }` to `/api/generate`. The authenticated,
-same-origin, bounded-input compatibility route sends the notes to DeepSeek
-when `DEEPSEEK_API_KEY` is set, validates the answer and removes every fact not
+same-origin, bounded-input compatibility route sends the notes to the AI service
+(DeepSeek via OpenRouter) when a key is set, validates the answer and removes every fact not
 found in the notes (see [AI.md](AI.md)), then returns the data object the
 supplied component expects. Errors are returned as the string it expects; the
 daily limit returns 429 with `Retry-After`. The canonical versioned API

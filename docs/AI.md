@@ -1,7 +1,8 @@
 # AI in CareerForge
 
-CareerForge uses one AI provider today: **DeepSeek** (`deepseek-flash`, the cheapest
-model, JSON output, thinking off). The OpenAI key is reserved for the planned chat
+CareerForge uses DeepSeek's flash model through **OpenRouter** today
+(`deepseek/deepseek-v4.1-flash`: JSON output, thinking off, only hosts that do not
+store request data). A direct DeepSeek key (`deepseek-flash`) also works. The OpenAI key is reserved for the planned chat
 assistant (M9). Report section 15 is the contract: plain code decides anything
 measurable, and the AI only reads and writes language.
 
@@ -25,7 +26,7 @@ step of requirement R1.
 3. `reserve_ai_run` (`supabase/migrations/202611240001_ai_runs.sql`) either returns
    a cached answer for the same text and prompt version, or reserves one call
    within the limits, or refuses.
-4. `src/lib/ai/provider.ts` calls DeepSeek (45 s timeout). An invalid or blank
+4. `src/lib/ai/provider.ts` calls OpenRouter, or DeepSeek directly (45 s timeout). An invalid or blank
    JSON answer is retried once, then reported as an error (report 15.1).
 5. `finish_ai_run` stores the answer, the model and the prompt version (15.2).
 6. **Grounding** (`src/lib/ai/grounding.ts`, 15.5) runs on every answer, cached or
@@ -43,13 +44,18 @@ step of requirement R1.
 - The same text is served from the 30-day cache without a new call.
 - Inputs are capped (12,000 characters of CV text) and outputs are capped
   (`max_tokens` 1,800–2,200).
-- Tests use a fake provider and never call DeepSeek.
-- DeepSeek is prepaid: the account balance is the final ceiling.
+- Tests use a fake provider and never call the AI service.
+- OpenRouter and DeepSeek are prepaid: the account balance is the final ceiling.
+  A spending limit can also be set on the OpenRouter key.
+- Live check (2 AI calls, development only): `scripts/verify-ai-live.mjs`; the
+  first run on 23 November 2026 answered a CV in 4.5 s with nothing removed.
 
 ## Privacy
 
-- The consent text names DeepSeek and says its servers are in China. Nothing is
-  sent before the owner ticks it.
+- The consent text names OpenRouter (a US service) and DeepSeek's model, and says
+  only hosts that do not store data are used (`provider.data_collection: "deny"`).
+  Nothing is sent before the owner ticks it. If a direct DeepSeek key is used
+  instead, the consent text must name DeepSeek and its servers in China.
 - `ai_runs` has no client privileges; only the two owner-scoped RPCs touch it.
   Rows older than 30 days are deleted on the owner's next request, and all rows
   are deleted with the account.
@@ -59,10 +65,12 @@ step of requirement R1.
 
 ## Configuration
 
-Server-only environment variables: `DEEPSEEK_API_KEY` (required to enable AI),
-`DEEPSEEK_MODEL` (optional, default `deepseek-flash`). Without a key, autofill
+Server-only environment variables: `OPENROUTER_API_KEY`, or `DEEPSEEK_API_KEY`
+(an `sk-or-` key there is treated as OpenRouter); `AI_MODEL` (optional, default
+`deepseek/deepseek-v4.1-flash` on OpenRouter, `deepseek-flash` on DeepSeek). Without a key, autofill
 returns 501 with a clear message and the builder keeps its labeled demo fallback.
-Production also needs the `ai_runs` migration applied before the key is added.
+Production also needs both `ai_runs` migrations (202611240001 and 202611240002)
+applied before the key is added.
 
 ## Limitations
 

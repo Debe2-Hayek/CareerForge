@@ -1,5 +1,14 @@
 # CareerForge implementation roadmap
 
+## M2: Career analysis - verified on development with the test AI, 23 November 2026
+
+`/career-analysis` ranks all 34 careers for the user and shows one in detail: a code score from
+the career roadmap (Critical = core foundations, Important = later core topics, Optional never
+counts) and the user's evidence (proven 1.0, profile 0.8, learned on a roadmap 0.7, in progress 0.3),
+gaps by priority with links to learn, and an optional AI coach whose priorities must be real gaps.
+Career analysis moves from Planned to Pilot. Built on PR #21. Production needs 0004 to 0007.
+Details: [CAREER_ANALYSIS.md](CAREER_ANALYSIS.md).
+
 ## M6: CV analysis against a job - verified on development with the test AI, 23 November 2026
 
 `/cv-analysis` scores the saved profile against a saved job, any listing or a pasted posting:

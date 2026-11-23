@@ -126,6 +126,16 @@ export function createFakeProvider(): AiProvider {
       if (/proof document/i.test(system)) {
         return { model, content: JSON.stringify({ readable: true, documentType: "diploma", personName: "Rana Haddad", issuer: "Lebanese American University", title: "Bachelor of Engineering in Computer Engineering", issueDate: "June 2020", startDate: "", endDate: "2020", certificateId: "LAU-2020-04417", verificationUrl: "", notes: ["Test AI: this reading is invented for development."] }) };
       }
+      if (/careful career coach for CareerForge/i.test(system)) {
+        let facts: { career?: string; criticalGaps?: string[]; importantGaps?: string[] } = {};
+        try { facts = JSON.parse(user.slice(user.indexOf("{"), user.lastIndexOf("}") + 1)); } catch { /* keep defaults */ }
+        const gaps = [...(facts.criticalGaps ?? []), ...(facts.importantGaps ?? [])];
+        return { model, content: JSON.stringify({
+          summary: `Test AI: here is where you stand for ${facts.career ?? "this career"}.`,
+          // The last priority is invented on purpose so the guard can be seen removing it.
+          priorities: [...gaps.slice(0, 2).map(topic => ({ topic, why: "Test AI: this is a foundation for the role." })), { topic: "Quantum basket weaving", why: "Invented." }]
+        }) };
+      }
       if (/careful career adviser for CareerForge/i.test(system)) {
         let facts: { matchedSkills?: string[]; missingSkills?: string[]; job?: { title?: string } } = {};
         try { facts = JSON.parse(user.replace(/^<analysis>\n|\n<\/analysis>$/g, "")); } catch { /* keep defaults */ }

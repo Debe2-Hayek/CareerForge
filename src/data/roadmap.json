@@ -1,16 +1,16 @@
 {
   "$schema": "./roadmap.schema.json",
   "version": 1,
-  "updatedAt": "2026-11-21T04:38:48.000Z",
+  "updatedAt": "2026-11-22T16:16:28.000Z",
   "codebase": {
-    "revision": "d3982cd5cd7caf7f559e63ca782e5b8d4b68fc74",
-    "scannedAt": "2026-11-21T04:38:48.000Z"
+    "revision": "840c32b503f70d4f46bde64b7d6b22215dbaa8bf",
+    "scannedAt": "2026-11-22T05:54:58.000Z"
   },
   "upstream": {
     "repository": "nilbuild/developer-roadmap",
     "ref": "master",
-    "sourceRevision": "6675ce60868ce44aeecc439ad39b3df22453a8ce",
-    "syncedAt": "2026-11-20T16:39:22.000Z"
+    "sourceRevision": "7cfd86d20026a4b5e882969b481a5a5618302009",
+    "syncedAt": "2026-11-22T16:16:28.000Z"
   },
   "tracks": [
     {

@@ -126,6 +126,15 @@ export function createFakeProvider(): AiProvider {
       if (/proof document/i.test(system)) {
         return { model, content: JSON.stringify({ readable: true, documentType: "diploma", personName: "Rana Haddad", issuer: "Lebanese American University", title: "Bachelor of Engineering in Computer Engineering", issueDate: "June 2020", startDate: "", endDate: "2020", certificateId: "LAU-2020-04417", verificationUrl: "", notes: ["Test AI: this reading is invented for development."] }) };
       }
+      if (/interview a student about a software project/i.test(system)) {
+        const paths = [...user.matchAll(/<file path="([^"]+)">/g)].map(match => match[1]);
+        const questions = [0, 1, 2, 3].map(n => ({ file: paths[n % Math.max(1, paths.length)] ?? "", startLine: 1 + n * 2, endLine: 4 + n * 2, question: `Test AI question ${n + 1}: why does this part of the code work the way it does?` }));
+        return { model, content: JSON.stringify({ questions }) };
+      }
+      if (/judge whether a student understands code/i.test(system)) {
+        const items = [...user.matchAll(/<item id="(q\d)">[\s\S]*?Student answer: ([\s\S]*?)\n<\/item>/g)];
+        return { model, content: JSON.stringify({ scores: items.map(([, id, answer]) => ({ id, score: answer.trim().length > 60 ? 2 : answer.trim().length > 15 ? 1 : 0, reason: "Test AI: scored by answer length only." })) }) };
+      }
       if (/careful career coach for CareerForge/i.test(system)) {
         let facts: { career?: string; criticalGaps?: string[]; importantGaps?: string[] } = {};
         try { facts = JSON.parse(user.slice(user.indexOf("{"), user.lastIndexOf("}") + 1)); } catch { /* keep defaults */ }

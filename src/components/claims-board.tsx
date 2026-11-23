@@ -83,6 +83,12 @@ export function ClaimsBoard({ items }: { items: ClaimItem[] }) {
 
     <div aria-live="polite">{message && <p className="notice claims-message" role="status">✓ {message}</p>}</div>
 
+    <Link href="/account/projects" className="panel claims-project-link">
+      <span className="claims-project-icon" aria-hidden="true">{"</>"}</span>
+      <span><strong>Prove a project you built</strong><small>Answer four questions about your own GitHub code in 20 minutes. A reviewed interview is strong evidence.</small></span>
+      <span aria-hidden="true">→</span>
+    </Link>
+
     {GROUPS.map(group => {
       const list = items.filter(item => item.kind === group.kind);
       return <section key={group.kind} className="panel claims-group" aria-labelledby={`claims-${group.kind}`}>
@@ -91,7 +97,7 @@ export function ClaimsBoard({ items }: { items: ClaimItem[] }) {
           <Link href={group.add.href} className="text-button">{group.add.label} <span aria-hidden="true">→</span></Link>
         </header>
         {!list.length ? <p className="claims-empty">{group.empty}</p> : <ul className="claims-list">
-          {list.map(item => <li key={item.key} className={`claim-row status-${item.status}`}>
+          {list.map(item => <li key={item.key} className="claim-row" data-status={item.status}>
             <div className="claim-main">
               <strong>{item.title}</strong>
               {item.kind !== "skill" && <span>{item.detail}</span>}

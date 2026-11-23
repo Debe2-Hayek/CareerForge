@@ -1,5 +1,14 @@
 # CareerForge implementation roadmap
 
+## R1: Project interviews - verified on development with the test AI and test GitHub, 23 November 2026
+
+Students prove a public GitHub project with a one-time code, then answer four AI-written questions
+about exact lines of their code (quotes copied by code) within a 20-minute database deadline. The
+reviewer's AI review re-reads the repository at the recorded commit, flags forged questions, scores
+answers 0-2, and a human decides. Also fixes rejected claim rows turning pink (a class collided with
+the tracker's `.status-rejected`). Built on PR #22. Production needs 0004 to 0008.
+Details: [PROJECT_INTERVIEWS.md](PROJECT_INTERVIEWS.md).
+
 ## M2: Career analysis - verified on development with the test AI, 23 November 2026
 
 `/career-analysis` ranks all 34 careers for the user and shows one in detail: a code score from

@@ -1,5 +1,16 @@
 # CareerForge implementation roadmap
 
+## R1 part 1: proof, review and trust badges; profile strength ring - verified on development, 23 November 2026
+
+Every education record, job and skill now has a trust level (Self-declared, Proof submitted,
+Reviewed, Verified, Not accepted, Changed since proof). Owners upload private proof at
+`/account/verification`; admins review it at `/admin/claims` with a duplicate-file warning and
+a required reason to reject; every decision is kept in an append-only history. Passed React/SQL
+checks show as Verified. The profile tab is reorganised around a profile strength ring with a
+single next step. Live check `scripts/verify-claims-live.mjs` passed on development (ring
+60% → 90%). Production needs migration 202611240003. Next: AI document checks (part 2).
+Details: [CLAIMS.md](CLAIMS.md).
+
 ## First AI: profile autofill and Generate with AI (DeepSeek via OpenRouter) - verified on development, 23 November 2026
 
 The profile's "Have a CV?" card now works: upload a PDF/Word CV or write about yourself,

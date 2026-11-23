@@ -7,6 +7,10 @@ import { historyAccess } from "../profile-history-server";
 import { readSkillResults } from "../skill-checks";
 import { buildClaimItems, claimRowSchema, type ClaimItem } from "./model";
 import { ClaimError, type ClaimsAccess, type ReviewAccess } from "./handlers";
+import { checkResultSchema, compareEvidence, evidenceCheckPrompt, extractionSchema, EVIDENCE_CHECK_PROMPT, type CheckResult } from "./evidence-check";
+import { pdfText, tidyText } from "../ai/document-text";
+import { runAi, type AiRunStore } from "../ai/runner";
+import type { AiProvider } from "../ai/provider";
 
 const BUCKET = "claim-evidence";
 
@@ -92,7 +96,11 @@ export async function readClaimsOverview(client: SupabaseClient, userId: string,
 const queueSchema = z.array(z.object({
   id: z.uuid(), kind: z.enum(["degree", "employment", "skill"]), subject: z.string(), updatedAt: z.string(),
   ownerName: z.string(), own: z.boolean(),
-  evidence: z.array(z.object({ path: z.string(), fileName: z.string(), mime: z.string(), size: z.number(), uploadedAt: z.string(), duplicateOwners: z.number() }))
+  record: z.object({ institution: z.string().nullable(), title: z.string(), startDate: z.string().nullable(), endDate: z.string().nullable(), isCurrent: z.boolean() }).nullable().catch(null),
+  evidence: z.array(z.object({
+    id: z.uuid(), path: z.string(), fileName: z.string(), mime: z.string(), size: z.number(), uploadedAt: z.string(), sha256: z.string(), duplicateOwners: z.number(),
+    check: checkResultSchema.nullable().catch(null)
+  }))
 }));
 type RawQueueItem = z.infer<typeof queueSchema>[number];
 export type QueueItem = Omit<RawQueueItem, "evidence"> & { evidence: (RawQueueItem["evidence"][number] & { url: string | null })[] };
@@ -106,4 +114,43 @@ export async function readReviewQueue(client: SupabaseClient): Promise<QueueItem
   const signed = paths.length ? await client.storage.from(BUCKET).createSignedUrls(paths, 600) : { data: [], error: null };
   const urls = new Map((signed.data ?? []).map(entry => [entry.path, entry.signedUrl]));
   return queue.map(item => ({ ...item, evidence: item.evidence.map(file => ({ ...file, url: urls.get(file.path) ?? null })) }));
+}
+
+/**
+ * Admin-only AI proof check: reads one file in a claim awaiting review, compares it with
+ * the claim, and stores the result (only admins can store results). The AI call uses the
+ * admin's own usage ledger and is cached per file fingerprint.
+ */
+export async function runEvidenceCheck(client: SupabaseClient, runs: AiRunStore, provider: AiProvider, evidenceId: string): Promise<CheckResult> {
+  const { data, error } = await client.rpc("claim_review_queue");
+  if (error) throw new Error("Review queue unavailable");
+  const queue = queueSchema.parse(data ?? []);
+  const item = queue.find(entry => entry.evidence.some(file => file.id === evidenceId));
+  const file = item?.evidence.find(entry => entry.id === evidenceId);
+  if (!item || !file || !item.record) throw new ClaimError("NOT_FOUND", "This proof is no longer waiting for review. Reload the queue.", 404);
+  const download = await client.storage.from(BUCKET).download(file.path);
+  if (download.error || !download.data) throw new Error("Evidence download failed");
+  const bytes = new Uint8Array(await download.data.arrayBuffer());
+
+  let documentText: string | null = null;
+  let images: string[] = [];
+  if (file.mime === "application/pdf") {
+    documentText = tidyText(await pdfText(bytes).catch(() => "")).slice(0, 6000);
+  } else {
+    images = [`data:${file.mime};base64,${Buffer.from(bytes).toString("base64")}`];
+  }
+  const context = { kind: item.kind, ownerName: item.ownerName, ...item.record };
+  let result: Omit<CheckResult, "checkedAt">;
+  // A scanned PDF has no text layer; reading page images is a later step, so say so honestly.
+  if (documentText !== null && documentText.length < 30) {
+    result = { status: "unreadable", model: null, extracted: extractionSchema.parse({ readable: false, notes: ["Scanned PDF without text: open the file to check it."] }), findings: [] };
+  } else {
+    const prompt = evidenceCheckPrompt(documentText);
+    const run = await runAi(runs, provider, { feature: "evidence_check", promptVersion: EVIDENCE_CHECK_PROMPT, schema: extractionSchema, ...prompt, images, cacheKey: [file.sha256] });
+    const compared = compareEvidence(context, run.value);
+    result = { ...compared, model: run.model ?? "cached", extracted: run.value };
+  }
+  const saved = await client.rpc("record_evidence_check", { p_evidence_id: evidenceId, p_status: result.status, p_model: result.model, p_prompt_version: EVIDENCE_CHECK_PROMPT, p_extracted: result.extracted, p_findings: result.findings });
+  if (saved.error) throw new Error("Check could not be saved");
+  return { ...result, checkedAt: new Date().toISOString() };
 }

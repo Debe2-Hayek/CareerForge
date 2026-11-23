@@ -5,7 +5,8 @@ import type { z } from "zod";
  * provider (see ./server.ts); route handlers receive it by injection so tests
  * use a fake and never spend credit.
  */
-export type AiRequest = { system: string; user: string; maxTokens: number };
+/** images: data URLs (image/png or image/jpeg) sent with the user message, for document reading. */
+export type AiRequest = { system: string; user: string; maxTokens: number; images?: string[] };
 export type AiCompletion = { content: string; model: string };
 export type AiProvider = { complete(request: AiRequest): Promise<AiCompletion> };
 
@@ -33,12 +34,14 @@ export function createOpenRouterProvider({ model = OPENROUTER.model, ...options 
   return chatProvider(options, { url: OPENROUTER.url, model, extra: { reasoning: { effort: "none" }, provider: { data_collection: "deny", require_parameters: true, sort: "price" } } });
 }
 
-export type AiProviderInfo = { provider: AiProvider; service: "openrouter" | "deepseek" };
+export type AiProviderInfo = { provider: AiProvider; service: "openrouter" | "deepseek" | "fake" };
 
 /** Picks the configured service. An OpenRouter key (sk-or-) also works in DEEPSEEK_API_KEY. */
 export function providerFromEnv(env: Record<string, string | undefined>, fetchImpl?: typeof fetch): AiProviderInfo | null {
   const model = env.AI_MODEL?.trim();
   const options = { model: model && /^[A-Za-z0-9._:/~-]{1,100}$/.test(model) ? model : undefined, fetchImpl };
+  // Development-only stand-in so screens can be tried without credits. Never in production or on Vercel.
+  if (env.AI_FAKE === "1" && env.NODE_ENV !== "production" && !env.VERCEL) return { service: "fake", provider: createFakeProvider() };
   const openRouter = env.OPENROUTER_API_KEY?.trim();
   const deepSeek = env.DEEPSEEK_API_KEY?.trim();
   if (openRouter) return { service: "openrouter", provider: createOpenRouterProvider({ apiKey: openRouter, ...options }) };
@@ -50,7 +53,8 @@ export function providerFromEnv(env: Record<string, string | undefined>, fetchIm
 /** OpenAI-compatible chat call: JSON output, bounded time and tokens. */
 function chatProvider({ apiKey, timeoutMs = 45000, fetchImpl = fetch }: Omit<ChatOptions, "model">, { url, model, extra }: ChatTarget): AiProvider {
   return {
-    async complete({ system, user, maxTokens }) {
+    async complete({ system, user, maxTokens, images = [] }) {
+      const userContent = images.length ? [{ type: "text", text: user }, ...images.map(url => ({ type: "image_url", image_url: { url } }))] : user;
       let response: Response;
       try {
         response = await fetchImpl(url, {
@@ -58,7 +62,7 @@ function chatProvider({ apiKey, timeoutMs = 45000, fetchImpl = fetch }: Omit<Cha
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
             model,
-            messages: [{ role: "system", content: system }, { role: "user", content: user }],
+            messages: [{ role: "system", content: system }, { role: "user", content: userContent }],
             response_format: { type: "json_object" },
             temperature: 0,
             max_tokens: maxTokens,
@@ -108,4 +112,23 @@ export async function completeJson<T>(provider: AiProvider, schema: z.ZodType<T>
     if (result.success) return { value: result.data, model: completion.model };
   }
   throw last;
+}
+
+/**
+ * Development "test AI": answers in the right shape without any network call, so flows
+ * can be clicked through before credits exist. Its model name is "careerforge-test-ai",
+ * which the screens label as a test result.
+ */
+export function createFakeProvider(): AiProvider {
+  return {
+    async complete({ system, user }) {
+      const model = "careerforge-test-ai";
+      if (/proof document/i.test(system)) {
+        return { model, content: JSON.stringify({ readable: true, documentType: "diploma", personName: "Rana Haddad", issuer: "Lebanese American University", title: "Bachelor of Engineering in Computer Engineering", issueDate: "June 2020", startDate: "", endDate: "2020", certificateId: "LAU-2020-04417", verificationUrl: "", notes: ["Test AI: this reading is invented for development."] }) };
+      }
+      // Autofill and builder: echo the first line of the source as a name; grounding removes the rest.
+      const first = user.replace(/<\/?\w+>/g, "").trim().split(/\n|,|\./)[0]?.trim().slice(0, 60) ?? "";
+      return { model, content: JSON.stringify({ name: first, headline: "", location: "", summary: "", education: [], experience: [], skills: [], projects: [], languages: [] }) };
+    }
+  };
 }

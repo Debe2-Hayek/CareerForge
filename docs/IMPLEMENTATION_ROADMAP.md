@@ -1,5 +1,14 @@
 # CareerForge implementation roadmap
 
+## R1 part 2: AI proof check in the review queue - verified on development with the test AI, 23 November 2026
+
+Admins can ask the AI to read a proof file (PDF text or photo); plain code compares the name,
+institution, title and dates with the claim and shows match / mismatch per field. Only admins can
+run and store checks; results are hints, cached per file, 60 per admin per day. A development-only
+test AI (`AI_FAKE=1`) lets the flow be clicked through without credits; the live check passed with
+it. Still to verify with the real AI once OpenRouter credits are added. Production needs migration
+202611240004. Details: [CLAIMS.md](CLAIMS.md).
+
 ## R1 part 1: proof, review and trust badges; profile strength ring - verified on development, 23 November 2026
 
 Every education record, job and skill now has a trust level (Self-declared, Proof submitted,

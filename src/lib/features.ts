@@ -42,5 +42,5 @@ export function getPlannedFeature(id: string): PlannedFeature {
   return feature;
 }
 export function isPrivateFeaturePath(path: string): boolean {
-  return path === "/features" || path.startsWith("/account/") || path.startsWith("/learning-roadmap/") || path === "/cv" || path === "/portfolio" || path.startsWith("/cv/") || path.startsWith("/portfolio/") || features.some(feature => feature.href === path);
+  return path === "/features" || path === "/admin" || path.startsWith("/admin/") || path.startsWith("/account/") || path.startsWith("/learning-roadmap/") || path === "/cv" || path === "/portfolio" || path.startsWith("/cv/") || path.startsWith("/portfolio/") || features.some(feature => feature.href === path);
 }

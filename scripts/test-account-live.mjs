@@ -78,7 +78,7 @@ try {
   stage = "owner A login and save";
   const a = await signIn(users[0], { viewport: { width: 1440, height: 1000 } });
   stage = "owner A profile persistence";
-  await expect(a.page.getByRole("region", { name: "Profile getting started" })).toContainText("0 of 3 foundations");
+  await expect(a.page.getByRole("img", { name: "Profile strength 0%" })).toBeVisible();
   await expect(a.page.getByRole("button", { name: "Save profile", exact: true })).toBeDisabled();
   await a.page.getByLabel("Full name").fill("Live Test Owner A");
   await a.page.getByLabel("Your skills", { exact: true }).fill("React, SQL");

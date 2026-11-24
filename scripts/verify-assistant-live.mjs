@@ -49,7 +49,7 @@ try {
   stage = "the assistant answers with only the shared context";
   const s = await signIn();
   await s.page.goto("/career-assistant");
-  await expect(s.page.getByRole("heading", { level: 1 })).toContainText("Ask your career assistant");
+  await expect(s.page.getByRole("heading", { level: 1 })).toContainText("Career assistant");
   await expect(s.page.getByRole("checkbox", { name: /Profile & skills/ })).toBeChecked();
   await s.page.getByRole("checkbox", { name: /Work & education/ }).uncheck();
   await s.page.getByRole("button", { name: "What should I learn next?" }).click();

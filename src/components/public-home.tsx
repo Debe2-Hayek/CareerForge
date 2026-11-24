@@ -2,11 +2,13 @@ import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { LandingNav } from "./landing-nav";
 import { Spotlight } from "./spotlight";
+import { ForgeShowcase } from "./forge-showcase";
 
 const glyphs = {
   profile: "M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-3a8 6 0 0 1 16 0v3",
   checks: "M12 3l8 4v5c0 5-8 9-8 9s-8-4-8-9V7z M8 12l3 3 5-6",
-  jobs: "M3 7h18v14H3z M8 7V3h8v4 M3 12h18 M10 12v3h4v-3"
+  jobs: "M3 7h18v14H3z M8 7V3h8v4 M3 12h18 M10 12v3h4v-3",
+  compass: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M15.5 8.5l-2 5-5 2 2-5z"
 } as const;
 
 function Glyph({ name }: { name: keyof typeof glyphs }) {
@@ -15,18 +17,19 @@ function Glyph({ name }: { name: keyof typeof glyphs }) {
 
 const vars = (values: Record<string, string>) => values as unknown as CSSProperties;
 
-const marqueeItems = ["Private profile", "Skill checks", "CV preview", "Role explorer", "Application tracker", "Learning pilot", "Portfolio snapshot"];
+const marqueeItems = ["Verified profile", "Skill checks", "Document check", "CV vs job match", "Career paths", "Workshop certificates", "AI career assistant", "Live jobs", "Learning roadmaps"];
 
 const steps = [
-  { n: "01", icon: "profile", title: "Build your profile", text: "Keep your education, projects and skills together in your private account." },
-  { n: "02", icon: "checks", title: "Check your skills", text: "Complete supported fundamentals checks before adding those skills to your CV." },
-  { n: "03", icon: "jobs", title: "Make your next move", text: "Preview your CV, explore fictional roles and track your applications." }
+  { n: "01", icon: "profile", title: "Build your profile", text: "Education, work, skills and languages in one private account. A CV can fill it in for you." },
+  { n: "02", icon: "checks", title: "Prove it", text: "Send proof, pass timed skill checks and earn workshop certificates. Each fact gets a badge." },
+  { n: "03", icon: "compass", title: "Choose a direction", text: "See which careers fit you, what you already have and the free path to the rest." },
+  { n: "04", icon: "jobs", title: "Apply with proof", text: "Match live jobs, fix the gaps, and share a checked-profile link employers can trust." }
 ] as const;
 
 const principles = [
   { n: "01", title: "Private by default", text: "Your profile lives in an owner-only account. Nothing is shared unless you choose to share it." },
   { n: "02", title: "Evidence before claims", text: "A skill reaches your CV after you complete a supported check, and learning steps say plainly what they cannot prove." },
-  { n: "03", title: "Honest about what is demo", text: "Job listings are demonstration data. AI assistance and live applications are planned features." }
+  { n: "03", title: "Honest about every badge", text: "Each badge says how it was checked. AI only suggests and never decides; demo roles are labelled; CareerForge never applies for you." }
 ];
 
 function SkillRow({ label, state, width, delay, pending = false }: { label: string; state: string; width: string; delay: string; pending?: boolean }) {
@@ -93,6 +96,12 @@ function VizLearning() {
     {["Read the source", "Try the exercise", "Check what it shows"].map((label, index) => <div key={label} className="viz-step"><span>{index + 1}</span><b>{label}</b></div>)}
   </div>;
 }
+function VizAssistant() {
+  return <div className="viz viz-assistant" aria-hidden="true">
+    <div className="viz-bubble user">What should I learn next?</div>
+    <div className="viz-bubble ai"><span className="viz-orb" />Docker: it is the gap in 3 of your saved jobs.</div>
+  </div>;
+}
 function VizPortfolio() {
   return <div className="viz viz-portfolio" aria-hidden="true">
     {[{ label: "Headline", on: true }, { label: "Projects", on: true }, { label: "Contact details", on: false }].map(({ label, on }) => <div key={label} className="viz-toggle"><b>{label}</b><span className={on ? "viz-switch on" : "viz-switch"} /></div>)}
@@ -101,12 +110,13 @@ function VizPortfolio() {
 
 const tiles: { id: string; cls: string; title: string; text: string; viz: ReactNode }[] = [
   { id: "profile", cls: "lp-tile-wide", title: "A profile that stays yours", text: "Education, projects and skills in one private, owner-only account.", viz: <VizProfile /> },
-  { id: "checks", cls: "lp-tile-narrow", title: "Skills with evidence", text: "Complete supported fundamentals checks before a skill reaches your CV.", viz: <VizChecks /> },
+  { id: "checks", cls: "lp-tile-narrow", title: "Skills with evidence", text: "Timed checks for any skill, prepared and approved by reviewers.", viz: <VizChecks /> },
   { id: "cv", cls: "", title: "CV preview", text: "A clean, print-ready sheet generated from your profile.", viz: <VizCv /> },
-  { id: "roles", cls: "", title: "Role explorer", text: "Browse fictional demo roles and see how your skills line up.", viz: <VizRoles /> },
+  { id: "roles", cls: "", title: "Jobs that fit", text: "Live openings in Lebanon, the region and remote, ranked by how your skills match.", viz: <VizRoles /> },
   { id: "tracker", cls: "", title: "Application tracker", text: "Follow each application from saved through to an offer.", viz: <VizTracker /> },
-  { id: "learning", cls: "lp-tile-half", title: "Learning pilot", text: "Original exercises with source links, and honest limits on what they prove.", viz: <VizLearning /> },
-  { id: "portfolio", cls: "lp-tile-half", title: "Shared only by choice", text: "Publish a snapshot of the fields you select, and only after you consent.", viz: <VizPortfolio /> }
+  { id: "learning", cls: "", title: "Free learning roadmaps", text: "Step-by-step paths with free courses and projects, and honest limits on what they prove.", viz: <VizLearning /> },
+  { id: "assistant", cls: "", title: "An AI that knows your profile", text: "Ask about careers, skills or your CV. It only sees what you choose to share.", viz: <VizAssistant /> },
+  { id: "portfolio", cls: "", title: "Shared only by choice", text: "Publish a snapshot of the fields you select, and only after you consent.", viz: <VizPortfolio /> }
 ];
 
 export function PublicHome() {
@@ -136,11 +146,13 @@ export function PublicHome() {
         </div>
       </div>
 
+      <ForgeShowcase />
+
       <section className="lp-section" id="platform" aria-labelledby="platform-title">
         <div className="lp-section-head lp-reveal">
           <p className="eyebrow">FROM WHAT YOU KNOW TO WHAT COMES NEXT</p>
           <h2 id="platform-title">Your story, organized.</h2>
-          <p>Three steps from a blank page to a profile you can back up.</p>
+          <p>Four steps from a blank page to a profile employers can check.</p>
         </div>
         <Spotlight className="lp-steps">
           {steps.map(step => <article key={step.n} className="lp-step spot-card lp-reveal">
@@ -185,7 +197,7 @@ export function PublicHome() {
           <h2 id="cta-title">Ready to make it yours?</h2>
           <p>Create a private account and start with your profile. It takes a few minutes.</p>
           <div className="lp-actions"><Link className="button primary" href="/register">Create your account <span aria-hidden="true">&#8599;</span></Link><Link className="button lp-ghost" href="/login">Sign in</Link></div>
-          <p className="lp-caption">Job listings are demonstration data. AI assistance and live applications are planned features.</p>
+          <p className="lp-caption">Free for students. Demo roles are labelled, AI answers are suggestions, and CareerForge never applies for you.</p>
         </div>
       </section>
     </main>

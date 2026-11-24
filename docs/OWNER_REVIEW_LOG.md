@@ -10,6 +10,24 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Design pass: immersive AI chat, "Your path" Overview, The Forge homepage (PR #34)
+- **What:** Three pages redesigned to attract and guide, keeping the navigation bar and every
+  existing animation (particle background, motion switch, Overview film, workshop ring, profile ring).
+  - **AI assistant:** one immersive card with a living, turning orb; sharing choices as toggle chips with
+    "What is sent?"; a personal welcome ("Hi Rana, what's your next move?") with four illustrated starter
+    cards; avatars on messages, replies that slide in, a thinking orb, Copy buttons, link chips, and a
+    floating composer that grows as you type.
+  - **Overview:** opens on "Your path": a greeting, four steps (build your profile, prove it, choose a
+    direction, apply) worked out from the real account, and one big next-step button. The film hero
+    stays; technical notes moved to "About your data".
+  - **Homepage:** new "The Forge" section: a CV, diploma, skill check and certificate fly into a profile
+    card with sparks, checked badges and a filling ring. Text updated to today's product (four steps,
+    new marquee, AI assistant tile, corrected "planned" notes).
+- **Where:** `/career-assistant`, `/dashboard`, `/`.
+- **Status:** Ready (no database change: merging is enough).
+- **Remember:** animations follow "reduce motion" and the site's motion switch; mock-up canvas kept for
+  reference (private Claude artifact "CareerForge redesign mock-up").
+
 ## Downloadable workshop certificate with a QR code (PR #32)
 - **What:** Learners can download their workshop certificate: "Download" on Workshops & certificates
   opens a printable A4 landscape certificate (name, result such as "passed the workshop assessment:

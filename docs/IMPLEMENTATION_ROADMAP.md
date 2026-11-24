@@ -2,7 +2,7 @@
 
 Owner-facing summary of every feature, with status and reminders: [OWNER_REVIEW_LOG.md](OWNER_REVIEW_LOG.md).
 
-## Slim sidebar, career constellation, homepage capability ring - verified on development, 25 November 2026
+## Slim sidebar, career constellation, homepage capability ring - live, 25 November 2026 (PR #36)
 
 The desktop sidebar is narrower with tighter rows, and Planned/Stretch tools fold into one "Coming soon" row
 (`src/components/app-shell.tsx`). Signed-in Overview opens with "Your career constellation"

@@ -14,10 +14,12 @@ export default async function Page() {
   const session = await signedInClient().catch(() => null);
   if (!session) redirect("/login");
   const info = assistantProvider();
-  return <AppShell pageTitle="AI assistant" privateAccount>
-    <div className="account-content">
-      <div className="page-heading"><div><p className="eyebrow">CAREER ASSISTANT</p><h1>Ask your career assistant<span>.</span></h1><p>Practical answers that use only the parts of your profile you choose to share. It never invents facts about you.</p></div></div>
-      <CareerAssistant service={info ? serviceLabel[info.service] : null} />
+  // Only the first name, for the greeting; nothing else from the profile is read here.
+  const { data } = await session.client.from("profiles").select("full_name").eq("id", session.userId).maybeSingle();
+  const firstName = String(data?.full_name ?? "").trim().split(/\s+/)[0] ?? "";
+  return <AppShell pageTitle="AI assistant" privateAccount displayName={String(data?.full_name ?? "") || undefined}>
+    <div className="account-content chat-page">
+      <CareerAssistant service={info ? serviceLabel[info.service] : null} firstName={firstName} />
     </div>
   </AppShell>;
 }

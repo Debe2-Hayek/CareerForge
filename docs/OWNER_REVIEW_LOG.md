@@ -10,6 +10,37 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Downloadable workshop certificate with a QR code (PR #32)
+- **What:** Learners can download their workshop certificate: "Download" on Workshops & certificates
+  opens a printable A4 landscape certificate (name, result such as "passed the workshop assessment:
+  88/100", workshop, dates, trainer, certificate id) with a QR code that opens the public check.
+  "Print / save as PDF" saves it as one PDF page. Arabic names print correctly. Only the holder can open
+  it (it shows their name); revoked certificates cannot be printed.
+- **Where:** `/account/certificates` → "Download" → `/account/certificates/<id>/print`.
+- **Try:** earn or create a test certificate, click Download, then Print / save as PDF.
+- **Status:** Ready (no database change: merging is enough).
+- **Remember:** the QR code was decoded with an independent reader and opens the exact check address.
+- **Docs:** [WORKSHOP_CERTIFICATES.md](WORKSHOP_CERTIFICATES.md).
+## Smarter skill matching with a Hugging Face model (PR #31)
+- **What:** CV analysis and career analysis now understand related skills. "PostgreSQL" or "MySQL"
+  on a profile counts for a job asking "SQL"; "Django" counts for "Python"; "Next.js" for React and
+  JavaScript. A close alternative (MySQL for a job asking PostgreSQL) earns half credit and the next
+  step says "your MySQL is a head start". Spellings like "postgres", "ReactJS" or "k8s" are understood,
+  and job titles match by meaning ("Backend Engineer" = "Backend developer"). Each match says why
+  ("via Django"). Example: a profile with Django, MySQL and Next.js went from almost no skill credit to
+  72% for a Backend Engineer posting.
+- **How Hugging Face was used:** the free all-MiniLM-L6-v2 model compared 140 skills and proposed the
+  closest ones; a person kept only the true links (the model also paired Java with Salesforce and
+  English). The reviewed list lives in the project, so matching stays instant, free and identical in the
+  browser and on the server — the model is never loaded by the site (its runtime is ~300 MB, too big
+  for Vercel functions).
+- **Where:** `/cv-analysis` (skill list shows "via …" and "close to your …"), `/career-analysis`
+  (topic details say e.g. "Next.js (shows React)").
+- **Status:** Ready (no database change: merging is enough).
+- **Remember:** to extend the list, run `scripts/suggest-skill-relations.mjs` and review its proposals
+  into `src/data/skill-relations.ts` — never copy them blindly.
+- **Docs:** [CV_ANALYSIS.md](CV_ANALYSIS.md) (Related skills).
+
 ## Free text check: reads scans and photos with OCR, no AI credits (PR #29)
 - **What:** In the review queue, "Read the file" makes CareerForge read a proof file on its own
   server — the PDF's text, or OCR for scans and phone photos, in English, French and Arabic — and

@@ -813,3 +813,54 @@ body:has(.trust-page) .motion-toggle { display: none; }
   .text-check-findings li { grid-template-columns: 18px minmax(0, 1fr); }
   .text-check-findings li > span:not(:first-child), .text-check-findings li > em { grid-column: 2; }
 }
+
+/* CV analysis: skills covered through a related skill (reviewed relations, see src/data/skill-relations.ts). */
+.fit-skill-list li .fit-via { margin-left: auto; color: var(--muted); font-size: 11px; }
+.fit-skill-list li.related { border-style: dashed; border-color: light-dark(#d9a441, #7a5c22); }
+.fit-skill-list li.related span { color: light-dark(#8a5a00, #e9c77b); }
+.fit-skill-list li.related small { color: var(--muted); font-size: 11px; text-align: right; }
+/* Printable workshop certificate (/account/certificates/<id>/print). Paper colours are the same in
+   both themes (".certificate-paper" is kept as written by postcss/light-theme.cjs). */
+.certificate-print-page { min-height: 100dvh; display: grid; justify-items: center; gap: 18px; padding: 28px 16px 48px; }
+.certificate-print-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; width: min(100%, 1060px); }
+.certificate-print-tools p { margin: 0; color: var(--muted); font-size: 13px; }
+.certificate-paper { width: min(100%, 1060px); aspect-ratio: 297 / 210; padding: 2.4%; background: #fffdf7; color: #17210f; border-radius: 6px; box-shadow: 0 30px 80px #00000066; container-type: inline-size; page: certificate; }
+.certificate-frame { position: relative; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 4cqi 6cqi 3cqi; border: 0.35cqi solid #2f4a1e; outline: 0.12cqi solid #2f4a1e; outline-offset: -1.1cqi; }
+.certificate-frame header { display: flex; justify-content: space-between; align-items: baseline; width: 100%; }
+.certificate-brand { font-size: 2.3cqi; font-weight: 700; letter-spacing: -0.03cqi; color: #17210f; }
+.certificate-brand span { color: #5e8f2f; }
+.certificate-kind { font: 600 1.15cqi/1.4 var(--mono); letter-spacing: 0.25cqi; text-transform: uppercase; color: #4a6531; }
+.certificate-intro { margin: 5cqi 0 0; font-size: 1.7cqi; color: #4c5350; font-style: italic; }
+.certificate-name { margin: 1.2cqi 0 0; font-family: Georgia, "Times New Roman", serif; font-size: 5.4cqi; font-weight: 500; line-height: 1.1; color: #17210f; overflow-wrap: anywhere; }
+.certificate-scope { margin: 2.2cqi 0 0; font-size: 1.7cqi; color: #4c5350; }
+.certificate-title { margin: 1cqi 0 0; font-size: 3cqi; font-weight: 600; line-height: 1.2; color: #2f4a1e; overflow-wrap: anywhere; }
+.certificate-when { margin: 1cqi 0 0; font-size: 1.45cqi; color: #4c5350; }
+.certificate-frame footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 3cqi; width: 100%; text-align: left; }
+.certificate-frame dl { display: grid; gap: 0.6cqi; margin: 0; }
+.certificate-frame dl div { display: grid; grid-template-columns: 11cqi auto; gap: 1cqi; font-size: 1.15cqi; }
+.certificate-frame dt { color: #6a7166; font: 600 0.95cqi/1.5 var(--mono); letter-spacing: 0.1cqi; text-transform: uppercase; }
+.certificate-frame dd { margin: 0; color: #17210f; }
+.certificate-frame code { font: 1cqi/1.4 var(--mono); }
+.certificate-qr { display: flex; align-items: center; gap: 1.4cqi; }
+.certificate-qr > span { display: block; width: 9cqi; height: 9cqi; }
+.certificate-qr svg { display: block; width: 100%; height: 100%; }
+.certificate-qr small { font-size: 1cqi; line-height: 1.5; color: #4c5350; }
+.certificate-qr b { color: #17210f; font-weight: 600; overflow-wrap: anywhere; }
+.certificate-limits { margin: 1.6cqi 0 0; font-size: 0.95cqi; color: #6a7166; }
+@page certificate { size: A4 landscape; margin: 0; }
+@media print {
+  body:has(.certificate-print-page) { background: #fff; }
+  body:has(.certificate-print-page) > :not(.site-layer), .certificate-print-tools { display: none !important; }
+  .certificate-print-page { display: block; min-height: 0; padding: 0; }
+  .certificate-paper { width: 297mm; height: 210mm; aspect-ratio: auto; border-radius: 0; box-shadow: none; padding: 7mm; }
+}
+@media (max-width: 640px) { .certificate-print-tools { justify-content: flex-start; } }
+.certificate-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px 14px; }
+.certificate-actions .button { min-height: 38px; padding: 8px 14px; font-size: 12px; }
+@media (max-width: 640px) { .certificate-list > li > .certificate-actions { grid-column: 2; justify-content: flex-start; } }
+/* The column never grows past the screen; content wraps inside it. */
+.certificate-print-page { grid-template-columns: minmax(0, 1fr); }
+.certificate-print-tools, .certificate-paper { width: 100%; max-width: 1060px; justify-self: center; }
+/* The certificate text sits centred between the header and the footer. */
+.certificate-frame .certificate-intro { margin-top: auto; }
+.certificate-frame .certificate-when { margin-bottom: 2cqi; }

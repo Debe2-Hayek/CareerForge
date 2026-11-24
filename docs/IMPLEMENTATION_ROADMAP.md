@@ -2,6 +2,13 @@
 
 Owner-facing summary of every feature, with status and reminders: [OWNER_REVIEW_LOG.md](OWNER_REVIEW_LOG.md).
 
+## M6/M2: related-skill matching (Hugging Face assisted) - verified on development, 24 November 2026
+
+CV-to-job and career analysis credit skills through a reviewed relations list (`src/data/skill-relations.ts`):
+skills that show another count fully, close alternatives earn half, common spellings are normalised and job-title
+words match by meaning. The list was proposed by the Hugging Face model all-MiniLM-L6-v2 offline and reviewed by a
+person; the app applies it with plain code. No database change. Details: [CV_ANALYSIS.md](CV_ANALYSIS.md).
+
 ## R1 part 6: free text check (OCR) - verified on development, 24 November 2026
 
 Admins can have a proof file's text read on CareerForge's server (PDF text layer or Tesseract OCR in

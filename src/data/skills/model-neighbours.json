@@ -1,0 +1,794 @@
+{
+ "model": "Xenova/all-MiniLM-L6-v2 (q8)",
+ "skills": 140,
+ "neighbours": {
+  "JavaScript": [
+   "jQuery 0.77",
+   "Node.js 0.74",
+   "Express.js 0.69",
+   "HTML 0.68",
+   "Web Development 0.67",
+   "Next.js 0.66"
+  ],
+  "TypeScript": [
+   "JavaScript 0.64",
+   "React 0.62"
+  ],
+  "React": [
+   "React Native 0.90",
+   "Jest 0.64",
+   "Redux 0.63",
+   "TypeScript 0.62",
+   "Express.js 0.61"
+  ],
+  "React Native": [
+   "React 0.90",
+   "iOS 0.64",
+   "Redux 0.62",
+   "Node.js 0.61",
+   "Android 0.60"
+  ],
+  "Next.js": [
+   "JavaScript 0.66",
+   "Express.js 0.64",
+   "Node.js 0.63"
+  ],
+  "Vue": [],
+  "Angular": [
+   "Nginx 0.72",
+   "HTML 0.63"
+  ],
+  "Node.js": [
+   "Express.js 0.74",
+   "JavaScript 0.74",
+   "NestJS 0.64",
+   "Next.js 0.63",
+   "Web Development 0.62",
+   "React Native 0.61"
+  ],
+  "HTML": [
+   "CSS 0.75",
+   "Web Development 0.73",
+   "JavaScript 0.68",
+   "PHP 0.65",
+   "Content Writing 0.64",
+   "Salesforce 0.64"
+  ],
+  "CSS": [
+   "HTML 0.75",
+   "Sass 0.68",
+   "Salesforce 0.66",
+   "UI/UX 0.65",
+   "Web Development 0.65",
+   "Responsive Design 0.65"
+  ],
+  "Tailwind CSS": [
+   "CSS 0.64"
+  ],
+  "Python": [
+   "Django 0.73",
+   "NumPy 0.69",
+   "Salesforce 0.67",
+   "Ruby 0.67",
+   "English 0.66",
+   "Pandas 0.66"
+  ],
+  "Django": [
+   "Python 0.73",
+   "Salesforce 0.66",
+   "Flask 0.60"
+  ],
+  "Flask": [
+   "Python 0.65",
+   "Django 0.60"
+  ],
+  "FastAPI": [],
+  "Java": [
+   "Android 0.71",
+   "Salesforce 0.69",
+   "English 0.68",
+   "R 0.67",
+   "C# 0.67",
+   "Oracle 0.65"
+  ],
+  "Spring": [
+   "Java 0.64",
+   "Salesforce 0.62"
+  ],
+  "Kotlin": [
+   "Java 0.63",
+   "UI/UX 0.62",
+   "English 0.62",
+   "Android 0.60"
+  ],
+  "Swift": [
+   "iOS 0.77",
+   "English 0.64",
+   "UI/UX 0.61"
+  ],
+  "C#": [
+   ".NET 0.85",
+   "C 0.71",
+   "Unity 0.71",
+   "English 0.70",
+   "C++ 0.69",
+   "Salesforce 0.68"
+  ],
+  ".NET": [
+   "C# 0.85",
+   "Networking 0.71",
+   "Salesforce 0.69",
+   "English 0.69",
+   "R 0.68",
+   "Unity 0.67"
+  ],
+  "C++": [
+   "C 0.70",
+   "C# 0.69",
+   "Machine Learning 0.63",
+   "R 0.63",
+   "Salesforce 0.63",
+   "Algorithms 0.62"
+  ],
+  "Go": [
+   "R 0.64",
+   "OOP 0.62",
+   "Salesforce 0.62",
+   "C 0.61",
+   "Android 0.60"
+  ],
+  "Rust": [],
+  "PHP": [
+   "Laravel 0.71",
+   "Web Development 0.68",
+   "Salesforce 0.67",
+   "HTML 0.65",
+   "Bash 0.64",
+   "Linux 0.63"
+  ],
+  "Laravel": [
+   "PHP 0.71",
+   "Salesforce 0.62"
+  ],
+  "Ruby": [
+   "Python 0.67",
+   "Salesforce 0.65",
+   "R 0.64",
+   "English 0.62",
+   "Ansible 0.62",
+   "Agile 0.61"
+  ],
+  "Flutter": [
+   "Android 0.67"
+  ],
+  "SQL": [
+   "SQL Server 0.87",
+   "MySQL 0.80",
+   "Oracle 0.76",
+   "SQLite 0.71",
+   "Data Analysis 0.70",
+   "PostgreSQL 0.70"
+  ],
+  "PostgreSQL": [
+   "SQL 0.70",
+   "MySQL 0.68",
+   "Salesforce 0.62",
+   "Data Science 0.60",
+   "Data Analysis 0.60"
+  ],
+  "MySQL": [
+   "SQL 0.80",
+   "PostgreSQL 0.68",
+   "SQL Server 0.64",
+   "GraphQL 0.63",
+   "PHP 0.62",
+   "Excel 0.62"
+  ],
+  "MongoDB": [
+   "NoSQL 0.62"
+  ],
+  "Redis": [
+   "Redux 0.74",
+   "R 0.68",
+   "Salesforce 0.65",
+   "UI/UX 0.64",
+   "English 0.62",
+   "Backend Development 0.61"
+  ],
+  "GraphQL": [
+   "MySQL 0.63"
+  ],
+  "REST APIs": [],
+  "Docker": [],
+  "Kubernetes": [],
+  "AWS": [
+   "Cloud Computing 0.63",
+   "Terraform 0.62",
+   "Salesforce 0.62"
+  ],
+  "Azure": [
+   "Salesforce 0.70",
+   "Cloud Computing 0.70",
+   ".NET 0.64",
+   "iOS 0.61"
+  ],
+  "GCP": [
+   "Salesforce 0.62"
+  ],
+  "Terraform": [
+   "AWS 0.62"
+  ],
+  "CI/CD": [
+   "C 0.71",
+   "Salesforce 0.66",
+   "UI/UX 0.65",
+   "R 0.64",
+   "English 0.61",
+   ".NET 0.60"
+  ],
+  "Linux": [
+   "Salesforce 0.71",
+   "Bash 0.67",
+   "UI/UX 0.66",
+   "System Design 0.66",
+   "Scikit-learn 0.63",
+   "R 0.63"
+  ],
+  "Git": [
+   "GitHub Actions 0.74",
+   "DevOps 0.60",
+   "Salesforce 0.60",
+   "Project Management 0.60"
+  ],
+  "Machine Learning": [
+   "Artificial Intelligence 0.80",
+   "Algorithms 0.76",
+   "Deep Learning 0.74",
+   "Data Science 0.73",
+   "Data Analysis 0.70",
+   "Salesforce 0.70"
+  ],
+  "TensorFlow": [
+   "Deep Learning 0.66",
+   "PyTorch 0.65",
+   "Python 0.62",
+   "Machine Learning 0.61"
+  ],
+  "PyTorch": [
+   "TensorFlow 0.65",
+   "Python 0.62",
+   "NumPy 0.61"
+  ],
+  "Data Analysis": [
+   "Data Science 0.84",
+   "Business Analysis 0.83",
+   "Data Engineering 0.80",
+   "Statistics 0.78",
+   "Data Visualization 0.76",
+   "Google Analytics 0.74"
+  ],
+  "Power BI": [],
+  "Tableau": [
+   "SQL 0.62",
+   "Excel 0.60"
+  ],
+  "Excel": [
+   "Statistics 0.74",
+   "Data Analysis 0.73",
+   "Google Analytics 0.70",
+   "R 0.68",
+   "Data Science 0.68",
+   "Accounting 0.67"
+  ],
+  "Figma": [
+   "R 0.67",
+   "Excel 0.63",
+   "English 0.62",
+   "Data Visualization 0.61",
+   "Salesforce 0.61",
+   "MATLAB 0.61"
+  ],
+  "UI/UX": [
+   "Salesforce 0.74",
+   "iOS 0.71",
+   "System Design 0.69",
+   "R 0.69",
+   "Unity 0.68",
+   "English 0.68"
+  ],
+  "SEO": [
+   "Salesforce 0.67",
+   "Web Development 0.66",
+   "HTML 0.63",
+   "Digital Marketing 0.62"
+  ],
+  "Salesforce": [
+   "R 0.77",
+   "UI/UX 0.74",
+   "System Design 0.73",
+   "iOS 0.72",
+   "English 0.72",
+   "C 0.72"
+  ],
+  "HubSpot": [],
+  "Accounting": [
+   "Business Analysis 0.71",
+   "SQL 0.68",
+   "Excel 0.67",
+   "Oracle 0.67",
+   "Statistics 0.67",
+   "Data Analysis 0.67"
+  ],
+  "Project Management": [
+   "Product Management 0.68",
+   "Agile 0.61",
+   "Salesforce 0.60",
+   "Git 0.60"
+  ],
+  "Agile": [
+   "English 0.65",
+   "Salesforce 0.64",
+   "Mobile Development 0.64",
+   "Backend Development 0.64",
+   "Web Development 0.63",
+   "Project Management 0.61"
+  ],
+  "Cybersecurity": [
+   "Security 0.84",
+   "Salesforce 0.70",
+   "Artificial Intelligence 0.63",
+   "Networking 0.63",
+   "System Design 0.62",
+   ".NET 0.61"
+  ],
+  "Arabic": [
+   "English 0.69",
+   "French 0.61"
+  ],
+  "French": [
+   "English 0.76",
+   "C 0.65",
+   "Salesforce 0.64",
+   "Unity 0.62",
+   "R 0.62",
+   "Arabic 0.61"
+  ],
+  "Data Structures": [
+   "Data Analysis 0.74",
+   "Data Engineering 0.73",
+   "Data Science 0.72",
+   "Data Visualization 0.67",
+   "SQL 0.64",
+   "Excel 0.62"
+  ],
+  "Algorithms": [
+   "Machine Learning 0.76",
+   "Artificial Intelligence 0.74",
+   "Data Analysis 0.70",
+   "Data Science 0.69",
+   "R 0.68",
+   "Salesforce 0.65"
+  ],
+  "OOP": [
+   "Salesforce 0.67",
+   "English 0.66",
+   "Artificial Intelligence 0.65",
+   "R 0.65",
+   "SIEM 0.64",
+   "UI/UX 0.63"
+  ],
+  "NoSQL": [
+   "MongoDB 0.62"
+  ],
+  "Express.js": [
+   "Node.js 0.74",
+   "JavaScript 0.69",
+   "Next.js 0.64",
+   "React 0.61"
+  ],
+  "NestJS": [
+   "Node.js 0.64"
+  ],
+  "jQuery": [
+   "JavaScript 0.77"
+  ],
+  "Bootstrap": [
+   "Linux 0.60"
+  ],
+  "Sass": [
+   "CSS 0.68"
+  ],
+  "Redux": [
+   "Redis 0.74",
+   "UI/UX 0.64",
+   "React 0.63",
+   "React Native 0.62",
+   "Linux 0.61"
+  ],
+  "Jest": [
+   "React 0.64"
+  ],
+  "Unit Testing": [
+   "Testing 0.90",
+   "Penetration Testing 0.67",
+   "C# 0.61"
+  ],
+  "Selenium": [
+   "Python 0.61",
+   "HTML 0.60",
+   "UI/UX 0.60",
+   "Java 0.60"
+  ],
+  "Cypress": [],
+  "Pandas": [
+   "Python 0.66",
+   "Scikit-learn 0.60"
+  ],
+  "NumPy": [
+   "Python 0.69",
+   "PyTorch 0.61"
+  ],
+  "Scikit-learn": [
+   "Linux 0.63",
+   "Python 0.63",
+   "Machine Learning 0.62",
+   "Salesforce 0.61",
+   "Pandas 0.60"
+  ],
+  "Deep Learning": [
+   "Machine Learning 0.74",
+   "Artificial Intelligence 0.71",
+   "TensorFlow 0.66",
+   "Networking 0.65",
+   "Salesforce 0.62",
+   ".NET 0.60"
+  ],
+  "NLP": [
+   "English 0.72",
+   "R 0.64",
+   "Artificial Intelligence 0.63",
+   "Machine Learning 0.62",
+   "Content Writing 0.62"
+  ],
+  "Computer Vision": [
+   "Machine Learning 0.63",
+   "Photoshop 0.61",
+   "Illustrator 0.60"
+  ],
+  "Statistics": [
+   "Data Analysis 0.78",
+   "Google Analytics 0.76",
+   "Excel 0.74",
+   "Data Science 0.71",
+   "R 0.69",
+   "Artificial Intelligence 0.67"
+  ],
+  "R": [
+   "C 0.77",
+   "Salesforce 0.77",
+   "English 0.75",
+   "Artificial Intelligence 0.70",
+   "Data Science 0.70",
+   "UI/UX 0.69"
+  ],
+  "MATLAB": [
+   "Excel 0.65",
+   "Figma 0.61"
+  ],
+  "Spark": [],
+  "Airflow": [],
+  "ETL": [
+   "English 0.63",
+   "R 0.62",
+   ".NET 0.60",
+   "Redis 0.60"
+  ],
+  "Data Engineering": [
+   "Data Science 0.88",
+   "Data Analysis 0.80",
+   "Data Structures 0.73",
+   "Data Visualization 0.69",
+   "SQL 0.68",
+   "Statistics 0.64"
+  ],
+  "Snowflake": [
+   "R 0.61"
+  ],
+  "BigQuery": [],
+  "Microservices": [],
+  "System Design": [
+   "Salesforce 0.73",
+   "UI/UX 0.69",
+   "Linux 0.66",
+   "C 0.65",
+   "English 0.65",
+   "Product Management 0.65"
+  ],
+  "Networking": [
+   ".NET 0.71",
+   "Salesforce 0.68",
+   "System Design 0.65",
+   "Deep Learning 0.65",
+   "Security 0.64",
+   "Cybersecurity 0.63"
+  ],
+  "Penetration Testing": [
+   "Testing 0.72",
+   "Unit Testing 0.67",
+   "Security 0.65",
+   "Cybersecurity 0.61"
+  ],
+  "SIEM": [
+   "LLMs 0.70",
+   "OOP 0.64",
+   "C 0.61",
+   "English 0.61"
+  ],
+  "Firebase": [
+   "Supabase 0.62"
+  ],
+  "Supabase": [
+   "Salesforce 0.64",
+   "Firebase 0.62"
+  ],
+  "Prisma": [
+   "Unity 0.64",
+   "Salesforce 0.60"
+  ],
+  "Android": [
+   "iOS 0.73",
+   "Mobile Development 0.72",
+   "Salesforce 0.72",
+   "Java 0.71",
+   "Flutter 0.67",
+   "English 0.66"
+  ],
+  "iOS": [
+   "Swift 0.77",
+   "Android 0.73",
+   "Mobile Development 0.73",
+   "Salesforce 0.72",
+   "UI/UX 0.71",
+   "English 0.64"
+  ],
+  "Unity": [
+   "C# 0.71",
+   "Salesforce 0.70",
+   "UI/UX 0.68",
+   ".NET 0.67",
+   "Android 0.66",
+   "System Design 0.65"
+  ],
+  "C": [
+   "R 0.77",
+   "Salesforce 0.72",
+   "English 0.72",
+   "CI/CD 0.71",
+   "C# 0.71",
+   "Artificial Intelligence 0.71"
+  ],
+  "Bash": [
+   "Linux 0.67",
+   "Python 0.64",
+   "R 0.64",
+   "PHP 0.64",
+   "Salesforce 0.64",
+   "English 0.63"
+  ],
+  "PowerShell": [
+   "Bash 0.62"
+  ],
+  "Jira": [
+   "Java 0.63"
+  ],
+  "Digital Marketing": [
+   "Salesforce 0.65",
+   "SEO 0.62",
+   "Product Management 0.60"
+  ],
+  "Google Analytics": [
+   "Statistics 0.76",
+   "Data Analysis 0.74",
+   "Business Analysis 0.71",
+   "Excel 0.70",
+   "Data Science 0.65",
+   "Machine Learning 0.62"
+  ],
+  "Content Writing": [
+   "English 0.66",
+   "Web Development 0.65",
+   "HTML 0.64",
+   "Salesforce 0.63",
+   "NLP 0.62"
+  ],
+  "Photoshop": [
+   "Adobe XD 0.64",
+   "CSS 0.62",
+   "Computer Vision 0.61"
+  ],
+  "Illustrator": [
+   "Adobe XD 0.66",
+   "Machine Learning 0.62",
+   "Excel 0.61",
+   "Algorithms 0.61",
+   "Computer Vision 0.60"
+  ],
+  "Adobe XD": [
+   "Illustrator 0.66",
+   "UI/UX 0.65",
+   "Photoshop 0.64",
+   "CSS 0.60"
+  ],
+  "Product Management": [
+   "Salesforce 0.70",
+   "Project Management 0.68",
+   "System Design 0.65",
+   "LLMs 0.63",
+   "Digital Marketing 0.60"
+  ],
+  "Business Analysis": [
+   "Data Analysis 0.83",
+   "Accounting 0.71",
+   "Google Analytics 0.71",
+   "Statistics 0.67",
+   "Excel 0.66",
+   "Data Science 0.65"
+  ],
+  "SAP": [
+   "Oracle 0.69",
+   "Salesforce 0.67",
+   "SQL Server 0.66",
+   "Accounting 0.66",
+   "Excel 0.65",
+   "R 0.64"
+  ],
+  "English": [
+   "French 0.76",
+   "R 0.75",
+   "Salesforce 0.72",
+   "NLP 0.72",
+   "C 0.72",
+   "C# 0.70"
+  ],
+  "Ansible": [
+   "Ruby 0.62",
+   "Python 0.61",
+   "DevOps 0.60"
+  ],
+  "Jenkins": [
+   "DevOps 0.67"
+  ],
+  "GitHub Actions": [
+   "Git 0.74"
+  ],
+  "Nginx": [
+   "Angular 0.72"
+  ],
+  "Oracle": [
+   "SQL 0.76",
+   "Salesforce 0.70",
+   "SAP 0.69",
+   "SQL Server 0.68",
+   "Accounting 0.67",
+   "Java 0.65"
+  ],
+  "SQL Server": [
+   "SQL 0.87",
+   "Salesforce 0.69",
+   "Oracle 0.68",
+   "C# 0.67",
+   "Data Science 0.66",
+   "SAP 0.66"
+  ],
+  "SQLite": [
+   "SQL 0.71",
+   "SQL Server 0.61"
+  ],
+  "Elasticsearch": [],
+  "Kafka": [],
+  "LLMs": [
+   "SIEM 0.70",
+   "Product Management 0.63",
+   "Salesforce 0.60",
+   "English 0.60"
+  ],
+  "Prompt Engineering": [
+   "English 0.65",
+   "Salesforce 0.64",
+   "Testing 0.63",
+   "UI/UX 0.63",
+   "Data Engineering 0.63",
+   "R 0.62"
+  ],
+  "Data Visualization": [
+   "Data Analysis 0.76",
+   "Data Engineering 0.69",
+   "Data Science 0.67",
+   "Data Structures 0.67",
+   "Excel 0.63",
+   "Figma 0.61"
+  ],
+  "Web Development": [
+   "HTML 0.73",
+   "Backend Development 0.72",
+   "Frontend Development 0.71",
+   "Mobile Development 0.70",
+   "Salesforce 0.69",
+   "PHP 0.68"
+  ],
+  "Frontend Development": [
+   "Backend Development 0.88",
+   "Web Development 0.71",
+   "Salesforce 0.67",
+   "Mobile Development 0.65",
+   "UI/UX 0.64",
+   "DevOps 0.63"
+  ],
+  "Backend Development": [
+   "Frontend Development 0.88",
+   "Web Development 0.72",
+   "Salesforce 0.70",
+   "Mobile Development 0.68",
+   "DevOps 0.67",
+   "UI/UX 0.66"
+  ],
+  "Mobile Development": [
+   "iOS 0.73",
+   "Android 0.72",
+   "Web Development 0.70",
+   "Backend Development 0.68",
+   "Salesforce 0.66",
+   "Frontend Development 0.65"
+  ],
+  "DevOps": [
+   "Backend Development 0.67",
+   "Jenkins 0.67",
+   "Salesforce 0.66",
+   "Frontend Development 0.63",
+   "Web Development 0.62",
+   "Bash 0.61"
+  ],
+  "Cloud Computing": [
+   "Azure 0.70",
+   "Salesforce 0.63",
+   "AWS 0.63"
+  ],
+  "Data Science": [
+   "Data Engineering 0.88",
+   "Data Analysis 0.84",
+   "Machine Learning 0.73",
+   "Artificial Intelligence 0.72",
+   "Data Structures 0.72",
+   "Salesforce 0.71"
+  ],
+  "Artificial Intelligence": [
+   "Machine Learning 0.80",
+   "Algorithms 0.74",
+   "Data Science 0.72",
+   "C 0.71",
+   "Deep Learning 0.71",
+   "R 0.70"
+  ],
+  "Responsive Design": [
+   "CSS 0.65",
+   "Mobile Development 0.64"
+  ],
+  "Accessibility": [],
+  "Testing": [
+   "Unit Testing 0.90",
+   "Penetration Testing 0.72",
+   "Salesforce 0.68",
+   "Statistics 0.66",
+   "C# 0.64",
+   "R 0.64"
+  ],
+  "Security": [
+   "Cybersecurity 0.84",
+   "Salesforce 0.71",
+   "Penetration Testing 0.65",
+   "Networking 0.64",
+   "System Design 0.62",
+   "English 0.61"
+  ]
+ }
+}

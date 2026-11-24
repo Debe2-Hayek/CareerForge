@@ -30,7 +30,7 @@ part needs OpenRouter credits before it gives real answers.
 - **Where:** the sidebar on every workspace page; `/dashboard` (Overview); `/` (homepage, after The Forge).
 - **Try:** open the Overview signed in; open "Coming soon" in the sidebar; on the homepage, scroll to
   "Everything inside", hover a card, drag it, or press the arrow keys.
-- **Status:** Ready (no database change).
+- **Status:** Live since 25 Nov 2026 (PR #36, no database change).
 - **Remember:** all motion follows "reduce motion" and the site's motion switch; the ring's pause button
   shares the workshops ring setting.
 

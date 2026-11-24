@@ -185,6 +185,32 @@ Migration `202611250004_trust_page.sql`. No AI.
   link kills the old; switch-off stops the page and the portfolio link; dark, light and phone). Passed on
   24 November 2026.
 
+## Free text check (part 6)
+
+Migration `202611250007_evidence_text.sql`; `src/lib/claims/document-reader.ts`, `text-check.ts`.
+
+- **Reading** (admin button "Read the file", `POST /api/v1/admin/claims/read`): a PDF's text layer when it
+  has one; otherwise OCR with Tesseract (`tesseract.js` 7, Apache-2.0) in English, French and Arabic on the
+  largest image of each of the first 3 pages (scans) or on the photo, after straightening, greyscale,
+  resizing to about 2,000 px and contrast normalising (`sharp`). Runs on CareerForge's server; only
+  Tesseract's language data is downloaded (cached in the temp folder). Stored in `evidence_text`
+  (admins only, at most 20,000 characters, with the OCR confidence).
+- **Comparison** (plain code, recomputed on every load): name, institution, title and year searched in the
+  text with the same word rules as the AI check; results are Found / Not found in the text / Compare
+  yourself (different scripts). Never "mismatch": OCR can miss words. Registration-style numbers are listed.
+- **Integrations:** the text fingerprint is recorded for photos and scans too, so a photo and a PDF of the
+  same certificate match as "Same text"; the AI proof check uses the OCR text for scanned PDFs.
+- **Why Tesseract and not a Hugging Face model** (24 November 2026): in-server Hugging Face OCR models are
+  line-only (TrOCR) or too heavy for a serverless function (Florence-2), and the hosted Inference API would
+  send private diplomas to a third party with a very small free allowance. Measured with Tesseract: a clean
+  scan, a blurred tilted photo and an Arabic/French certificate read word for word; about 0.3 s per image
+  after a 1–2 s first load; 165 MB memory. The route ships Tesseract's worker and WebAssembly files
+  (`outputFileTracingIncludes` in `next.config.ts`, verified in the build trace).
+- Unit: `src/lib/claims/text-check.test.ts`. Live on development: `scripts/verify-text-check-live.mjs`
+  (phone-style photo read in 2.5 s at 95% confidence, scanned PDF read with OCR, text PDF read from its
+  layer, all four facts found, the registration number listed, photo and PDF matched by text, students
+  refused; dark, light and phone). Passed on 24 November 2026.
+
 ## Limitations and next steps
 
 - Files of a deleted account stay in storage (database rows are deleted); a cleanup job

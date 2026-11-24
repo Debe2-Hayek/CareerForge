@@ -11,7 +11,8 @@ import { LEVELS, TEST_IDS, type LanguageTest } from "../languages";
 import { ClaimError, type ClaimsAccess, type ReviewAccess } from "./handlers";
 import { checkResultSchema, compareEvidence, evidenceCheckPrompt, extractionSchema, EVIDENCE_CHECK_PROMPT, type CheckResult } from "./evidence-check";
 import { pdfText, tidyText } from "../ai/document-text";
-import { fingerprintProof, sha256Hex } from "./fingerprint";
+import { fingerprintProof, normalizedProofText, sha256Hex } from "./fingerprint";
+import { checkText, storedTextSchema, type StoredText, type TextCheck } from "./text-check";
 import { checkCourseraCertificate, issuerForLink, type LinkCheck } from "./issuers";
 import { runAi, type AiRunStore } from "../ai/runner";
 import type { AiProvider } from "../ai/provider";
@@ -136,7 +137,7 @@ const queueSchema = z.array(z.object({
 type RawQueueItem = z.infer<typeof queueSchema>[number];
 type RawFile = RawQueueItem["evidence"][number];
 export type ProofMatch = z.infer<typeof matchSchema> & { url: string | null };
-export type QueueItem = Omit<RawQueueItem, "evidence"> & { evidence: (Omit<RawFile, "matches"> & { url: string | null; matches: ProofMatch[] })[] };
+export type QueueItem = Omit<RawQueueItem, "evidence"> & { evidence: (Omit<RawFile, "matches"> & { url: string | null; matches: ProofMatch[]; text: (StoredText & TextCheck) | null })[] };
 
 /** Claims awaiting review with short-lived links to their proof files (10 minutes). */
 export async function readReviewQueue(client: SupabaseClient): Promise<QueueItem[]> {
@@ -147,9 +148,53 @@ export async function readReviewQueue(client: SupabaseClient): Promise<QueueItem
   const paths = [...new Set(queue.flatMap(item => item.evidence.flatMap(file => [file.path, ...file.matches.map(match => match.path)])))];
   const signed = paths.length ? await client.storage.from(BUCKET).createSignedUrls(paths, 600) : { data: [], error: null };
   const urls = new Map((signed.data ?? []).map(entry => [entry.path, entry.signedUrl]));
-  return queue.map(item => ({ ...item, evidence: item.evidence.map(file => ({
-    ...file, url: urls.get(file.path) ?? null, matches: file.matches.map(match => ({ ...match, url: urls.get(match.path) ?? null }))
-  })) }));
+  const texts = await readStoredTexts(client, queue.flatMap(item => item.evidence.map(file => file.id)));
+  return queue.map(item => ({ ...item, evidence: item.evidence.map(file => {
+    const stored = texts.get(file.id);
+    return {
+      ...file, url: urls.get(file.path) ?? null, matches: file.matches.map(match => ({ ...match, url: urls.get(match.path) ?? null })),
+      // Compared with the claim on every load: plain code, so it is always current.
+      text: stored && item.record ? { ...stored, ...checkText({ kind: item.kind, ownerName: item.ownerName, ...item.record }, stored.text) } : null
+    };
+  }) }));
+}
+
+/** Text already read from these files (admins only). A failure only hides the text check. */
+async function readStoredTexts(client: SupabaseClient, ids: string[]): Promise<Map<string, StoredText>> {
+  if (!ids.length) return new Map();
+  const { data, error } = await client.from("evidence_text").select("evidence_id,method,text,confidence,read_at").in("evidence_id", ids);
+  if (error) return new Map();
+  return new Map((data ?? []).flatMap(row => {
+    const parsed = storedTextSchema.safeParse({ method: row.method, text: row.text, confidence: row.confidence, readAt: row.read_at });
+    return parsed.success ? [[row.evidence_id as string, parsed.data] as const] : [];
+  }));
+}
+
+/**
+ * Admin-only free text check: reads the file's text on CareerForge's server (PDF text layer
+ * or OCR), stores it, adds its text fingerprint (so a photo and a PDF of the same certificate
+ * match), and compares it with the claim. No AI, no credits, the file goes nowhere.
+ */
+export async function runTextRead(client: SupabaseClient, evidenceId: string): Promise<StoredText & TextCheck> {
+  const { data, error } = await client.rpc("claim_review_queue");
+  if (error) throw new Error("Review queue unavailable");
+  const queue = queueSchema.parse(data ?? []);
+  const item = queue.find(entry => entry.evidence.some(file => file.id === evidenceId));
+  const file = item?.evidence.find(entry => entry.id === evidenceId);
+  if (!item || !file || !item.record) throw new ClaimError("NOT_FOUND", "This proof is no longer waiting for review. Reload the queue.", 404);
+  const download = await client.storage.from(BUCKET).download(file.path);
+  if (download.error || !download.data) throw new Error("Evidence download failed");
+  const bytes = new Uint8Array(await download.data.arrayBuffer());
+  const { readProof } = await import("./document-reader");
+  const read = await readProof(bytes, file.mime);
+  const saved = await client.rpc("record_evidence_text", { p_evidence_id: evidenceId, p_method: read.method, p_text: read.text, p_confidence: read.confidence });
+  if (saved.error) throw new Error("Text could not be saved");
+  const words = normalizedProofText(read.text);
+  if (words.length >= 30) {
+    const print = await fingerprintProof(bytes, file.mime);
+    await client.rpc("record_evidence_fingerprint", { p_evidence_id: evidenceId, p_sha256: print.sha256, p_text_hash: sha256Hex(new TextEncoder().encode(words)), p_image_hash: print.imageHash });
+  }
+  return { ...read, readAt: new Date().toISOString(), ...checkText({ kind: item.kind, ownerName: item.ownerName, ...item.record }, read.text) };
 }
 
 const backlogSchema = z.array(z.object({ id: z.uuid(), path: z.string(), mime: z.string() }));
@@ -222,14 +267,19 @@ export async function runEvidenceCheck(client: SupabaseClient, runs: AiRunStore,
   let images: string[] = [];
   if (file.mime === "application/pdf") {
     documentText = tidyText(await pdfText(bytes).catch(() => "")).slice(0, 6000);
+    // A scanned PDF has no text layer: use the free OCR reading when the reviewer ran it.
+    if (documentText.length < 30) {
+      const stored = (await readStoredTexts(client, [evidenceId])).get(evidenceId);
+      if (stored?.method === "ocr" && stored.text.length >= 30) documentText = stored.text.slice(0, 6000);
+    }
   } else {
     images = [`data:${file.mime};base64,${Buffer.from(bytes).toString("base64")}`];
   }
   const context = { kind: item.kind, ownerName: item.ownerName, ...item.record };
   let result: Omit<CheckResult, "checkedAt">;
-  // A scanned PDF has no text layer; reading page images is a later step, so say so honestly.
+  // A scanned PDF whose free reading has not run (or found nothing): say so honestly.
   if (documentText !== null && documentText.length < 30) {
-    result = { status: "unreadable", model: null, extracted: extractionSchema.parse({ readable: false, notes: ["Scanned PDF without text: open the file to check it."] }), findings: [] };
+    result = { status: "unreadable", model: null, extracted: extractionSchema.parse({ readable: false, notes: ["Scanned PDF without text: use \"Read the file\" (free) first, or open the file to check it."] }), findings: [] };
   } else {
     const prompt = evidenceCheckPrompt(documentText);
     const run = await runAi(runs, provider, { feature: "evidence_check", promptVersion: EVIDENCE_CHECK_PROMPT, schema: extractionSchema, ...prompt, images, cacheKey: [realSha] });

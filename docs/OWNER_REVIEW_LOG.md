@@ -10,6 +10,24 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Free text check: reads scans and photos with OCR, no AI credits (PR #29)
+- **What:** In the review queue, "Read the file" makes CareerForge read a proof file on its own
+  server — the PDF's text, or OCR for scans and phone photos, in English, French and Arabic — and
+  look for the claimed name, institution, degree and year, plus any registration numbers printed on
+  it. It works today without OpenRouter credits, and the file is never sent anywhere. Bonus: a photo
+  and a PDF of the same certificate now match across accounts by their text, and the AI check (once
+  credits exist) reads scanned PDFs through this text instead of giving up.
+- **Why not Hugging Face here:** checked on 24 Nov 2026. Hugging Face OCR models that run inside
+  the server are either line-only (TrOCR) or too heavy (Florence-2), and Hugging Face's hosted API
+  would send private diplomas to a third party with a tiny free allowance. Tesseract (open source,
+  Apache-2.0) read every test word for word in about 0.3–2.5 s.
+- **Where:** `/admin/claims`, "Text check · free · no AI" under each file.
+- **Try:** upload a photo of a certificate from a test account and click "Read the file".
+- **Status:** Ready.
+- **Remember:** production needs migration 202611250007 (after 0001–0006). Finding the words does
+  not prove a file is genuine; missing words can be an OCR miss — the page says so.
+- **Docs:** [CLAIMS.md](CLAIMS.md) (Free text check).
+
 ## CareerForge workshops with verifiable certificates (PR #28)
 - **What:** CareerForge can now run its own workshops and issue certificates anyone can check online.
   An admin creates a workshop, assigns a trainer (by their account email) and records where the signed

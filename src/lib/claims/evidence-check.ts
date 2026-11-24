@@ -54,14 +54,14 @@ function overlap(claim: string, document: string) {
   if (!claimWords.length) return 0;
   return claimWords.filter(word => documentWords.has(word)).length / claimWords.length;
 }
-function compareText(claim: string, document: string, strong: number, weak: number): FindingResult {
+export function compareText(claim: string, document: string, strong: number, weak: number): FindingResult {
   if (!document.trim()) return "missing";
   // Different scripts (for example Arabic on the document, Latin in the profile) cannot be compared by code.
   if ((latin(claim) && nonLatin(document) && !latin(document)) || (nonLatin(claim) && !latin(claim) && latin(document))) return "check";
   const share = overlap(claim, document);
   return share >= strong ? "match" : share >= weak ? "check" : "mismatch";
 }
-const years = (value: string | null) => (value?.match(/\b(19|20)\d{2}\b/g) ?? []);
+export const years = (value: string | null): string[] => [...(value?.match(/\b(19|20)\d{2}\b/g) ?? [])];
 
 /** Compares what the AI read with the claim. Deterministic and testable. */
 export function compareEvidence(claim: ClaimContext, read: Extraction): { status: CheckStatus; findings: Finding[] } {

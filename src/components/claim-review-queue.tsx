@@ -10,6 +10,48 @@ import { checkResultSchema, type CheckResult } from "@/lib/claims/evidence-check
 const resultText = { match: "Matches", mismatch: "Does not match", missing: "Not found on the document", check: "Compare yourself" } as const;
 const statusText = { consistent: "Consistent with the claim", attention: "Needs your attention", unreadable: "Could not be read" } as const;
 
+const textResult = { match: "Found", missing: "Not found in the text", check: "Compare yourself" } as const;
+type FileText = NonNullable<QueueItem["evidence"][number]["text"]>;
+
+/** Free text check: CareerForge reads the file on its own server (no AI) and looks for the claim in it. */
+function TextCheckPanel({ evidenceId, initial, disabled }: { evidenceId: string; initial: FileText | null; disabled: boolean }) {
+  const [read, setRead] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function run() {
+    if (busy) return;
+    setBusy(true); setError("");
+    try {
+      const response = await fetch("/api/v1/admin/claims/read", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ evidenceId }), signal: AbortSignal.timeout(70000) });
+      const body = await response.json().catch(() => null);
+      if (!response.ok || !body?.text) { setError(body?.error?.message ?? "The file could not be read."); return; }
+      setRead(body.text);
+    } catch { setError("Reading did not finish. Try again."); }
+    finally { setBusy(false); }
+  }
+  return <div className="ai-check text-check" data-state={read?.status ?? "none"}>
+    <div className="ai-check-head">
+      <span className="ai-check-title"><span aria-hidden="true">≡</span> Text check <em className="free">free · no AI</em></span>
+      {read && <span className="text-check-status" data-state={read.status}>{read.status === "consistent" ? "Claim found in the file" : read.status === "unreadable" ? "No readable text" : "Needs your attention"}</span>}
+      <button type="button" className="text-button" onClick={run} disabled={busy || disabled}>{busy ? "Reading the file…" : read ? "Read again" : "Read the file"}</button>
+    </div>
+    {error && <p className="form-error" role="alert">{error}</p>}
+    {!read && !error && <p className="ai-check-hint">CareerForge reads the file on its own server (the PDF&apos;s text, or OCR for scans and photos, in English, French and Arabic) and looks for the name, institution, title and year. Nothing is sent to an AI service. A photo usually takes a few seconds.</p>}
+    {read && read.findings.length > 0 && <ul className="text-check-findings">
+      {read.findings.map(finding => <li key={finding.field} data-result={finding.result}>
+        <span aria-hidden="true">{finding.result === "match" ? "✓" : finding.result === "missing" ? "✗" : "?"}</span>
+        <strong>{finding.label}</strong><span>{finding.claim || "—"}</span><em>{textResult[finding.result]}</em>
+      </li>)}
+    </ul>}
+    {read && read.numbers.length > 0 && <p className="ai-check-hint">Numbers printed on the file: <code>{read.numbers.join(", ")}</code>. Compare with other proof.</p>}
+    {read && <details className="text-check-raw">
+      <summary>{read.method === "ocr" ? `Text read with OCR${read.confidence !== null ? ` · ${read.confidence}% confidence` : ""}` : "Text from the PDF"} · {read.text.length.toLocaleString("en")} characters</summary>
+      <pre>{read.text || "(no text found)"}</pre>
+    </details>}
+    {read && read.status !== "unreadable" && <p className="ai-check-hint">Finding the words does not prove the file is genuine; not finding them can be an OCR miss. Always open the file.</p>}
+  </div>;
+}
+
 /** The AI reading of one proof file, compared field by field with the claim. A hint, never a decision. */
 function AiCheck({ evidenceId, initial, disabled }: { evidenceId: string; initial: CheckResult | null; disabled: boolean }) {
   const [check, setCheck] = useState(initial);
@@ -56,7 +98,7 @@ function AiCheck({ evidenceId, initial, disabled }: { evidenceId: string; initia
 
 const matchText = {
   same_file: { label: "Identical file", help: "Byte for byte the same file." },
-  same_text: { label: "Same text", help: "The same PDF text, re-saved or re-exported." },
+  same_text: { label: "Same text", help: "The same words: a re-saved PDF, or a photo or scan of the same document." },
   same_number: { label: "Same certificate number", help: "The AI check read the same number on both." },
   similar_image: { label: "Near-identical image", help: "The same picture re-saved, or the same design with edited text. Compare names, dates and numbers." }
 } as const;
@@ -202,6 +244,7 @@ function ReviewCard({ item, onDecided }: { item: QueueItem; onDecided: (text: st
         </div>
         {file.url ? <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-button">Open ↗</a> : <span className="muted-note">Link unavailable</span>}
         <FileIntegrity file={file} />
+        <TextCheckPanel evidenceId={file.id} initial={file.text} disabled={busy} />
         <AiCheck evidenceId={file.id} initial={file.check} disabled={busy} />
       </li>)}
     </ul>}

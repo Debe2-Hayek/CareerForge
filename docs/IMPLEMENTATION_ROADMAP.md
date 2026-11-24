@@ -2,6 +2,14 @@
 
 Owner-facing summary of every feature, with status and reminders: [OWNER_REVIEW_LOG.md](OWNER_REVIEW_LOG.md).
 
+## R1 part 6: free text check (OCR) - verified on development, 24 November 2026
+
+Admins can have a proof file's text read on CareerForge's server (PDF text layer or Tesseract OCR in
+English, French and Arabic, no AI, no credits, the file goes nowhere); code looks for the claim's name,
+institution, title and year and lists registration numbers. The text joins the fingerprints (a photo and a
+PDF of the same certificate match) and feeds the AI check for scanned PDFs. Production needs migration
+202611250007. Details: [CLAIMS.md](CLAIMS.md).
+
 ## R4: CareerForge workshops with verifiable certificates - verified on development, 24 November 2026
 
 Admins create workshops, assign trainers and record the trainer agreement reference; learners enroll with

@@ -188,3 +188,26 @@ export function linkCheckHandlers(authorize: () => Promise<LinkCheckAccess | nul
   }
   return { POST };
 }
+
+export type ReadAccess = { userId: string; read(evidenceId: string): Promise<unknown> };
+
+/** POST /api/v1/admin/claims/read: an admin has CareerForge read a proof file's text (free, no AI). */
+export function textReadHandlers(authorize: () => Promise<ReadAccess | null>, limit: Limit = privateWriteLimit) {
+  async function POST(request: Request) {
+    if (!isSameOrigin(request)) return failure("FORBIDDEN", "This request must come from CareerForge.", 403);
+    let access: ReadAccess | null;
+    try { access = await authorize(); }
+    catch { return failure("AUTH_UNAVAILABLE", "Your session could not be verified. Please try again.", 503); }
+    if (!access) return failure("FORBIDDEN", "Reviewer access is required.", 403);
+    const input = checkSchema.safeParse(await readBoundedJson(request, 1024));
+    if (!input.success) return failure("INVALID_INPUT", "Choose a proof file to read.", 400);
+    const denied = limited(limit, "review", access.userId);
+    if (denied) return denied;
+    try { return json({ text: await access.read(input.data.evidenceId) }); }
+    catch (error) {
+      if (error instanceof ClaimError) return failure(error.code, error.message, error.status);
+      return failure("READ_FAILED", "The file could not be read. Open it and review it yourself.", 503);
+    }
+  }
+  return { POST };
+}

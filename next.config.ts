@@ -40,7 +40,12 @@ const noIndexSources = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   // CV text extraction: load the PDF.js build as published (it relies on Node APIs).
-  serverExternalPackages: ["unpdf", "sharp"],
+  serverExternalPackages: ["unpdf", "sharp", "tesseract.js"],
+  // Free OCR of proof files: Tesseract starts a worker script and loads WebAssembly from its
+  // package folders at run time, which file tracing cannot see.
+  outputFileTracingIncludes: {
+    "/api/v1/admin/claims/read": ["./node_modules/tesseract.js/**/*", "./node_modules/tesseract.js-core/*.{js,wasm,json}", "./node_modules/{is-url,regenerator-runtime,wasm-feature-detect,bmp-js,zlibjs,node-fetch,whatwg-url,tr46,webidl-conversions}/**/*"]
+  },
   turbopack: {
     root: process.cwd()
   },

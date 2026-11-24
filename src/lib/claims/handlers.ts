@@ -55,7 +55,7 @@ export function claimEvidenceHandlers(authorize: () => Promise<ClaimsAccess | nu
     try { form = await request.formData(); } catch { return failure("INVALID_INPUT", "The upload could not be read. Please try again.", 400); }
     const kind = form.get("kind");
     const file = form.get("file");
-    if (kind !== "degree" && kind !== "employment" && kind !== "skill") return failure("INVALID_INPUT", "Choose what this proof is for.", 400);
+    if (kind !== "degree" && kind !== "employment" && kind !== "skill" && kind !== "language") return failure("INVALID_INPUT", "Choose what this proof is for.", 400);
     const record = uuid.safeParse(form.get("recordId"));
     const skill = typeof form.get("skill") === "string" ? String(form.get("skill")).trim() : "";
     if (kind === "skill" ? !skill || skill.length > 60 : !record.success) return failure("INVALID_INPUT", "Choose what this proof is for.", 400);
@@ -136,7 +136,7 @@ export function claimCheckHandlers(authorize: () => Promise<CheckAccess | null>,
 }
 
 const linkSchema = z.object({
-  kind: z.enum(["degree", "employment", "skill"]), recordId: z.uuid().nullable().default(null),
+  kind: z.enum(["degree", "employment", "skill", "language"]), recordId: z.uuid().nullable().default(null),
   skill: z.string().trim().max(60).nullable().default(null), url: z.string().trim().max(500)
 }).strict().refine(value => value.kind === "skill" ? Boolean(value.skill) : Boolean(value.recordId), { message: "Choose what this link is for." });
 

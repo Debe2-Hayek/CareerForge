@@ -1,5 +1,16 @@
 # CareerForge implementation roadmap
 
+Owner-facing summary of every feature, with status and reminders: [OWNER_REVIEW_LOG.md](OWNER_REVIEW_LOG.md).
+
+## R1 part 4: language proficiency - verified on development, 24 November 2026
+
+Profiles list languages at a CEFR level (or Native) with an optional test result; code converts IELTS,
+TOEFL (both scales), Duolingo, Cambridge, DELF/DALF, TCF and Goethe results into the level they
+support, warns the user while typing, and shows the reviewer claimed vs supported level and result age.
+Languages are claims with the same proof, fingerprints, links and review. Also fixes a 15-second hang
+(and misleading message) when approving a record edited after its proof. No AI. Production needs
+migrations 202611250002 and 202611250003. Details: [CLAIMS.md](CLAIMS.md).
+
 ## R1 part 3: proof integrity (reused, edited and forged proof; issuer links) - verified on development, 24 November 2026
 
 The review queue now recomputes every proof file's fingerprint on the admin side (the one sent with

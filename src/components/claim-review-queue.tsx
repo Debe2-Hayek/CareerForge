@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { ProofMatch, QueueItem, StoredLinkCheck } from "@/lib/claims/server";
 import { issuerForLink } from "@/lib/claims/issuers";
+import { compareLevel, levelFromScore, levelInfo, levelLabel, resultAge, testResultText } from "@/lib/languages";
 import { checkResultSchema, type CheckResult } from "@/lib/claims/evidence-check";
 
 const resultText = { match: "Matches", mismatch: "Does not match", missing: "Not found on the document", check: "Compare yourself" } as const;
@@ -135,7 +136,24 @@ function LinkRow({ link, ownerName, disabled }: { link: QueueItem["links"][numbe
   </li>;
 }
 
-const kindLabel = { degree: "Degree", employment: "Work experience", skill: "Skill" } as const;
+/** For a language claim: the claimed level against what the stated test score supports (computed, not AI). */
+function LanguageScore({ info }: { info: NonNullable<QueueItem["language"]> }) {
+  const reading = info.test && info.score ? levelFromScore(info.test, info.score) : null;
+  const verdict = reading ? compareLevel(info.level, reading) : "unknown";
+  const age = info.test ? resultAge(info.test, info.testDate) : null;
+  return <div className="language-review" data-verdict={verdict}>
+    <p><span>Claimed level</span><strong>{levelLabel(info.level)}</strong> · {levelInfo[info.level]}</p>
+    {info.test && reading ? <>
+      <p><span>Stated result</span><strong>{testResultText(info.test, info.score)}</strong>{info.testDate ? ` · taken ${info.testDate}` : " · no test date"}</p>
+      <p><span>Score supports</span>{reading.level === null ? reading.text : reading.level === "below" ? <><strong>below B1</strong> ({reading.text})</> : <><strong>{reading.level}</strong> ({reading.text})</>}
+        {verdict === "supports" && <em> ✓ supports the claim</em>}{verdict === "below" && <em> ✗ lower than claimed</em>}</p>
+      {age && <p className={age.expired ? "language-review-old" : undefined}><span>Result age</span>{age.text}</p>}
+      <p className="ai-check-hint">Check that the report shows this score, the owner&apos;s name and the date. {info.level === "native" ? "Native is accepted from C1 upwards or other evidence (schooling, nationality)." : ""}</p>
+    </> : <p className="ai-check-hint">No test result stated. Judge the proof file itself (certificate, schooling in that language); a reviewed level without a test is weaker evidence.</p>}
+  </div>;
+}
+
+const kindLabel = { degree: "Degree", employment: "Work experience", skill: "Skill", language: "Language" } as const;
 const when = new Intl.DateTimeFormat("en", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const size = (bytes: number) => bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
@@ -167,6 +185,7 @@ function ReviewCard({ item, onDecided }: { item: QueueItem; onDecided: (text: st
         <p className="eyebrow">{kindLabel[item.kind].toUpperCase()} · {item.ownerName}</p>
         <h3 id={`review-${item.id}`}>{item.subject}</h3>
         <small>Sent {when.format(new Date(item.updatedAt))}</small>
+        {item.language && <LanguageScore info={item.language} />}
       </div>
       {(duplicates || badLink) && <p className="review-flag" role="note"><strong>{altered ? "A file was altered on the way in." : duplicates ? "Proof matches another account." : "A verification link does not match."}</strong> See the details below before deciding.</p>}
     </header>

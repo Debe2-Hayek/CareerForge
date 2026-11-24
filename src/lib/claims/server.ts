@@ -6,6 +6,8 @@ import { createClient } from "../supabase/server";
 import { historyAccess } from "../profile-history-server";
 import { readSkillResults } from "../skill-checks";
 import { buildClaimItems, claimRowSchema, type ClaimItem } from "./model";
+import { readLanguages } from "../languages-server";
+import { LEVELS, TEST_IDS, type LanguageTest } from "../languages";
 import { ClaimError, type ClaimsAccess, type ReviewAccess } from "./handlers";
 import { checkResultSchema, compareEvidence, evidenceCheckPrompt, extractionSchema, EVIDENCE_CHECK_PROMPT, type CheckResult } from "./evidence-check";
 import { pdfText, tidyText } from "../ai/document-text";
@@ -32,7 +34,7 @@ function rpcFailure(error: { code?: string; message?: string }): never {
   if (error.code === "23514" && message.includes("Too many links")) throw new ClaimError("TOO_MANY_LINKS", "You can add up to 3 links to one claim.", 409);
   if (error.code === "23505") throw new ClaimError("LINK_EXISTS", "You already added this link.", 409);
   if (error.code === "23514") throw new ClaimError("NOT_AWAITING_REVIEW", "This claim is no longer waiting for review. Reload the queue.", 409);
-  if (error.code === "40001") throw new ClaimError("RECORD_CHANGED", "The owner edited this record after sending proof. It cannot be approved for the old version.", 409);
+  if (error.code === "55000" || error.code === "40001") throw new ClaimError("RECORD_CHANGED", "The owner edited this record after sending proof. It cannot be approved for the old version.", 409);
   if (error.code === "P0002") throw new ClaimError("NOT_FOUND", "This item is no longer in your profile. Reload the page.", 404);
   if (error.code === "42501") throw new ClaimError("FORBIDDEN", message.includes("own claims") ? "You cannot review your own claims." : "Reviewer access is required.", 403);
   if (error.code === "22023") throw new ClaimError("INVALID_INPUT", "Check the request and try again.", 400);
@@ -88,13 +90,14 @@ export async function authorizeReview(): Promise<(ReviewAccess & { client: Supab
 
 /** The owner's facts with their trust levels, for the verification page and profile ring. */
 export async function readClaimsOverview(client: SupabaseClient, userId: string, skills: string[]): Promise<ClaimItem[]> {
-  const [history, results, claims, evidence, catalog, links] = await Promise.all([
+  const [history, results, claims, evidence, catalog, links, languages] = await Promise.all([
     historyAccess(client, userId).readAll(),
     readSkillResults(client, userId),
-    client.from("claims").select("id,kind,education_id,experience_id,skill,source_revision,subject,status,status_note,decided_at,updated_at").eq("user_id", userId),
+    client.from("claims").select("id,kind,education_id,experience_id,language_id,skill,source_revision,subject,status,status_note,decided_at,updated_at").eq("user_id", userId),
     client.from("claim_evidence").select("claim_id").eq("user_id", userId),
     client.rpc("skill_check_catalog"),
-    client.from("claim_links").select("claim_id").eq("user_id", userId)
+    client.from("claim_links").select("claim_id").eq("user_id", userId),
+    readLanguages(client, userId)
   ]);
   if (claims.error || evidence.error || links.error) throw new Error("Claims unavailable");
   const rows = z.array(claimRowSchema).parse(claims.data ?? []);
@@ -105,7 +108,7 @@ export async function readClaimsOverview(client: SupabaseClient, userId: string,
   const passed = results.filter(result => result.passed).map(result => ({ skill: result.skill, takenAt: result.taken_at }));
   // Skills with a published CareerForge check (any skill an admin has published).
   const checkable = catalog.error ? undefined : z.array(z.object({ skill: z.string() }).loose()).catch([]).parse(catalog.data ?? []).map(bank => bank.skill);
-  return buildClaimItems(history, skills, passed, rows, counts, checkable, linkCounts);
+  return buildClaimItems(history, skills, passed, rows, counts, checkable, linkCounts, languages);
 }
 
 const matchSchema = z.object({
@@ -118,7 +121,8 @@ const linkCheckSchema = z.object({
 });
 export type StoredLinkCheck = z.infer<typeof linkCheckSchema>;
 const queueSchema = z.array(z.object({
-  id: z.uuid(), kind: z.enum(["degree", "employment", "skill"]), subject: z.string(), updatedAt: z.string(),
+  id: z.uuid(), kind: z.enum(["degree", "employment", "skill", "language"]), subject: z.string(), updatedAt: z.string(),
+  language: z.object({ language: z.string(), level: z.enum(LEVELS), test: z.enum(TEST_IDS as [LanguageTest, ...LanguageTest[]]).nullable(), score: z.string().nullable(), testDate: z.string().nullable() }).nullable().catch(null),
   ownerName: z.string(), own: z.boolean(),
   record: z.object({ institution: z.string().nullable(), title: z.string(), startDate: z.string().nullable(), endDate: z.string().nullable(), isCurrent: z.boolean() }).nullable().catch(null),
   evidence: z.array(z.object({

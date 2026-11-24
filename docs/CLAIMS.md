@@ -127,6 +127,41 @@ date read correctly) and a made-up code (no certificate found).
   neither read nor write fingerprints or link checks, and look-alike or unknown sites are refused by
   the endpoint and by the database. Screenshots in dark, light and phone. Passed on 24 November 2026.
 
+## Languages (part 4)
+
+Migration `202611250002_languages.sql`. No AI and no credits are used.
+
+- **Profile.** On Profile details (`/account/history#languages`) a user lists up to 10 languages, each
+  at a CEFR level (A1 to C2) or Native, optionally with a test result: IELTS, TOEFL iBT, Duolingo
+  English Test, Cambridge English, DELF/DALF, TCF, Goethe-Zertifikat or another test. Stored in
+  `profile_languages`; written only through `save_profile_language` and `delete_profile_language`.
+  A test needs a score; test dates cannot be in the future. Every change gives a new revision.
+- **What the score supports** (`src/lib/languages.ts`, code only, checked 24 November 2026 against each
+  test's published alignment): IELTS 8.5+ C2, 7–8 C1, 5.5–6.5 B2, 4–5 B1. TOEFL iBT 1–6 scale (since
+  21 January 2026) 6 C2, 5 C1, 4 B2, 3 B1, 2 A2, 1 A1; the older 0–120 total 95+ C1, 72+ B2, 42+ B1 (it
+  does not measure C2). Duolingo 155+ C2, 130+ C1, 100+ B2, 60+ B1. Cambridge English Scale 200+ C2,
+  180+ C1, 160+ B2, 140+ B1, 120+ A2, 100+ A1. TCF 600+ C2, 500+ C1, 400+ B2, 300+ B1, 200+ A2, 100+ A1.
+  DELF/DALF and Goethe certificates are issued at a level. Native counts as supported from C1 upwards.
+  IELTS, TOEFL, Duolingo and TCF results are flagged when older than two years.
+- **Claims.** Each language is a claim (`kind = 'language'`) with the same proof files, verification
+  links, fingerprints and review as degrees. The user is warned while typing when the score is below
+  the claimed level; the reviewer sees the claimed level, the stated result, what it supports and its
+  age, and checks the report itself. Editing a language after sending proof shows "Changed since
+  proof" and the old proof cannot be approved.
+- **Fix in `202611250003_review_refusal_code.sql`.** Approving a record edited after its proof was sent
+  used to wait about 15 seconds and say "The decision did not finish": `review_claim` refused with
+  SQLSTATE 40001, which PostgREST retries as a serialization failure. It now uses 55000 and the reviewer
+  sees the reason immediately. This also affected degrees and jobs on the live site.
+- Unit: `src/lib/languages.test.ts` (every conversion, comparison, validity, form rules, endpoint,
+  claim items and "changed" status).
+- Live on development: `scripts/verify-languages-live.mjs` adds English C2 with IELTS 7.0 (warned),
+  French B2 with DELF B2 and Arabic native; refuses a duplicate; checks the database refuses direct
+  writes, other users' rows and a test without a score; sends a score report; the admin sees "lower than
+  claimed"; the user corrects the level; the old proof cannot be approved (immediate message); new proof
+  is approved and shows Reviewed; removing a language works. Screenshots in dark, light and phone.
+  Passed on 24 November 2026.
+- Not yet: a CareerForge timed language test (reading/listening), and language badges on the CV.
+
 ## Limitations and next steps
 
 - Files of a deleted account stay in storage (database rows are deleted); a cleanup job

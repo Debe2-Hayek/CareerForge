@@ -38,7 +38,7 @@ export function evidenceCheckPrompt(documentText: string | null) {
 export type FindingResult = "match" | "mismatch" | "missing" | "check";
 export type Finding = { field: "name" | "issuer" | "title" | "dates"; label: string; claim: string; document: string; result: FindingResult };
 export type CheckStatus = "consistent" | "attention" | "unreadable";
-export type ClaimContext = { kind: "degree" | "employment" | "skill"; ownerName: string; institution: string | null; title: string; startDate: string | null; endDate: string | null; isCurrent: boolean };
+export type ClaimContext = { kind: "degree" | "employment" | "skill" | "language"; ownerName: string; institution: string | null; title: string; startDate: string | null; endDate: string | null; isCurrent: boolean };
 
 const STOP = new Set(["of", "in", "the", "and", "for", "at", "de", "la", "le", "et", "a", "an"]);
 function words(value: string) {
@@ -69,11 +69,14 @@ export function compareEvidence(claim: ClaimContext, read: Extraction): { status
   const findings: Finding[] = [];
   findings.push({ field: "name", label: "Name", claim: claim.ownerName, document: read.personName, result: compareText(claim.ownerName, read.personName, 1, 0.5) });
   if (claim.institution) findings.push({ field: "issuer", label: claim.kind === "employment" ? "Company" : "Institution", claim: claim.institution, document: read.issuer, result: compareText(claim.institution, read.issuer, 0.75, 0.4) });
-  findings.push({ field: "title", label: claim.kind === "degree" ? "Degree" : claim.kind === "employment" ? "Job title" : "Skill or course", claim: claim.title, document: read.title, result: compareText(claim.title, read.title, 0.6, 0.3) });
+  // A score report rarely names the language as its title ("Test Report Form"), so a language is never a mismatch here.
+  const title = compareText(claim.title, read.title, 0.6, 0.3);
+  findings.push({ field: "title", label: claim.kind === "degree" ? "Degree" : claim.kind === "employment" ? "Job title" : claim.kind === "language" ? "Language" : "Skill or course", claim: claim.title, document: read.title, result: claim.kind === "language" && title === "mismatch" ? "check" : title });
   if (claim.kind !== "skill") {
     const claimed = [...years(claim.startDate), ...(claim.isCurrent ? [] : years(claim.endDate))];
     const shown = [...years(read.issueDate), ...years(read.startDate), ...years(read.endDate)];
-    const claimText = claimed.length ? `${years(claim.startDate)[0] ?? "?"} – ${claim.isCurrent ? "present" : years(claim.endDate)[0] ?? "?"}` : "No dates";
+    const claimText = claim.kind === "language" ? (years(claim.endDate)[0] ? `Test taken ${years(claim.endDate)[0]}` : "No test date")
+      : claimed.length ? `${years(claim.startDate)[0] ?? "?"} – ${claim.isCurrent ? "present" : years(claim.endDate)[0] ?? "?"}` : "No dates";
     const documentText = [read.startDate, read.endDate || read.issueDate].filter(Boolean).join(" – ") || "";
     // The end (graduation / leaving) year is the strongest signal; the start year often is not printed.
     const key = claim.isCurrent ? years(claim.startDate)[0] : years(claim.endDate)[0];

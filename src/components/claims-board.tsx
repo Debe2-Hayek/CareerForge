@@ -11,6 +11,7 @@ import { AppIcon } from "./app-icons";
 const GROUPS: { kind: ClaimKind; title: string; proof: string; empty: string; add: { href: string; label: string } }[] = [
   { kind: "degree", title: "Education", proof: "Diploma, transcript or graduation certificate", empty: "No education records yet.", add: { href: "/account/history", label: "Add education" } },
   { kind: "employment", title: "Work experience", proof: "Work certificate, contract or reference letter", empty: "No jobs yet.", add: { href: "/account/history", label: "Add experience" } },
+  { kind: "language", title: "Languages", proof: "Test score report (IELTS, TOEFL, Duolingo, DELF/DALF, TCF, Goethe…) or a language certificate", empty: "No languages yet.", add: { href: "/account/history#languages", label: "Add languages" } },
   { kind: "skill", title: "Skills", proof: "Course certificate or a CareerForge skill check", empty: "No skills yet.", add: { href: "/account", label: "Add skills" } }
 ];
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;

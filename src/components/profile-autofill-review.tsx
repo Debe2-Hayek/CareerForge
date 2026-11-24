@@ -143,7 +143,7 @@ export function ProfileAutofillReview({ result, cached, remaining, profile, dirt
       </label>)}
     </Group>}
 
-    {!!result.languages.length && <p className="profile-ai-hint">Languages found: <strong>{result.languages.join(", ")}</strong>. Your profile can&apos;t store languages yet; language checks are planned.</p>}
+    {!!result.languages.length && <p className="profile-ai-hint">Languages found: <strong>{result.languages.join(", ")}</strong>. Add them with your level under <a href="/account/history#languages">Languages</a>.</p>}
 
     <div className="profile-ai-actions">
       <div aria-live="polite">

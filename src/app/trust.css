@@ -617,3 +617,46 @@ p.proof-integrity[data-state="verified"] span { color: #c6e49e; }
   .proof-matches li { grid-template-columns: minmax(0, 1fr) auto; }
   .proof-matches li > a.review-thumb, .proof-match-icon { display: none; }
 }
+
+/* Languages: profile editor (/account/history#languages) and the reviewer's score panel. */
+.profile-languages-page { margin-top: 18px; }
+.profile-languages { display: grid; gap: 16px; scroll-margin-top: 90px; }
+.profile-languages > header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 20px; }
+.profile-languages h2 { margin: 6px 0 4px; font-size: 22px; font-weight: 500; }
+.profile-languages header p:not(.eyebrow) { margin: 0; max-width: 640px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.profile-languages header a { color: #c6e49e; }
+.language-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.language-list > li { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid #35432b; border-radius: 10px; background: #141c10; }
+.language-list > li > div { display: grid; gap: 2px; min-width: 0; }
+.language-list strong { font-size: 15px; font-weight: 500; }
+.language-list span:not(.language-level) { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.language-level { display: grid; place-items: center; height: 44px; border-radius: 10px; background: #1f2b18; color: #c6e49e; font: 600 15px/1 var(--mono); }
+.language-level[data-level="native"] { font-size: 11px; letter-spacing: .3px; }
+.language-actions { display: flex; gap: 4px 12px; flex-wrap: wrap; justify-content: flex-end; }
+.language-hint { margin: 2px 0 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
+.language-hint[data-verdict="supports"] strong { color: #c6e49e; }
+.language-hint[data-verdict="below"] { color: light-dark(#8a5a00, #e9c77b); }
+.language-form { display: grid; gap: 12px; padding: 16px; border: 1px dashed #435638; border-radius: 12px; background: #10160c; }
+.language-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px 14px; }
+.language-grid label { display: grid; gap: 6px; font-size: 12px; font-weight: 500; }
+.language-grid label small { color: var(--muted); font-weight: 400; }
+.language-grid input, .language-grid select { min-height: 42px; padding: 8px 12px; border: 1px solid #435638; border-radius: 8px; background: #141c10; color: var(--ink); font: inherit; font-size: 13px; }
+.language-grid input:focus-visible, .language-grid select:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+.language-form .muted-note, .language-form .form-error { margin: 0; font-size: 11.5px; }
+.language-form-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 10px 16px; }
+.language-review { display: grid; gap: 4px; margin-top: 12px; padding: 10px 12px; border: 1px solid #35432b; border-radius: 10px; background: #10160c; font-size: 12px; line-height: 1.55; max-width: 620px; }
+.language-review[data-verdict="supports"] { border-color: #4a6531; }
+.language-review[data-verdict="below"] { border-color: light-dark(#d9a441, #7a5c22); }
+.language-review p { margin: 0; overflow-wrap: anywhere; }
+.language-review p > span:first-child { display: inline-block; min-width: 116px; color: var(--muted); font: 10px/1.6 var(--mono); letter-spacing: .6px; text-transform: uppercase; }
+.language-review em { font-style: normal; font-weight: 600; }
+.language-review[data-verdict="supports"] em { color: #c6e49e; }
+.language-review[data-verdict="below"] em, .language-review-old { color: light-dark(#8a5a00, #e9c77b); }
+@media (max-width: 640px) {
+  .language-list > li { grid-template-columns: 52px minmax(0, 1fr); }
+  .language-actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .language-review p > span:first-child { display: block; }
+}
+.language-actions { flex-wrap: nowrap; }
+.language-actions .text-button { width: auto; min-height: 36px; }
+.language-list > li > .language-actions { display: flex; gap: 4px 18px; align-items: center; }

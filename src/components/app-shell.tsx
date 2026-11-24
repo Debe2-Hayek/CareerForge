@@ -37,6 +37,7 @@ function NavIcon({ name }: { name: IconName }) {
 }
 
 type NavItem = { id: string; href: string; label: string; icon: FeatureIcon; group: string; status?: string };
+const isPlanned = (item: NavItem) => item.status === "Planned" || item.status === "Stretch";
 type Tip = { label: string; y: number };
 
 function isActivePath(pathname: string, href: string) {
@@ -57,6 +58,16 @@ function SidebarNav({ mobile, pathname, items, privateAccount, applicationCount,
 }) {
   const nav = useRef<HTMLElement>(null);
   const showTips = !mobile && collapsed && !!onTip;
+  const soon = items.filter(isPlanned);
+  const soonActive = soon.some(item => isActivePath(pathname, item.href));
+  // The fold starts open only when one of its pages is the current page.
+  const [soonOpen, setSoonOpen] = useState(soonActive);
+  const soonList = useRef<HTMLDivElement>(null);
+  // When someone opens "Coming soon", glide the list into view inside the sidebar.
+  const toggleSoon = () => setSoonOpen(open => {
+    if (!open) requestAnimationFrame(() => soonList.current?.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
+    return !open;
+  });
 
   useEffect(() => {
     const el = nav.current;
@@ -97,10 +108,20 @@ function SidebarNav({ mobile, pathname, items, privateAccount, applicationCount,
     <nav aria-label="Main navigation" id={mobile ? "mobile-navigation" : "desktop-navigation"} ref={nav}>
       <span className="nav-lens" aria-hidden="true" />
       <Link href="/features" aria-label="All features" title={nativeTitle("All features")} aria-current={pathname === "/features" ? "page" : undefined} className={`app-nav-item feature-directory-link ${pathname === "/features" ? "selected" : ""}`} onClick={onNavigate} {...tipProps("All features")}><NavIcon name="features" /><span className="app-nav-label">All features</span><span className="app-nav-label feature-directory-arrow" aria-hidden="true">&#8599;</span></Link>
-      {featureGroups.map(group => <div className="app-nav-group" key={group}><p className="app-nav-heading">{group}</p>{items.filter(item => item.group === group).map(item => {
-        const planned = item.status === "Planned" || item.status === "Stretch";
-        return <Link key={item.href} href={item.href} prefetch={planned ? false : undefined} aria-label={item.label} aria-current={isActivePath(pathname, item.href) ? "page" : undefined} title={nativeTitle(`${item.label}${planned ? ` (${item.status?.toLowerCase()})` : ""}`)} className={`app-nav-item ${isActivePath(pathname, item.href) ? "selected" : ""}`} onClick={onNavigate} {...tipProps(`${item.label}${planned ? ` · ${item.status?.toLowerCase()}` : ""}`)}><NavIcon name={item.icon} /><span className="app-nav-label">{item.label}</span>{planned && <span className="app-nav-planned" role="img" aria-label={item.status} />}{item.href === "/applications" && applicationCount > 0 && <span className="app-nav-count">{applicationCount}</span>}</Link>;
-      })}</div>)}
+      {featureGroups.map(group => {
+        // Unfinished tools live in the "Coming soon" fold below, so every group shows only what works today.
+        const ready = items.filter(item => item.group === group && !isPlanned(item));
+        if (!ready.length) return null;
+        return <div className="app-nav-group" key={group}><p className="app-nav-heading">{group}</p>{ready.map(item => <Link key={item.href} href={item.href} aria-label={item.label} aria-current={isActivePath(pathname, item.href) ? "page" : undefined} title={nativeTitle(item.label)} className={`app-nav-item ${isActivePath(pathname, item.href) ? "selected" : ""}`} onClick={onNavigate} {...tipProps(item.label)}><NavIcon name={item.icon} /><span className="app-nav-label">{item.label}</span>{item.href === "/applications" && applicationCount > 0 && <span className="app-nav-count">{applicationCount}</span>}</Link>)}</div>;
+      })}
+      {soon.length > 0 && <div className={`app-nav-soon ${soonOpen ? "is-open" : ""}`}>
+        <button type="button" className={`app-nav-item app-nav-soon-toggle ${soonActive ? "selected" : ""}`} aria-expanded={soonOpen} aria-controls={`${mobile ? "m" : "d"}-coming-soon`} onClick={toggleSoon} title={nativeTitle(`Coming soon (${soon.length})`)} {...tipProps(`Coming soon · ${soon.length}`)}>
+          <NavIcon name="grid" /><span className="app-nav-label">Coming soon</span><span className="app-nav-soon-count" aria-hidden="true">{soon.length}</span><span className="app-nav-soon-chevron" aria-hidden="true"><AppIcon name="chevron" /></span>
+        </button>
+        <div id={`${mobile ? "m" : "d"}-coming-soon`} ref={soonList} className="app-nav-soon-list" hidden={!soonOpen}>
+          {soon.map(item => <Link key={item.href} href={item.href} prefetch={false} aria-label={`${item.label} (${item.status?.toLowerCase()})`} aria-current={isActivePath(pathname, item.href) ? "page" : undefined} title={nativeTitle(`${item.label} (${item.status?.toLowerCase()})`)} className={`app-nav-item ${isActivePath(pathname, item.href) ? "selected" : ""}`} onClick={onNavigate} {...tipProps(`${item.label} · ${item.status?.toLowerCase()}`)}><NavIcon name={item.icon} /><span className="app-nav-label">{item.label}</span><span className="app-nav-planned" role="img" aria-label={item.status} /></Link>)}
+        </div>
+      </div>}
       {!privateAccount && <><p className="app-nav-heading account-group-label">ACCOUNT</p>
       <Link href="/account" aria-label="My account" aria-current={isActivePath(pathname, "/account") ? "page" : undefined} title={nativeTitle("My account")} className={`app-nav-item ${isActivePath(pathname, "/account") ? "selected" : ""}`} onClick={onNavigate} {...tipProps("My account")}><NavIcon name="account" /><span className="app-nav-label">My account</span><span className="private-indicator" aria-hidden="true" /></Link></>}
     </nav>

@@ -6,8 +6,10 @@ import type { CatalogJob, TrackerData } from "@/lib/tracker/schemas";
 import { isCurrentListing, levelLabels, regionLabels, relativeDays, sourceLabels, type LevelKey, type RegionKey } from "@/lib/jobs/display";
 import type { AccountProfile } from "@/lib/account/schemas";
 import { AppShell } from "./app-shell";
-import { CareerLaunchpad, ProfileIdentity } from "./career-visuals";
+import { ProfileIdentity } from "./career-visuals";
 import { JourneyPath } from "./journey-path";
+import { CareerConstellation } from "./career-constellation";
+import { sky as skyOf, type Sky } from "@/lib/constellation";
 import type { Journey } from "@/lib/journey";
 import { useEffect, useState, useSyncExternalStore, useRef, type FormEvent } from "react";
 import { initialWorkspace, jobs, matchSkills, readWorkspace, statuses, type Job, type Workspace } from "@/lib/demo-workspace";
@@ -33,7 +35,7 @@ function postedLabel(job: AnyJob) {
   return [posted && `Posted ${posted}`, refreshed && `checked ${refreshed}`].filter(Boolean).join(" · ");
 }
 
-export function CareerWorkspace({ view, account }: { view: View; account?: { id: string; profile: AccountProfile; tracker: TrackerData; journey?: Journey | null } }) {
+export function CareerWorkspace({ view, account }: { view: View; account?: { id: string; profile: AccountProfile; tracker: TrackerData; journey?: Journey | null; sky?: Sky | null } }) {
   const remote = useAccountTracker(account?.tracker);
   const catalog = remote.data?.jobs ?? jobs;
   const allJobs = [...new Map([...catalog, ...(remote.data?.applications.map(entry => entry.job) ?? [])].map(job => [job.id, job])).values()];
@@ -153,7 +155,9 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
         {view === "overview" && <>
           {account?.journey ? <JourneyPath journey={account.journey} firstName={profile.name.trim().split(/\s+/)[0] ?? ""} />
             : <div className="page-heading"><div><p className="eyebrow">YOUR NEXT CHAPTER</p><h1>Make your next <em>move.</em></h1><p>Build the skills. Find your direction. Ship your next chapter.</p></div><Link className="button primary" href="/jobs">Explore opportunities <span>↗</span></Link></div>}
-          <CareerLaunchpad profile={profile} completion={completion} profileHref={account ? "/account" : "/profile"} />
+          {account?.sky && account.journey ? <CareerConstellation sky={account.sky} action={account.journey.action} />
+            : <CareerConstellation sky={skyOf([...(profile.education ? [{ kind: "degree" as const, title: profile.education, status: "self_declared" as const }] : []), ...profile.skills.map(skill => ({ kind: "skill" as const, title: skill, status: "self_declared" as const }))], completion)}
+              action={{ eyebrow: "", title: "", text: "", href: account ? "/account" : "/profile", label: completion ? "Continue your profile" : "Build your profile" }} />}
           <section className="stats-grid" aria-label="Workspace summary">{[{ label: "Profile completeness", value: `${completion}%`, hint: "Give your story a strong foundation", icon: "◎" }, { label: "Your skill toolkit", value: profile.skills.length, hint: "Self-reported skills to build on", icon: "✧" }, { label: "Tracked opportunities", value: entries.length, hint: "Possibilities worth coming back to", icon: "▣" }, { label: "Applications in motion", value: entries.filter(([, s]) => s !== "Saved" && s !== "Rejected").length, hint: "Every step forward counts", icon: "↗" }].map(stat => <article className="stat-card" key={stat.label}><div className="stat-label">{stat.label}<span aria-hidden="true">{stat.icon}</span></div><strong>{stat.value}</strong><p>{stat.hint}</p></article>)}</section>
           <div className="dashboard-columns"><section><div className="section-heading"><div><h2>Possibilities to explore</h2><p>Roles connected to your skills.</p></div><Link className="text-button" href="/jobs">View all ↗</Link></div><div className="job-grid compact">{ranked.slice(0, 2).map(jobCard)}</div><div className="matching-note"><span>✧</span><p>Clarity, not guesswork. Matches compare your self-reported skills with each role’s listed skills.</p></div></section><section className="next-step"><span className="eyebrow">YOUR NEXT SMALL STEP</span><h2>Let your work<br />tell your story.</h2><p>A project is more than a line on your profile. It shows how you think, build, and solve problems.</p><div className="step-check"><span>01</span><div><strong>Add a project you’re proud of</strong><small>What did you build? What did you learn?</small></div></div><Link className="text-button" href={account ? "/account" : "/profile"}>Update your profile ↗</Link></section></div>
         </>}

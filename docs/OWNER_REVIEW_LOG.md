@@ -10,6 +10,30 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Slim sidebar, "Your career constellation" and the homepage 3D ring
+- **What:** Three design upgrades, keeping every existing animation.
+  - **Slim sidebar:** narrower (236 px, 212 px on smaller laptops) with tighter rows, so the whole menu fits
+    without scrolling. The four unfinished tools (Academic planner, Application agent, Application insights,
+    Graduation simulator) are folded into one "Coming soon (4)" row that opens and closes. Same order, same
+    collapse button, same phone menu; search (Ctrl K) still finds everything.
+  - **Your career constellation (Overview):** replaces the old film banner. Every fact
+    in the profile (degree, work, skill, language) is a star: checked facts glow green, facts in review shine
+    amber, facts only stated are dim, and dashed "+" stars invite the next one. The stars join into a
+    constellation that draws itself, with short labels, a profile-strength ring, a count ("0 of 5 facts are
+    checked") and one big next-step button. The film banner is gone; if proof data cannot load, the stars
+    come from the profile's skills and education.
+  - **Homepage 3D ring "Everything inside":** right after The Forge, the eight tools turn on a 3D ring, each
+    card with its live mini-picture (profile, skill checks, CV, jobs, tracker, learning, AI assistant,
+    portfolio), its own colour and a button into the tool. It turns by itself, stops under the mouse or
+    keyboard, and can be dragged, swiped, or moved with the arrows, the dots or the arrow keys. It replaces
+    the grid of the same eight tiles, so nothing is shown twice.
+- **Where:** the sidebar on every workspace page; `/dashboard` (Overview); `/` (homepage, after The Forge).
+- **Try:** open the Overview signed in; open "Coming soon" in the sidebar; on the homepage, scroll to
+  "Everything inside", hover a card, drag it, or press the arrow keys.
+- **Status:** Ready (no database change).
+- **Remember:** all motion follows "reduce motion" and the site's motion switch; the ring's pause button
+  shares the workshops ring setting.
+
 ## Design pass: immersive AI chat, "Your path" Overview, The Forge homepage (PR #34)
 - **What:** Three pages redesigned to attract and guide, keeping the navigation bar and every
   existing animation (particle background, motion switch, Overview film, workshop ring, profile ring).

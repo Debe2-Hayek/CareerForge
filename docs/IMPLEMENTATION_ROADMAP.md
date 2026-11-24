@@ -2,6 +2,15 @@
 
 Owner-facing summary of every feature, with status and reminders: [OWNER_REVIEW_LOG.md](OWNER_REVIEW_LOG.md).
 
+## R4: CareerForge workshops with verifiable certificates - verified on development, 24 November 2026
+
+Admins create workshops, assign trainers and record the trainer agreement reference; learners enroll with
+name consent; trainers record attendance and scores after the start and issue certificates once, after the
+end, only to those who qualify; admins revoke with a reason. Public checks at `/certificates/<id>` show
+minimal fields and revocation; valid certificates join the checked-profile page. Attendance-only and
+assessed certificates are distinguished and never imply accreditation. No AI. Production needs migrations
+202611250005 and 202611250006. Details: [WORKSHOP_CERTIFICATES.md](WORKSHOP_CERTIFICATES.md).
+
 ## R1 part 5: checked-profile page and CV trust marks - verified on development, 24 November 2026
 
 An opt-in, unlisted page (`/v/<random id>`) lists only checked facts with method and date; the

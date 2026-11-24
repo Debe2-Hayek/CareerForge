@@ -10,6 +10,23 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## CareerForge workshops with verifiable certificates (PR #28)
+- **What:** CareerForge can now run its own workshops and issue certificates anyone can check online.
+  An admin creates a workshop, assigns a trainer (by their account email) and records where the signed
+  trainer agreement is kept. Learners enroll and choose whether their name shows on the public check.
+  After the session starts the trainer marks attendance (and scores, for assessed workshops); after it
+  ends they issue certificates — only to those who qualify, only once. Admins can revoke one with a
+  reason; its public check then says "Revoked". Valid certificates appear on the checked-profile page.
+  Certificates always say they are not an accredited qualification.
+- **Where:** admin `/admin/workshops` (new "Workshops & certificates" tab); learners and trainers
+  `/account/certificates` (linked from the Verify page); public check `/certificates/<id>`.
+- **Try:** create a workshop as admin, assign yourself or a test account as trainer, enroll with another.
+- **Status:** Ready. No AI used.
+- **Remember:** production needs migrations 202611250005 and 202611250006 (after 0001–0004). Real
+  trainer agreements must be signed outside CareerForge first; only their reference is recorded.
+  Not yet: certificate PDFs, emails, trainer sign-up requests.
+- **Docs:** [WORKSHOP_CERTIFICATES.md](WORKSHOP_CERTIFICATES.md).
+
 ## Checked-profile page for employers; ✓ marks on the CV (PR #27)
 - **What:** A user can switch on a private link (off by default) to a page that lists only what
   CareerForge checked: reviewed degrees, jobs and languages, skills passed in a timed check, and

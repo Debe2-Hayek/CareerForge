@@ -124,6 +124,12 @@ export function ClaimsBoard({ items }: { items: ClaimItem[] }) {
 
     <div aria-live="polite">{message && <p className="notice claims-message" role="status">✓ {message}</p>}</div>
 
+    <Link href="/account/certificates" className="panel claims-project-link">
+      <span className="claims-project-icon" aria-hidden="true">✓</span>
+      <span><strong>Earn a CareerForge certificate</strong><small>Complete a CareerForge workshop and get a certificate anyone can check online.</small></span>
+      <span aria-hidden="true">→</span>
+    </Link>
+
     <Link href="/account/projects" className="panel claims-project-link">
       <span className="claims-project-icon" aria-hidden="true">{"</>"}</span>
       <span><strong>Prove a project you built</strong><small>Answer four questions about your own GitHub code in 20 minutes. A reviewed interview is strong evidence.</small></span>

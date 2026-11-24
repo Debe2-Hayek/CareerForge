@@ -721,3 +721,73 @@ body:has(.trust-page) .motion-toggle { display: none; }
 .trust-share-preview summary { cursor: pointer; color: var(--muted); font-size: 12.5px; }
 .trust-share-preview[open] summary { margin-bottom: 14px; }
 .trust-share-preview .trust-facts { padding: 16px; border: 1px dashed #435638; border-radius: 12px; }
+
+/* CareerForge workshops & certificates: learner page, staff roster, admin editor, public check. */
+.learner-workshops, .teaching { display: grid; gap: 16px; }
+.learner-workshops > .panel { display: grid; gap: 14px; }
+.learner-workshops h2, .teaching > h2 { margin: 0; font-size: 20px; font-weight: 500; }
+.teaching { margin-top: 18px; }
+.teaching .muted-note { margin: 0; }
+.certificate-list, .learner-workshop-list, .roster-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.certificate-list > li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid #4a6531; border-radius: 12px; background: #141c10; }
+.certificate-list > li[data-revoked="yes"] { border-color: light-dark(#e0a0a0, #7a2f2f); opacity: .85; }
+.certificate-seal { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #1f2b18; color: #c6e49e; font-size: 18px; font-weight: 700; }
+[data-revoked="yes"] > .certificate-seal { background: light-dark(#fff1f1, #2a1414); color: light-dark(#9b1c1c, #f1a5a5); }
+.certificate-list > li > div { display: grid; gap: 2px; min-width: 0; }
+.certificate-list strong { font-size: 15px; font-weight: 500; }
+.certificate-list span, .certificate-list small { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.learner-workshop { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 22px; align-items: start; padding: 16px 18px; border: 1px solid #35432b; border-radius: 12px; background: #141c10; }
+.learner-workshop[data-enrolled="yes"] { border-color: #4a6531; }
+.learner-workshop-main { display: grid; gap: 4px; min-width: 0; }
+.learner-workshop-main h3 { margin: 2px 0; font-size: 18px; font-weight: 500; overflow-wrap: anywhere; }
+.learner-workshop-main p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.learner-workshop-main .learner-workshop-when { color: #d7e4c7; }
+.learner-workshop-main small { color: var(--muted); font-size: 11.5px; }
+.learner-workshop-actions { display: grid; gap: 8px; justify-items: end; align-content: start; max-width: 260px; }
+.learner-consent { display: flex; gap: 8px; align-items: flex-start; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.learner-consent input { margin-top: 2px; accent-color: var(--green); }
+.learner-enrolled { padding: 4px 12px; border-radius: 999px; background: #1f2b18; color: #c6e49e; font: 600 11px/1.6 var(--mono); }
+.workshop-roster { display: grid; gap: 12px; }
+.workshop-roster > header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px 20px; }
+.workshop-roster h3 { margin: 4px 0 2px; font-size: 19px; font-weight: 500; overflow-wrap: anywhere; }
+.workshop-roster header small { color: var(--muted); font-size: 12px; }
+.workshop-roster .muted-note { margin: 0; }
+.workshop-warning { margin: 0; padding: 10px 12px; border-radius: 8px; background: light-dark(#fff8e6, #221c10); color: light-dark(#8a5a00, #e9c77b); font-size: 12px; }
+.roster-list > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 16px; padding: 10px 14px; border: 1px solid #35432b; border-radius: 10px; background: #141c10; }
+.roster-list > li[data-state="issued"] { border-color: #4a6531; }
+.roster-list > li[data-state="revoked"], .roster-list > li[data-state="absent"] { border-color: light-dark(#e0a0a0, #7a2f2f); }
+.roster-list > li[data-state="withdrawn"] { opacity: .6; }
+.roster-who { display: grid; gap: 2px; min-width: 0; }
+.roster-who strong { font-size: 14px; font-weight: 500; }
+.roster-who small { color: var(--muted); font-size: 11.5px; }
+.roster-actions, .roster-cert { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px 14px; }
+.roster-cert span { color: #c6e49e; font-size: 12px; }
+[data-state="revoked"] .roster-cert span { color: light-dark(#9b1c1c, #f1a5a5); }
+.roster-actions label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.roster-actions input { width: 58px; min-height: 36px; padding: 6px 8px; border: 1px solid #435638; border-radius: 8px; background: #10160c; color: var(--ink); font: 13px var(--mono); text-align: center; }
+.admin-workshop { display: grid; gap: 8px; margin-top: 16px; }
+.admin-workshop[data-status="cancelled"] { opacity: .7; }
+.workshop-new, .workshop-edit { padding: 14px 18px; }
+.workshop-new summary, .workshop-edit summary { cursor: pointer; color: #c6e49e; font-size: 13px; font-weight: 500; }
+.workshop-edit summary { color: var(--muted); font-weight: 400; }
+.workshop-new[open] summary, .workshop-edit[open] summary { margin-bottom: 14px; }
+.workshop-editor { display: grid; gap: 12px; }
+.workshop-editor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 16px; }
+.workshop-editor-grid label { display: grid; gap: 6px; align-content: start; font-size: 12px; font-weight: 500; }
+.workshop-editor-grid label.wide { grid-column: 1 / -1; }
+.workshop-editor-grid small { color: var(--muted); font-weight: 400; line-height: 1.5; }
+.workshop-editor-grid input, .workshop-editor-grid select, .workshop-editor-grid textarea { min-height: 40px; padding: 8px 12px; border: 1px solid #435638; border-radius: 8px; background: #141c10; color: var(--ink); font: inherit; font-size: 13px; }
+.workshop-editor-grid :is(input, select, textarea):focus-visible, .roster-actions input:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+.workshop-editor-actions { display: flex; justify-content: flex-end; }
+.trust-seal[data-revoked="yes"] { border-color: light-dark(#e0a0a0, #7a2f2f); background: light-dark(#fff1f1, #2a1414); color: light-dark(#9b1c1c, #f1a5a5); }
+.certificate-check .eyebrow { margin: 14px 0 0; }
+.certificate-revoked { margin: 6px 0 0; padding: 10px 12px; border-radius: 8px; background: light-dark(#fff1f1, #2a1414); color: light-dark(#9b1c1c, #f1a5a5); font-size: 13px; }
+.certificate-fields code { font: 12px var(--mono); overflow-wrap: anywhere; }
+.trust-fact small a { color: #c6e49e; }
+@media (max-width: 640px) {
+  .learner-workshop, .roster-list > li { grid-template-columns: minmax(0, 1fr); }
+  .learner-workshop-actions { justify-items: start; max-width: none; }
+  .roster-actions, .roster-cert { justify-content: flex-start; }
+  .certificate-list > li { grid-template-columns: 40px minmax(0, 1fr); }
+  .certificate-list > li > a { grid-column: 2; justify-self: start; }
+}

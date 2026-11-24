@@ -17,12 +17,13 @@ export const confirmedFactsSchema = z.object({
   })).catch([]),
   skills: z.array(z.object({ skill: z.string(), method: z.enum(["check", "reviewed"]), checkedAt: date })).catch([]),
   projects: z.array(z.object({ repository: z.string(), checkedAt: date })).catch([]),
+  certificates: z.array(z.object({ id: z.uuid(), title: z.string(), kind: z.enum(["attendance", "assessed"]), scope: z.string(), checkedAt: date })).catch([]),
   updatedAt: z.string().optional()
 });
 export type ConfirmedFacts = z.infer<typeof confirmedFactsSchema>;
 
 export const factCount = (facts: ConfirmedFacts) =>
-  facts.education.length + facts.experience.length + facts.languages.length + facts.skills.length + facts.projects.length;
+  facts.education.length + facts.experience.length + facts.languages.length + facts.skills.length + facts.projects.length + facts.certificates.length;
 
 const monthYear = new Intl.DateTimeFormat("en", { month: "short", year: "numeric", timeZone: "UTC" });
 export function formatMonth(value: string | null): string | null {
@@ -36,10 +37,11 @@ export function formatPeriod(item: { startDate: string | null; endDate: string |
   return start && end ? `${start} – ${end}` : end ?? start ?? "";
 }
 /** One plain line saying how a fact was checked. */
-export function methodText(method: "reviewed" | "check" | "interview", checkedAt: string | null, extra?: string): string {
+export function methodText(method: "reviewed" | "check" | "interview" | "issued", checkedAt: string | null, extra?: string): string {
   const when = formatMonth(checkedAt);
   const how = method === "check" ? "Passed a timed CareerForge skill check"
     : method === "interview" ? "Passed a timed CareerForge interview about this code"
+    : method === "issued" ? `Certificate issued by CareerForge${extra ? ` (${extra})` : ""}`
     : `Proof reviewed by CareerForge${extra ? ` (${extra})` : ""}`;
   return when ? `${how} · ${when}` : how;
 }

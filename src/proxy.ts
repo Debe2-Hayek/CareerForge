@@ -16,7 +16,7 @@ export async function proxy(request: NextRequest) {
   const response = await updateSession(request);
   // These pages can contain account data, including their RSC responses.
   // Apply after session refresh, which may replace the response object.
-  if (isPrivateFeaturePath(path) || ["/profile", "/reset-password", "/api/generate"].includes(path) || path.startsWith("/api/v1/") || path.startsWith("/p/") || path.startsWith("/u/") || path.startsWith("/v/") || path === "/auth/callback") {
+  if (isPrivateFeaturePath(path) || ["/profile", "/reset-password", "/api/generate"].includes(path) || path.startsWith("/api/v1/") || path.startsWith("/p/") || path.startsWith("/u/") || path.startsWith("/v/") || path.startsWith("/certificates/") || path === "/auth/callback") {
     response.headers.set("Cache-Control", "private, no-store");
   }
   return response;

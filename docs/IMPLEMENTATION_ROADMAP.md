@@ -2,6 +2,13 @@
 
 Owner-facing summary of every feature, with status and reminders: [OWNER_REVIEW_LOG.md](OWNER_REVIEW_LOG.md).
 
+## Design pass: guided Overview, immersive assistant, homepage showcase - verified on development, 24 November 2026
+
+The Overview opens on "Your path" (`src/lib/journey.ts`: four steps derived from profile strength, proof,
+learning paths and the tracker, plus one next action; unit-tested), the career assistant is an immersive chat
+(`src/components/career-assistant.tsx`), and the homepage gains "The Forge" (`src/components/forge-showcase.tsx`,
+CSS-only, reduced-motion still frame). Navigation and existing animations unchanged. No database change.
+
 ## M6/M2: related-skill matching (Hugging Face assisted) - verified on development, 24 November 2026
 
 CV-to-job and career analysis credit skills through a reviewed relations list (`src/data/skill-relations.ts`):

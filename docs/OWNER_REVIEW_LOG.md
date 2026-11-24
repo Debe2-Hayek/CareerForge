@@ -24,7 +24,7 @@ part needs OpenRouter credits before it gives real answers.
     card with sparks, checked badges and a filling ring. Text updated to today's product (four steps,
     new marquee, AI assistant tile, corrected "planned" notes).
 - **Where:** `/career-assistant`, `/dashboard`, `/`.
-- **Status:** Ready (no database change: merging is enough).
+- **Status:** Live since 25 Nov 2026.
 - **Remember:** animations follow "reduce motion" and the site's motion switch; mock-up canvas kept for
   reference (private Claude artifact "CareerForge redesign mock-up").
 

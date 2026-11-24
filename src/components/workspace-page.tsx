@@ -5,6 +5,31 @@ import { createClient } from "@/lib/supabase/server";
 import { profileFromRow } from "@/lib/account/schemas";
 import { CareerWorkspace } from "./career-workspace";
 import { trackerAccess } from "@/lib/tracker/server";
+import { readClaimsOverview } from "@/lib/claims/server";
+import { trustSummary } from "@/lib/claims/model";
+import { profileStrength } from "@/lib/profile-strength";
+import { journey, type Journey } from "@/lib/journey";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { AccountProfile } from "@/lib/account/schemas";
+
+/** "Your path" for the Overview. An addition: if anything fails, the Overview opens without it. */
+async function readJourney(client: SupabaseClient, userId: string, profile: AccountProfile, applications: { status: string }[]): Promise<Journey | null> {
+  try {
+    const [items, paths] = await Promise.all([
+      readClaimsOverview(client, userId, profile.skills),
+      client.from("learning_enrollments").select("course_id", { count: "exact", head: true }).eq("user_id", userId)
+    ]);
+    const summary = trustSummary(items);
+    const proofSent = items.filter(item => item.evidenceCount > 0 || item.linkCount > 0).length;
+    const strength = profileStrength(profile, {
+      education: items.filter(item => item.kind === "degree").length,
+      experience: items.filter(item => item.kind === "employment").length,
+      claims: { proofSent, confirmed: summary.confirmed }
+    });
+    return journey({ strength: strength.steps, proofSent, confirmed: summary.confirmed, learningPaths: paths.count ?? 0,
+      applied: applications.filter(entry => entry.status !== "Saved").length, tracked: applications.length });
+  } catch { return null; }
+}
 
 export async function WorkspacePage({ view }: { view: "overview" | "profile" | "jobs" | "applications" }) {
   const cookieStore = await cookies();
@@ -24,7 +49,9 @@ export async function WorkspacePage({ view }: { view: "overview" | "profile" | "
     if (profileError || !data) throw new Error("Profile unavailable");
     const tracker = trackerAccess(client, user.id);
     const [jobs, applications] = await Promise.all([tracker.jobs(), tracker.list()]);
-    account = { id: user.id, profile: profileFromRow(data), tracker: { jobs, applications } };
+    const profile = profileFromRow(data);
+    const path = view === "overview" ? await readJourney(client, user.id, profile, applications) : null;
+    account = { id: user.id, profile, tracker: { jobs, applications }, journey: path };
   } catch {
     if (anonymous) {
       redirect("/login");

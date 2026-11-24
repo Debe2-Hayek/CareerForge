@@ -73,7 +73,7 @@ const noLimit = () => 0;
 
 test("proof upload: origin, session, target and real file type are checked before storage", async () => {
   const seen: EvidenceInput[] = [];
-  const access: ClaimsAccess = { userId: "u1", async submitEvidence(input) { seen.push(input); return { claimId: ids.claim, status: "evidence_submitted" }; } };
+  const access: ClaimsAccess = { userId: "u1", async addLink() { throw new Error("unused"); }, async submitEvidence(input) { seen.push(input); return { claimId: ids.claim, status: "evidence_submitted" }; } };
   const { POST } = claimEvidenceHandlers(async () => access, noLimit);
   assert.equal((await POST(await upload({ kind: "degree", recordId: ids.edu, file: pdf() }, "https://evil.example"))).status, 403);
   assert.equal((await claimEvidenceHandlers(async () => null, noLimit).POST(await upload({ kind: "degree", recordId: ids.edu, file: pdf() }))).status, 401);
@@ -94,10 +94,10 @@ test("proof upload: origin, session, target and real file type are checked befor
 });
 
 test("proof upload maps database refusals to clear errors without leaking details", async () => {
-  const access: ClaimsAccess = { userId: "u1", async submitEvidence() { throw new ClaimError("ALREADY_REVIEWED", "This is already reviewed.", 409); } };
+  const access: ClaimsAccess = { userId: "u1", async addLink() { throw new Error("unused"); }, async submitEvidence() { throw new ClaimError("ALREADY_REVIEWED", "This is already reviewed.", 409); } };
   const response = await claimEvidenceHandlers(async () => access, noLimit).POST(await upload({ kind: "degree", recordId: ids.edu, file: pdf() }));
   assert.equal(response.status, 409);
-  const crash: ClaimsAccess = { userId: "u1", async submitEvidence() { throw new Error("relation claims: secret detail"); } };
+  const crash: ClaimsAccess = { userId: "u1", async addLink() { throw new Error("unused"); }, async submitEvidence() { throw new Error("relation claims: secret detail"); } };
   const failed = await claimEvidenceHandlers(async () => crash, noLimit).POST(await upload({ kind: "degree", recordId: ids.edu, file: pdf() }));
   assert.equal(failed.status, 503);
   assert.equal((await failed.text()).includes("secret"), false);

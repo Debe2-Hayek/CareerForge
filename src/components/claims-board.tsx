@@ -2,16 +2,20 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type ChangeEvent } from "react";
+import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { claimStatusInfo, trustSummary, type ClaimItem, type ClaimKind } from "@/lib/claims/model";
+import { issuerForLink, ISSUER_NAMES } from "@/lib/claims/issuers";
 import { ClaimBadge } from "./claim-badge";
 import { AppIcon } from "./app-icons";
 
 const GROUPS: { kind: ClaimKind; title: string; proof: string; empty: string; add: { href: string; label: string } }[] = [
   { kind: "degree", title: "Education", proof: "Diploma, transcript or graduation certificate", empty: "No education records yet.", add: { href: "/account/history", label: "Add education" } },
   { kind: "employment", title: "Work experience", proof: "Work certificate, contract or reference letter", empty: "No jobs yet.", add: { href: "/account/history", label: "Add experience" } },
+  { kind: "language", title: "Languages", proof: "Test score report (IELTS, TOEFL, Duolingo, DELF/DALF, TCF, Goethe…) or a language certificate", empty: "No languages yet.", add: { href: "/account/history#languages", label: "Add languages" } },
   { kind: "skill", title: "Skills", proof: "Course certificate or a CareerForge skill check", empty: "No skills yet.", add: { href: "/account", label: "Add skills" } }
 ];
+const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
+const sentText = (item: ClaimItem) => [item.evidenceCount ? plural(item.evidenceCount, "file") : "", item.linkCount ? plural(item.linkCount, "link") : ""].filter(Boolean).join(" and ") || "Proof";
 const dateFormat = new Intl.DateTimeFormat("en", { month: "short", year: "numeric", timeZone: "UTC" });
 
 function ProofButton({ item, onDone }: { item: ClaimItem; onDone: (message: string) => void }) {
@@ -41,7 +45,7 @@ function ProofButton({ item, onDone }: { item: ClaimItem; onDone: (message: stri
   }
 
   if (!canAdd) return null;
-  const label = item.status === "evidence_submitted" ? "Add another file" : item.status === "rejected" || item.status === "changed" ? "Send new proof" : "Add proof";
+  const label = item.status === "evidence_submitted" ? (item.evidenceCount ? "Add another file" : "Add a file") : item.status === "rejected" || item.status === "changed" ? "Send new proof" : "Add proof";
   return <div className="claim-proof">
     <input ref={input} type="file" className="sr-only" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" onChange={upload} disabled={busy} aria-label={`${label} for ${item.title}`} tabIndex={-1} />
     <button type="button" className={item.status === "self_declared" || item.status === "rejected" || item.status === "changed" ? "button primary claim-proof-button" : "text-button"} onClick={() => input.current?.click()} disabled={busy}>
@@ -49,6 +53,43 @@ function ProofButton({ item, onDone }: { item: ClaimItem; onDone: (message: stri
     </button>
     {error && <p className="form-error" role="alert">{error}</p>}
   </div>;
+}
+
+/** Adds a public verification link (Coursera, Credly...) as proof for one fact. */
+function LinkButton({ item, onDone }: { item: ClaimItem; onDone: (message: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [url, setUrl] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  if (item.status === "reviewed" || item.status === "verified" || item.linkCount >= 3) return null;
+
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    if (busy) return;
+    if (!issuerForLink(url)) { setError(`Paste the public verification link from ${ISSUER_NAMES.slice(0, 4).join(", ")} or another listed issuer.`); return; }
+    setBusy(true); setError("");
+    try {
+      const response = await fetch("/api/v1/claims/links", { method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(15000),
+        body: JSON.stringify({ kind: item.kind, recordId: item.kind === "skill" ? null : item.recordId, skill: item.kind === "skill" ? item.skill : null, url: url.trim() }) });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) { setError(body?.error?.message ?? "The link could not be saved."); return; }
+      setOpen(false); setUrl("");
+      onDone(`${body?.issuer ?? "Verification"} link added for “${item.title}”. A reviewer will check it with the issuer.`);
+    } catch { setError("The link did not save. Check your connection and try again."); }
+    finally { setBusy(false); }
+  }
+
+  if (!open) return <button type="button" className="text-button claim-link-toggle" onClick={() => setOpen(true)}><AppIcon name="external" />Add a verification link</button>;
+  return <form className="claim-link-form" onSubmit={save}>
+    <label htmlFor={`link-${item.key}`}>Public verification link</label>
+    <div>
+      <input id={`link-${item.key}`} type="url" inputMode="url" autoComplete="off" spellCheck={false} maxLength={500} placeholder="https://www.coursera.org/verify/…" value={url} onChange={event => setUrl(event.target.value)} disabled={busy} autoFocus aria-describedby={`link-help-${item.key}`} />
+      <button type="submit" className="button primary" disabled={busy || !url.trim()}>{busy ? "Saving…" : "Add link"}</button>
+      <button type="button" className="text-button" onClick={() => { setOpen(false); setError(""); }} disabled={busy}>Cancel</button>
+    </div>
+    <small id={`link-help-${item.key}`}>Accepted: {ISSUER_NAMES.join(", ")}. Coursera certificates are confirmed with Coursera directly.</small>
+    {error && <p className="form-error" role="alert">{error}</p>}
+  </form>;
 }
 
 export function ClaimsBoard({ items }: { items: ClaimItem[] }) {
@@ -83,6 +124,12 @@ export function ClaimsBoard({ items }: { items: ClaimItem[] }) {
 
     <div aria-live="polite">{message && <p className="notice claims-message" role="status">✓ {message}</p>}</div>
 
+    <Link href="/account/certificates" className="panel claims-project-link">
+      <span className="claims-project-icon" aria-hidden="true">✓</span>
+      <span><strong>Earn a CareerForge certificate</strong><small>Complete a CareerForge workshop and get a certificate anyone can check online.</small></span>
+      <span aria-hidden="true">→</span>
+    </Link>
+
     <Link href="/account/projects" className="panel claims-project-link">
       <span className="claims-project-icon" aria-hidden="true">{"</>"}</span>
       <span><strong>Prove a project you built</strong><small>Answer four questions about your own GitHub code in 20 minutes. A reviewed interview is strong evidence.</small></span>
@@ -93,7 +140,7 @@ export function ClaimsBoard({ items }: { items: ClaimItem[] }) {
       const list = items.filter(item => item.kind === group.kind);
       return <section key={group.kind} className="panel claims-group" aria-labelledby={`claims-${group.kind}`}>
         <header>
-          <div><h3 id={`claims-${group.kind}`}>{group.title}</h3><p>Accepted proof: {group.proof}. PDF, PNG or JPG, up to 4 MB. Only you and CareerForge reviewers can open it.</p></div>
+          <div><h3 id={`claims-${group.kind}`}>{group.title}</h3><p>Accepted proof: {group.proof}. PDF, PNG or JPG, up to 4 MB, or a public verification link. Only you and CareerForge reviewers can open your files.</p></div>
           <Link href={group.add.href} className="text-button">{group.add.label} <span aria-hidden="true">→</span></Link>
         </header>
         {!list.length ? <p className="claims-empty">{group.empty}</p> : <ul className="claims-list">
@@ -103,7 +150,7 @@ export function ClaimsBoard({ items }: { items: ClaimItem[] }) {
               {item.kind !== "skill" && <span>{item.detail}</span>}
               {item.status === "verified" && item.method && <small>{item.method}{item.date ? ` · ${dateFormat.format(new Date(item.date))}` : ""}</small>}
               {item.status === "reviewed" && item.date && <small>Reviewed · {dateFormat.format(new Date(item.date))}</small>}
-              {item.status === "evidence_submitted" && <small>{item.evidenceCount} {item.evidenceCount === 1 ? "file" : "files"} sent · waiting for a reviewer</small>}
+              {item.status === "evidence_submitted" && <small>{sentText(item)} sent · waiting for a reviewer</small>}
               {item.status === "rejected" && item.note && <small className="claim-note">Reviewer: {item.note}</small>}
               {item.status === "changed" && <small>You edited this after sending proof.</small>}
             </div>
@@ -111,6 +158,7 @@ export function ClaimsBoard({ items }: { items: ClaimItem[] }) {
             <div className="claim-actions">
               {item.checkAvailable && <Link href="/skill-checks" className="text-button"><AppIcon name="checks" />Take the {item.title} check</Link>}
               <ProofButton item={item} onDone={done} />
+              <LinkButton item={item} onDone={done} />
             </div>
           </li>)}
         </ul>}

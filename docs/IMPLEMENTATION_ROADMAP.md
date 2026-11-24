@@ -1,5 +1,50 @@
 # CareerForge implementation roadmap
 
+Owner-facing summary of every feature, with status and reminders: [OWNER_REVIEW_LOG.md](OWNER_REVIEW_LOG.md).
+
+## R1 part 6: free text check (OCR) - verified on development, 24 November 2026
+
+Admins can have a proof file's text read on CareerForge's server (PDF text layer or Tesseract OCR in
+English, French and Arabic, no AI, no credits, the file goes nowhere); code looks for the claim's name,
+institution, title and year and lists registration numbers. The text joins the fingerprints (a photo and a
+PDF of the same certificate match) and feeds the AI check for scanned PDFs. Production needs migration
+202611250007. Details: [CLAIMS.md](CLAIMS.md).
+
+## R4: CareerForge workshops with verifiable certificates - verified on development, 24 November 2026
+
+Admins create workshops, assign trainers and record the trainer agreement reference; learners enroll with
+name consent; trainers record attendance and scores after the start and issue certificates once, after the
+end, only to those who qualify; admins revoke with a reason. Public checks at `/certificates/<id>` show
+minimal fields and revocation; valid certificates join the checked-profile page. Attendance-only and
+assessed certificates are distinguished and never imply accreditation. No AI. Production needs migrations
+202611250005 and 202611250006. Details: [WORKSHOP_CERTIFICATES.md](WORKSHOP_CERTIFICATES.md).
+
+## R1 part 5: checked-profile page and CV trust marks - verified on development, 24 November 2026
+
+An opt-in, unlisted page (`/v/<random id>`) lists only checked facts with method and date; the
+saved CV marks reviewed entries, lists languages and prints the link; published portfolio sites link
+to it. Facts edited since their review drop out; new link and switch-off take effect immediately. No
+AI. Production needs migration 202611250004. Details: [CLAIMS.md](CLAIMS.md).
+
+## R1 part 4: language proficiency - verified on development, 24 November 2026
+
+Profiles list languages at a CEFR level (or Native) with an optional test result; code converts IELTS,
+TOEFL (both scales), Duolingo, Cambridge, DELF/DALF, TCF and Goethe results into the level they
+support, warns the user while typing, and shows the reviewer claimed vs supported level and result age.
+Languages are claims with the same proof, fingerprints, links and review. Also fixes a 15-second hang
+(and misleading message) when approving a record edited after its proof. No AI. Production needs
+migrations 202611250002 and 202611250003. Details: [CLAIMS.md](CLAIMS.md).
+
+## R1 part 3: proof integrity (reused, edited and forged proof; issuer links) - verified on development, 24 November 2026
+
+The review queue now recomputes every proof file's fingerprint on the admin side (the one sent with
+an upload can be forged; a mismatch is flagged in red) and shows matches with other accounts: the
+identical file, the same PDF text, the same certificate number, and near-identical images (re-saved
+copies or the same design with an edited name). Owners can add public verification links from known
+issuer sites only; Coursera course certificates are confirmed with Coursera automatically (holder,
+course, date), others are opened by the reviewer. No AI or credits used. Unit and live checks passed;
+production needs migration 202611250001. Details: [CLAIMS.md](CLAIMS.md).
+
 ## M9: Career assistant - verified on development with the test AI, 23 November 2026
 
 `/career-assistant` answers career questions with only the parts of the profile the user ticks

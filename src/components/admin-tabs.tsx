@@ -3,7 +3,8 @@ import Link from "next/link";
 const tabs = [
   { id: "claims", href: "/admin/claims", label: "Review claims" },
   { id: "skill-checks", href: "/admin/skill-checks", label: "Skill checks studio" },
-  { id: "interviews", href: "/admin/interviews", label: "Project interviews" }
+  { id: "interviews", href: "/admin/interviews", label: "Project interviews" },
+  { id: "workshops", href: "/admin/workshops", label: "Workshops & certificates" }
 ] as const;
 
 /** Switches between the admin pages. Shown only on admin pages, which check the role on the server. */

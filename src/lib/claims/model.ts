@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { ProfileHistory } from "../profile-history";
 import { formatHistoryPeriod } from "../profile-history-format";
+import { levelInfo, levelLabel, testResultText, type ProfileLanguage } from "../languages";
 
 /**
  * Trust level of one profile fact. Stored claim rows hold only
@@ -10,7 +11,7 @@ import { formatHistoryPeriod } from "../profile-history-format";
  * - verified: confirmed by CareerForge itself (a passed skill check)
  */
 export type ClaimStatus = "self_declared" | "evidence_submitted" | "reviewed" | "verified" | "rejected" | "changed";
-export type ClaimKind = "degree" | "employment" | "skill";
+export type ClaimKind = "degree" | "employment" | "skill" | "language";
 
 export const claimStatusInfo: Record<ClaimStatus, { label: string; tone: "neutral" | "pending" | "reviewed" | "verified" | "rejected"; help: string }> = {
   self_declared: { label: "Self-declared", tone: "neutral", help: "Added by you, no proof yet." },
@@ -22,18 +23,20 @@ export const claimStatusInfo: Record<ClaimStatus, { label: string; tone: "neutra
 };
 
 export const claimRowSchema = z.object({
-  id: z.uuid(), kind: z.enum(["degree", "employment", "skill"]),
-  education_id: z.uuid().nullable(), experience_id: z.uuid().nullable(), skill: z.string().nullable(),
+  id: z.uuid(), kind: z.enum(["degree", "employment", "skill", "language"]),
+  education_id: z.uuid().nullable(), experience_id: z.uuid().nullable(), skill: z.string().nullable(), language_id: z.uuid().nullable().default(null),
   source_revision: z.uuid().nullable(), subject: z.string(),
   status: z.enum(["evidence_submitted", "reviewed", "rejected"]), status_note: z.string().nullable(),
   decided_at: z.string().nullable(), updated_at: z.string()
 });
-export type ClaimRow = z.infer<typeof claimRowSchema>;
+export type ClaimRow = z.input<typeof claimRowSchema>;
 
 export type ClaimItem = {
   key: string; kind: ClaimKind; recordId: string | null; skill: string | null;
   title: string; detail: string; status: ClaimStatus; note: string | null;
   date: string | null; method: string | null; evidenceCount: number;
+  /** Verification links on issuer sites (Coursera, Credly...). */
+  linkCount: number;
   /** A CareerForge check exists for this skill but has not been passed. */
   checkAvailable: boolean;
 };
@@ -48,28 +51,35 @@ function fromRow(row: ClaimRow | undefined, revision: string | null): Pick<Claim
 }
 
 /** Every education record, job and self-reported skill, with its current trust level. */
-export function buildClaimItems(history: ProfileHistory, skills: string[], passed: PassedCheck[], rows: ClaimRow[], evidenceCounts: Record<string, number>, checkable: readonly string[] = checkableSkills): ClaimItem[] {
+export function buildClaimItems(history: ProfileHistory, skills: string[], passed: PassedCheck[], rows: ClaimRow[], evidenceCounts: Record<string, number>, checkable: readonly string[] = checkableSkills, linkCounts: Record<string, number> = {}, languages: ProfileLanguage[] = []): ClaimItem[] {
   const byEducation = new Map(rows.filter(row => row.education_id).map(row => [row.education_id, row]));
   const byExperience = new Map(rows.filter(row => row.experience_id).map(row => [row.experience_id, row]));
+  const byLanguage = new Map(rows.filter(row => row.language_id).map(row => [row.language_id, row]));
   const bySkill = new Map(rows.filter(row => row.skill).map(row => [row.skill!.toLowerCase(), row]));
   const count = (row?: ClaimRow) => row ? evidenceCounts[row.id] ?? 0 : 0;
+  const linkCount = (row?: ClaimRow) => row ? linkCounts[row.id] ?? 0 : 0;
   const education = history.education.map(record => {
     const row = byEducation.get(record.id);
-    return { key: `degree:${record.id}`, kind: "degree" as const, recordId: record.id, skill: null, title: record.degree, detail: `${record.institution} · ${formatHistoryPeriod(record)}`, method: row?.status === "reviewed" ? "Reviewer" : null, evidenceCount: count(row), checkAvailable: false, ...fromRow(row, record.revision) };
+    return { key: `degree:${record.id}`, kind: "degree" as const, recordId: record.id, skill: null, title: record.degree, detail: `${record.institution} · ${formatHistoryPeriod(record)}`, method: row?.status === "reviewed" ? "Reviewer" : null, evidenceCount: count(row), linkCount: linkCount(row), checkAvailable: false, ...fromRow(row, record.revision) };
   });
   const experience = history.experience.map(record => {
     const row = byExperience.get(record.id);
-    return { key: `employment:${record.id}`, kind: "employment" as const, recordId: record.id, skill: null, title: record.role, detail: `${record.company} · ${formatHistoryPeriod(record)}`, method: row?.status === "reviewed" ? "Reviewer" : null, evidenceCount: count(row), checkAvailable: false, ...fromRow(row, record.revision) };
+    return { key: `employment:${record.id}`, kind: "employment" as const, recordId: record.id, skill: null, title: record.role, detail: `${record.company} · ${formatHistoryPeriod(record)}`, method: row?.status === "reviewed" ? "Reviewer" : null, evidenceCount: count(row), linkCount: linkCount(row), checkAvailable: false, ...fromRow(row, record.revision) };
+  });
+  const languageItems = languages.map(record => {
+    const row = byLanguage.get(record.id);
+    const test = record.test ? ` · ${testResultText(record.test, record.score)}` : "";
+    return { key: `language:${record.id}`, kind: "language" as const, recordId: record.id, skill: null, title: record.language, detail: `${levelLabel(record.level)} · ${levelInfo[record.level]}${test}`, method: row?.status === "reviewed" ? "Reviewer" : null, evidenceCount: count(row), linkCount: linkCount(row), checkAvailable: false, ...fromRow(row, record.revision) };
   });
   const skillItems = skills.map(skill => {
     const check = passed.find(item => item.skill.toLowerCase() === skill.toLowerCase());
     const row = bySkill.get(skill.toLowerCase());
     const checkAvailable = checkable.some(name => name.toLowerCase() === skill.toLowerCase());
-    const base = { key: `skill:${skill.toLowerCase()}`, kind: "skill" as const, recordId: null, skill, title: skill, evidenceCount: count(row), checkAvailable: checkAvailable && !check };
+    const base = { key: `skill:${skill.toLowerCase()}`, kind: "skill" as const, recordId: null, skill, title: skill, evidenceCount: count(row), linkCount: linkCount(row), checkAvailable: checkAvailable && !check };
     if (check) return { ...base, detail: "Skill", status: "verified" as const, note: null, date: check.takenAt, method: "CareerForge check" };
     return { ...base, detail: "Skill", method: row?.status === "reviewed" ? "Reviewer" : null, ...fromRow(row, null) };
   });
-  return [...education, ...experience, ...skillItems];
+  return [...education, ...experience, ...languageItems, ...skillItems];
 }
 
 /** Share of facts backed by proof that was reviewed or verified. */

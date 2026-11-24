@@ -2,11 +2,55 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { QueueItem } from "@/lib/claims/server";
+import type { ProofMatch, QueueItem, StoredLinkCheck } from "@/lib/claims/server";
+import { issuerForLink } from "@/lib/claims/issuers";
+import { compareLevel, levelFromScore, levelInfo, levelLabel, resultAge, testResultText } from "@/lib/languages";
 import { checkResultSchema, type CheckResult } from "@/lib/claims/evidence-check";
 
 const resultText = { match: "Matches", mismatch: "Does not match", missing: "Not found on the document", check: "Compare yourself" } as const;
 const statusText = { consistent: "Consistent with the claim", attention: "Needs your attention", unreadable: "Could not be read" } as const;
+
+const textResult = { match: "Found", missing: "Not found in the text", check: "Compare yourself" } as const;
+type FileText = NonNullable<QueueItem["evidence"][number]["text"]>;
+
+/** Free text check: CareerForge reads the file on its own server (no AI) and looks for the claim in it. */
+function TextCheckPanel({ evidenceId, initial, disabled }: { evidenceId: string; initial: FileText | null; disabled: boolean }) {
+  const [read, setRead] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function run() {
+    if (busy) return;
+    setBusy(true); setError("");
+    try {
+      const response = await fetch("/api/v1/admin/claims/read", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ evidenceId }), signal: AbortSignal.timeout(70000) });
+      const body = await response.json().catch(() => null);
+      if (!response.ok || !body?.text) { setError(body?.error?.message ?? "The file could not be read."); return; }
+      setRead(body.text);
+    } catch { setError("Reading did not finish. Try again."); }
+    finally { setBusy(false); }
+  }
+  return <div className="ai-check text-check" data-state={read?.status ?? "none"}>
+    <div className="ai-check-head">
+      <span className="ai-check-title"><span aria-hidden="true">≡</span> Text check <em className="free">free · no AI</em></span>
+      {read && <span className="text-check-status" data-state={read.status}>{read.status === "consistent" ? "Claim found in the file" : read.status === "unreadable" ? "No readable text" : "Needs your attention"}</span>}
+      <button type="button" className="text-button" onClick={run} disabled={busy || disabled}>{busy ? "Reading the file…" : read ? "Read again" : "Read the file"}</button>
+    </div>
+    {error && <p className="form-error" role="alert">{error}</p>}
+    {!read && !error && <p className="ai-check-hint">CareerForge reads the file on its own server (the PDF&apos;s text, or OCR for scans and photos, in English, French and Arabic) and looks for the name, institution, title and year. Nothing is sent to an AI service. A photo usually takes a few seconds.</p>}
+    {read && read.findings.length > 0 && <ul className="text-check-findings">
+      {read.findings.map(finding => <li key={finding.field} data-result={finding.result}>
+        <span aria-hidden="true">{finding.result === "match" ? "✓" : finding.result === "missing" ? "✗" : "?"}</span>
+        <strong>{finding.label}</strong><span>{finding.claim || "—"}</span><em>{textResult[finding.result]}</em>
+      </li>)}
+    </ul>}
+    {read && read.numbers.length > 0 && <p className="ai-check-hint">Numbers printed on the file: <code>{read.numbers.join(", ")}</code>. Compare with other proof.</p>}
+    {read && <details className="text-check-raw">
+      <summary>{read.method === "ocr" ? `Text read with OCR${read.confidence !== null ? ` · ${read.confidence}% confidence` : ""}` : "Text from the PDF"} · {read.text.length.toLocaleString("en")} characters</summary>
+      <pre>{read.text || "(no text found)"}</pre>
+    </details>}
+    {read && read.status !== "unreadable" && <p className="ai-check-hint">Finding the words does not prove the file is genuine; not finding them can be an OCR miss. Always open the file.</p>}
+  </div>;
+}
 
 /** The AI reading of one proof file, compared field by field with the claim. A hint, never a decision. */
 function AiCheck({ evidenceId, initial, disabled }: { evidenceId: string; initial: CheckResult | null; disabled: boolean }) {
@@ -52,7 +96,106 @@ function AiCheck({ evidenceId, initial, disabled }: { evidenceId: string; initia
   </div>;
 }
 
-const kindLabel = { degree: "Degree", employment: "Work experience", skill: "Skill" } as const;
+const matchText = {
+  same_file: { label: "Identical file", help: "Byte for byte the same file." },
+  same_text: { label: "Same text", help: "The same words: a re-saved PDF, or a photo or scan of the same document." },
+  same_number: { label: "Same certificate number", help: "The AI check read the same number on both." },
+  similar_image: { label: "Near-identical image", help: "The same picture re-saved, or the same design with edited text. Compare names, dates and numbers." }
+} as const;
+const claimState: Record<string, string> = { evidence_submitted: "waiting", reviewed: "approved", rejected: "rejected" };
+
+/** Fingerprint state and matches with other accounts for one file. Hints, never a decision. */
+function FileIntegrity({ file }: { file: QueueItem["evidence"][number] }) {
+  if (file.fingerprint === "altered") return <div className="proof-integrity" data-state="altered" role="note">
+    <p><strong>The fingerprint sent with this file is wrong.</strong> It did not arrive through CareerForge&apos;s upload form unchanged. Treat it as suspicious.</p>
+    {file.matches.length > 0 && <MatchList matches={file.matches} />}
+  </div>;
+  if (file.matches.length) return <div className="proof-integrity" data-state="match" role="note">
+    <p><strong>Matches proof from {new Set(file.matches.map(match => match.ownerName)).size === 1 ? "another account" : "other accounts"}.</strong> Open both and compare before deciding.</p>
+    <MatchList matches={file.matches} />
+  </div>;
+  return <p className="proof-integrity" data-state={file.fingerprint}>
+    {file.fingerprint === "verified" ? <><span aria-hidden="true">✓</span> Fingerprint checked · no match in other accounts</> : "Fingerprint pending: reload in a moment."}
+  </p>;
+}
+
+function MatchList({ matches }: { matches: ProofMatch[] }) {
+  return <ul className="proof-matches">
+    {matches.map(match => <li key={`${match.path}-${match.reason}`}>
+      {match.mime.startsWith("image/") && match.url ? <a href={match.url} target="_blank" rel="noopener noreferrer" className="review-thumb small">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={match.url} alt={`Matching proof from ${match.ownerName}`} loading="lazy" />
+      </a> : <span className="proof-match-icon" aria-hidden="true">{match.mime === "application/pdf" ? "PDF" : "IMG"}</span>}
+      <div>
+        <strong data-reason={match.reason}>{matchText[match.reason].label}</strong>
+        <span>{match.ownerName} · {match.subject} · {claimState[match.status] ?? match.status}</span>
+        <small>{matchText[match.reason].help}</small>
+      </div>
+      {match.url ? <a href={match.url} target="_blank" rel="noopener noreferrer" className="text-button">Open ↗</a> : <span className="muted-note">Link unavailable</span>}
+    </li>)}
+  </ul>;
+}
+
+const linkResult = {
+  confirmed: "Issuer confirms",
+  name_mismatch: "Different holder",
+  not_found: "No certificate at this address",
+  failed: "Could not reach the issuer"
+} as const;
+
+function LinkRow({ link, ownerName, disabled }: { link: QueueItem["links"][number]; ownerName: string; disabled: boolean }) {
+  const [check, setCheck] = useState<StoredLinkCheck | null>(link.check);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const known = issuerForLink(link.url);
+  const auto = Boolean(known?.courseraCode);
+  async function run() {
+    if (busy) return;
+    setBusy(true); setError("");
+    try {
+      const response = await fetch("/api/v1/admin/claims/link-check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ linkId: link.id }), signal: AbortSignal.timeout(30000) });
+      const body = await response.json().catch(() => null);
+      if (!response.ok || !body?.check) { setError(body?.error?.message ?? "The link could not be checked."); return; }
+      setCheck(body.check);
+    } catch { setError("The check did not finish. Try again."); }
+    finally { setBusy(false); }
+  }
+  return <li className="proof-link" data-result={check?.status ?? "none"}>
+    <div className="proof-link-head">
+      <span className="proof-link-issuer">{known?.issuer.name ?? "Link"}</span>
+      <code title={link.url}>{link.url.replace(/^https:\/\//, "")}</code>
+      <a href={link.url} target="_blank" rel="noopener noreferrer nofollow" className="text-button">Open ↗</a>
+      {auto && <button type="button" className="text-button" onClick={run} disabled={busy || disabled}>{busy ? "Asking Coursera…" : check ? "Check again" : `Check with ${known!.issuer.name}`}</button>}
+    </div>
+    {error && <p className="form-error" role="alert">{error}</p>}
+    {check ? <div className="proof-link-result">
+      <strong><span aria-hidden="true">{check.status === "confirmed" ? "✓" : check.status === "failed" ? "?" : "✗"}</span> {linkResult[check.status]}</strong>
+      {check.status === "confirmed" && <span>{check.holderName} completed “{check.title}”{check.issuer ? ` (${check.issuer})` : ""}{check.issuedOn ? `, ${check.issuedOn}` : ""}. Make sure the course supports this claim.</span>}
+      {check.status === "name_mismatch" && <span>The certificate belongs to <b>{check.holderName || "someone else"}</b>, not {ownerName}{check.title ? `: “${check.title}”` : ""}.</span>}
+      {check.status === "not_found" && <span>The issuer shows no certificate for this code. The link may be made up or mistyped.</span>}
+      {check.status === "failed" && <span>Try again, or open the link yourself.</span>}
+    </div> : <p className="ai-check-hint">{auto ? "CareerForge reads the public certificate page and compares the holder's name with the profile. Free; no AI is used." : `${known?.issuer.name ?? "This site"} cannot be read automatically. Open it and compare the name, title and date yourself.`}</p>}
+  </li>;
+}
+
+/** For a language claim: the claimed level against what the stated test score supports (computed, not AI). */
+function LanguageScore({ info }: { info: NonNullable<QueueItem["language"]> }) {
+  const reading = info.test && info.score ? levelFromScore(info.test, info.score) : null;
+  const verdict = reading ? compareLevel(info.level, reading) : "unknown";
+  const age = info.test ? resultAge(info.test, info.testDate) : null;
+  return <div className="language-review" data-verdict={verdict}>
+    <p><span>Claimed level</span><strong>{levelLabel(info.level)}</strong> · {levelInfo[info.level]}</p>
+    {info.test && reading ? <>
+      <p><span>Stated result</span><strong>{testResultText(info.test, info.score)}</strong>{info.testDate ? ` · taken ${info.testDate}` : " · no test date"}</p>
+      <p><span>Score supports</span>{reading.level === null ? reading.text : reading.level === "below" ? <><strong>below B1</strong> ({reading.text})</> : <><strong>{reading.level}</strong> ({reading.text})</>}
+        {verdict === "supports" && <em> ✓ supports the claim</em>}{verdict === "below" && <em> ✗ lower than claimed</em>}</p>
+      {age && <p className={age.expired ? "language-review-old" : undefined}><span>Result age</span>{age.text}</p>}
+      <p className="ai-check-hint">Check that the report shows this score, the owner&apos;s name and the date. {info.level === "native" ? "Native is accepted from C1 upwards or other evidence (schooling, nationality)." : ""}</p>
+    </> : <p className="ai-check-hint">No test result stated. Judge the proof file itself (certificate, schooling in that language); a reviewed level without a test is weaker evidence.</p>}
+  </div>;
+}
+
+const kindLabel = { degree: "Degree", employment: "Work experience", skill: "Skill", language: "Language" } as const;
 const when = new Intl.DateTimeFormat("en", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const size = (bytes: number) => bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
@@ -61,7 +204,9 @@ function ReviewCard({ item, onDecided }: { item: QueueItem; onDecided: (text: st
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const duplicates = item.evidence.some(file => file.duplicateOwners > 0);
+  const altered = item.evidence.some(file => file.fingerprint === "altered");
+  const duplicates = altered || item.evidence.some(file => file.matches.length > 0);
+  const badLink = item.links.some(link => link.check && link.check.status !== "confirmed" && link.check.status !== "failed");
 
   async function decide(decision: "approve" | "reject") {
     if (busy) return;
@@ -76,16 +221,17 @@ function ReviewCard({ item, onDecided }: { item: QueueItem; onDecided: (text: st
     finally { setBusy(false); }
   }
 
-  return <article className={`panel review-card${duplicates ? " has-duplicate" : ""}`} aria-labelledby={`review-${item.id}`}>
+  return <article className={`panel review-card${duplicates || badLink ? " has-duplicate" : ""}`} aria-labelledby={`review-${item.id}`}>
     <header>
       <div>
         <p className="eyebrow">{kindLabel[item.kind].toUpperCase()} · {item.ownerName}</p>
         <h3 id={`review-${item.id}`}>{item.subject}</h3>
         <small>Sent {when.format(new Date(item.updatedAt))}</small>
+        {item.language && <LanguageScore info={item.language} />}
       </div>
-      {duplicates && <p className="review-flag" role="note"><strong>Same file used by another account.</strong> Check it carefully.</p>}
+      {(duplicates || badLink) && <p className="review-flag" role="note"><strong>{altered ? "A file was altered on the way in." : duplicates ? "Proof matches another account." : "A verification link does not match."}</strong> See the details below before deciding.</p>}
     </header>
-    <ul className="review-files">
+    {item.evidence.length > 0 && <ul className="review-files">
       {item.evidence.map(file => <li key={file.path} className="review-file">
         {file.mime.startsWith("image/") && file.url && <a href={file.url} target="_blank" rel="noopener noreferrer" className="review-thumb">
           {/* Short-lived private link; next/image cannot optimise signed URLs. */}
@@ -94,12 +240,18 @@ function ReviewCard({ item, onDecided }: { item: QueueItem; onDecided: (text: st
         </a>}
         <div>
           <strong>{file.fileName}</strong>
-          <span>{file.mime === "application/pdf" ? "PDF" : file.mime === "image/png" ? "PNG" : "JPG"} · {size(file.size)}{file.duplicateOwners > 0 ? ` · also uploaded by ${file.duplicateOwners} other ${file.duplicateOwners === 1 ? "account" : "accounts"}` : ""}</span>
+          <span>{file.mime === "application/pdf" ? "PDF" : file.mime === "image/png" ? "PNG" : "JPG"} · {size(file.size)}</span>
         </div>
         {file.url ? <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-button">Open ↗</a> : <span className="muted-note">Link unavailable</span>}
+        <FileIntegrity file={file} />
+        <TextCheckPanel evidenceId={file.id} initial={file.text} disabled={busy} />
         <AiCheck evidenceId={file.id} initial={file.check} disabled={busy} />
       </li>)}
-    </ul>
+    </ul>}
+    {item.links.length > 0 && <section className="proof-links" aria-label="Verification links">
+      <h4>Verification links</h4>
+      <ul>{item.links.map(link => <LinkRow key={link.id} link={link} ownerName={item.ownerName} disabled={busy} />)}</ul>
+    </section>}
     {item.own ? <p className="muted-note">This is your own claim; another reviewer must decide it.</p> : <>
       {rejecting && <label className="review-reason">Reason the user will see
         <textarea rows={2} maxLength={500} value={note} onChange={event => setNote(event.target.value)} placeholder="For example: the name on the diploma does not match the profile." autoFocus />

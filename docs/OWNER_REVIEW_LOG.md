@@ -5,7 +5,7 @@ reminder. Newest first. Each entry: **what** it does, **where** to find it, **ho
 **status**, and **remember** (anything still pending). Technical details live in the linked docs.
 
 Status words: **Live** = on careerforge-phi.vercel.app. **Ready** = built and tested on development,
-waiting for its production database step and merge. **Waiting on credits** = works, but its AI
+waiting for its production database step and merge (none right now). **Waiting on credits** = works, but its AI
 part needs OpenRouter credits before it gives real answers.
 
 ---
@@ -23,8 +23,8 @@ part needs OpenRouter credits before it gives real answers.
   Apache-2.0) read every test word for word in about 0.3–2.5 s.
 - **Where:** `/admin/claims`, "Text check · free · no AI" under each file.
 - **Try:** upload a photo of a certificate from a test account and click "Read the file".
-- **Status:** Ready.
-- **Remember:** production needs migration 202611250007 (after 0001–0006). Finding the words does
+- **Status:** Live since 24 Nov 2026.
+- **Remember:** production migrations applied 24 Nov 2026. Finding the words does
   not prove a file is genuine; missing words can be an OCR miss — the page says so.
 - **Docs:** [CLAIMS.md](CLAIMS.md) (Free text check).
 
@@ -39,8 +39,8 @@ part needs OpenRouter credits before it gives real answers.
 - **Where:** admin `/admin/workshops` (new "Workshops & certificates" tab); learners and trainers
   `/account/certificates` (linked from the Verify page); public check `/certificates/<id>`.
 - **Try:** create a workshop as admin, assign yourself or a test account as trainer, enroll with another.
-- **Status:** Ready. No AI used.
-- **Remember:** production needs migrations 202611250005 and 202611250006 (after 0001–0004). Real
+- **Status:** Live since 24 Nov 2026. No AI used.
+- **Remember:** production migrations applied 24 Nov 2026. Real
   trainer agreements must be signed outside CareerForge first; only their reference is recorded.
   Not yet: certificate PDFs, emails, trainer sign-up requests.
 - **Docs:** [WORKSHOP_CERTIFICATES.md](WORKSHOP_CERTIFICATES.md).
@@ -56,8 +56,8 @@ part needs OpenRouter credits before it gives real answers.
 - **Where:** switch and preview on the Verify page (`/account/verification`), public page `/v/<link>`,
   CV at `/cv/saved`, portfolio footer on `/u/<name>`.
 - **Try:** get one fact reviewed, turn the link on, open it in a private window.
-- **Status:** Ready. No AI used.
-- **Remember:** production needs migration 202611250004 (after 0001–0003). The page is hidden from
+- **Status:** Live since 24 Nov 2026. No AI used.
+- **Remember:** production migrations applied 24 Nov 2026. The page is hidden from
   search engines; only people with the link can open it.
 - **Docs:** [CLAIMS.md](CLAIMS.md) (Checked-profile page).
 
@@ -73,8 +73,8 @@ part needs OpenRouter credits before it gives real answers.
 - **Where:** Profile details (`/account/history#languages`), Verify page (`/account/verification`,
   new Languages group), admin review (`/admin/claims`).
 - **Try:** add "English, C2, IELTS 7.0" and watch the warning; send any file as proof; review it as admin.
-- **Status:** Ready. No AI used.
-- **Remember:** production needs migrations 202611250002 and 202611250003. Next steps: a CareerForge
+- **Status:** Live since 24 Nov 2026. No AI used.
+- **Remember:** production migrations applied 24 Nov 2026. Next steps: a CareerForge
   timed language test (reading/listening), and showing language badges on the CV.
 - **Docs:** [CLAIMS.md](CLAIMS.md) (Languages section).
 
@@ -86,8 +86,8 @@ part needs OpenRouter credits before it gives real answers.
   certificates are checked with Coursera automatically (is the holder the same person?).
 - **Where:** `/admin/claims` (under each file), "Add a verification link" on `/account/verification`.
 - **Try:** upload the same diploma from two test accounts; add a Coursera link that is not yours.
-- **Status:** Ready. No AI used.
-- **Remember:** production needs migration 202611250001. Credly and other sites are opened by hand
+- **Status:** Live since 24 Nov 2026. No AI used.
+- **Remember:** production migrations applied 24 Nov 2026. Credly and other sites are opened by hand
   (they block automatic reading). Two real diplomas from the same template also look "near-identical":
   compare names, dates and numbers.
 - **Docs:** [CLAIMS.md](CLAIMS.md) (Proof integrity).

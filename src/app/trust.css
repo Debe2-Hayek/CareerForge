@@ -571,3 +571,49 @@
   .assistant-choice { padding: 8px 10px; }
   .assistant-context { gap: 10px; padding: 18px; }
 }
+
+/* Proof integrity: fingerprints, matches in other accounts, issuer verification links. */
+.proof-integrity { grid-column: 1 / -1; margin: 0; display: grid; gap: 8px; padding: 10px 12px; border-radius: 8px; font-size: 12px; line-height: 1.55; }
+p.proof-integrity { display: block; padding: 0 2px; color: var(--muted); font-size: 11px; }
+p.proof-integrity[data-state="verified"] span { color: #c6e49e; }
+.proof-integrity p { margin: 0; }
+.proof-integrity[data-state="match"] { border: 1px solid light-dark(#d9a441, #7a5c22); background: light-dark(#fff8e6, #221c10); color: light-dark(#6b4500, #e9c77b); }
+.proof-integrity[data-state="altered"] { border: 1px solid light-dark(#e0a0a0, #7a2f2f); background: light-dark(#fff1f1, #2a1414); color: light-dark(#9b1c1c, #f1a5a5); }
+.proof-matches { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.proof-matches li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 8px; background: light-dark(#ffffffb3, #0d120a99); color: var(--ink); }
+.proof-matches li > div { display: grid; gap: 1px; min-width: 0; }
+.proof-matches strong { font-size: 12px; font-weight: 600; }
+.proof-matches strong[data-reason="same_file"], .proof-matches strong[data-reason="same_text"], .proof-matches strong[data-reason="same_number"] { color: light-dark(#9b1c1c, #f1a5a5); }
+.proof-matches span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.proof-matches small { color: var(--muted); font-size: 10.5px; }
+.review-thumb.small img { width: 56px; height: 42px; }
+.proof-match-icon { display: grid; place-items: center; width: 56px; height: 42px; border: 1px solid #35432b; border-radius: 6px; font: 600 10px/1 var(--mono); color: var(--muted); }
+.proof-links { display: grid; gap: 8px; }
+.proof-links h4 { margin: 0; color: var(--muted); font: 500 10px/1.6 var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+.proof-links ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.proof-link { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid #35432b; border-radius: 10px; background: #141c10; }
+.proof-link[data-result="confirmed"] { border-color: #4a6531; }
+.proof-link[data-result="name_mismatch"], .proof-link[data-result="not_found"] { border-color: light-dark(#e0a0a0, #7a2f2f); }
+.proof-link-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; min-width: 0; }
+.proof-link-issuer { padding: 2px 9px; border-radius: 999px; background: #1f2b18; color: #c6e49e; font: 500 10px/1.6 var(--mono); }
+.proof-link-head code { flex: 1 1 200px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font: 11px/1.5 var(--mono); }
+.proof-link-head .text-button { min-height: 36px; }
+.proof-link-result { display: grid; gap: 2px; font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
+.proof-link[data-result="confirmed"] .proof-link-result strong { color: #c6e49e; }
+.proof-link[data-result="name_mismatch"] .proof-link-result strong, .proof-link[data-result="not_found"] .proof-link-result strong { color: light-dark(#9b1c1c, #f1a5a5); }
+.proof-link[data-result="failed"] .proof-link-result strong { color: light-dark(#8a5a00, #e9c77b); }
+.claim-link-toggle { gap: 6px; }
+.claim-link-toggle svg { width: 15px; height: 15px; }
+.claim-link-form { grid-column: 1 / -1; display: grid; gap: 6px; width: 100%; padding: 12px; border: 1px dashed #435638; border-radius: 10px; background: #10160c; }
+.claim-link-form label { font-size: 12px; font-weight: 500; }
+.claim-link-form > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.claim-link-form input { flex: 1 1 260px; min-width: 0; min-height: 40px; padding: 8px 12px; border: 1px solid #435638; border-radius: 8px; background: #141c10; color: var(--ink); font: 12px/1.4 var(--mono); }
+.claim-link-form input:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+.claim-link-form .button { min-height: 40px; padding: 8px 14px; font-size: 12px; }
+.claim-link-form small { color: var(--muted); font-size: 11px; line-height: 1.5; }
+.claim-link-form .form-error { margin: 0; font-size: 11px; }
+.claim-row:has(.claim-link-form) .claim-actions { grid-column: 1 / -1; justify-content: flex-start; }
+@media (max-width: 640px) {
+  .proof-matches li { grid-template-columns: minmax(0, 1fr) auto; }
+  .proof-matches li > a.review-thumb, .proof-match-icon { display: none; }
+}

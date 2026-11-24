@@ -1,5 +1,15 @@
 # CareerForge implementation roadmap
 
+## R1 part 3: proof integrity (reused, edited and forged proof; issuer links) - verified on development, 24 November 2026
+
+The review queue now recomputes every proof file's fingerprint on the admin side (the one sent with
+an upload can be forged; a mismatch is flagged in red) and shows matches with other accounts: the
+identical file, the same PDF text, the same certificate number, and near-identical images (re-saved
+copies or the same design with an edited name). Owners can add public verification links from known
+issuer sites only; Coursera course certificates are confirmed with Coursera automatically (holder,
+course, date), others are opened by the reviewer. No AI or credits used. Unit and live checks passed;
+production needs migration 202611250001. Details: [CLAIMS.md](CLAIMS.md).
+
 ## M9: Career assistant - verified on development with the test AI, 23 November 2026
 
 `/career-assistant` answers career questions with only the parts of the profile the user ticks

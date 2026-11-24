@@ -9,11 +9,12 @@ import { readClaimsOverview } from "@/lib/claims/server";
 import { trustSummary } from "@/lib/claims/model";
 import { profileStrength } from "@/lib/profile-strength";
 import { journey, type Journey } from "@/lib/journey";
+import { sky, type Sky } from "@/lib/constellation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AccountProfile } from "@/lib/account/schemas";
 
 /** "Your path" for the Overview. An addition: if anything fails, the Overview opens without it. */
-async function readJourney(client: SupabaseClient, userId: string, profile: AccountProfile, applications: { status: string }[]): Promise<Journey | null> {
+async function readJourney(client: SupabaseClient, userId: string, profile: AccountProfile, applications: { status: string }[]): Promise<{ path: Journey; sky: Sky } | null> {
   try {
     const [items, paths] = await Promise.all([
       readClaimsOverview(client, userId, profile.skills),
@@ -26,8 +27,9 @@ async function readJourney(client: SupabaseClient, userId: string, profile: Acco
       experience: items.filter(item => item.kind === "employment").length,
       claims: { proofSent, confirmed: summary.confirmed }
     });
-    return journey({ strength: strength.steps, proofSent, confirmed: summary.confirmed, learningPaths: paths.count ?? 0,
+    const path = journey({ strength: strength.steps, proofSent, confirmed: summary.confirmed, learningPaths: paths.count ?? 0,
       applied: applications.filter(entry => entry.status !== "Saved").length, tracked: applications.length });
+    return { path, sky: sky(items, strength.percent) };
   } catch { return null; }
 }
 
@@ -50,8 +52,8 @@ export async function WorkspacePage({ view }: { view: "overview" | "profile" | "
     const tracker = trackerAccess(client, user.id);
     const [jobs, applications] = await Promise.all([tracker.jobs(), tracker.list()]);
     const profile = profileFromRow(data);
-    const path = view === "overview" ? await readJourney(client, user.id, profile, applications) : null;
-    account = { id: user.id, profile, tracker: { jobs, applications }, journey: path };
+    const guide = view === "overview" ? await readJourney(client, user.id, profile, applications) : null;
+    account = { id: user.id, profile, tracker: { jobs, applications }, journey: guide?.path ?? null, sky: guide?.sky ?? null };
   } catch {
     if (anonymous) {
       redirect("/login");

@@ -2,6 +2,14 @@
 
 Owner-facing summary of every feature, with status and reminders: [OWNER_REVIEW_LOG.md](OWNER_REVIEW_LOG.md).
 
+## Slim sidebar, career constellation, homepage capability ring - verified on development, 25 November 2026
+
+The desktop sidebar is narrower with tighter rows, and Planned/Stretch tools fold into one "Coming soon" row
+(`src/components/app-shell.tsx`). Signed-in Overview opens with "Your career constellation"
+(`src/lib/constellation.ts`, unit-tested; `src/components/career-constellation.tsx`) built from the claims
+overview. The homepage tile grid becomes a 3D ring (`src/components/capability-ring.tsx`) reusing the workshops
+ring placement maths (`src/lib/workshops/ring.ts`). Reduced motion and the motion switch respected. No database change.
+
 ## Design pass: guided Overview, immersive assistant, homepage showcase - verified on development, 24 November 2026
 
 The Overview opens on "Your path" (`src/lib/journey.ts`: four steps derived from profile strength, proof,

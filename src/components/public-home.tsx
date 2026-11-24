@@ -1,8 +1,9 @@
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties } from "react";
 import { LandingNav } from "./landing-nav";
 import { Spotlight } from "./spotlight";
 import { ForgeShowcase } from "./forge-showcase";
+import { CapabilityRing, type Capability } from "./capability-ring";
 
 const glyphs = {
   profile: "M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-3a8 6 0 0 1 16 0v3",
@@ -108,15 +109,16 @@ function VizPortfolio() {
   </div>;
 }
 
-const tiles: { id: string; cls: string; title: string; text: string; viz: ReactNode }[] = [
-  { id: "profile", cls: "lp-tile-wide", title: "A profile that stays yours", text: "Education, projects and skills in one private, owner-only account.", viz: <VizProfile /> },
-  { id: "checks", cls: "lp-tile-narrow", title: "Skills with evidence", text: "Timed checks for any skill, prepared and approved by reviewers.", viz: <VizChecks /> },
-  { id: "cv", cls: "", title: "CV preview", text: "A clean, print-ready sheet generated from your profile.", viz: <VizCv /> },
-  { id: "roles", cls: "", title: "Jobs that fit", text: "Live openings in Lebanon, the region and remote, ranked by how your skills match.", viz: <VizRoles /> },
-  { id: "tracker", cls: "", title: "Application tracker", text: "Follow each application from saved through to an offer.", viz: <VizTracker /> },
-  { id: "learning", cls: "", title: "Free learning roadmaps", text: "Step-by-step paths with free courses and projects, and honest limits on what they prove.", viz: <VizLearning /> },
-  { id: "assistant", cls: "", title: "An AI that knows your profile", text: "Ask about careers, skills or your CV. It only sees what you choose to share.", viz: <VizAssistant /> },
-  { id: "portfolio", cls: "", title: "Shared only by choice", text: "Publish a snapshot of the fields you select, and only after you consent.", viz: <VizPortfolio /> }
+// The tools on the homepage ring, each with its own live picture and a way in.
+const tools: Capability[] = [
+  { id: "profile", accent: "#c6e49e", href: "/account", cta: "Build your profile", title: "A profile that stays yours", text: "Education, projects and skills in one private, owner-only account.", viz: <VizProfile /> },
+  { id: "checks", accent: "#7fd6c2", href: "/skill-checks", cta: "Take a skill check", title: "Skills with evidence", text: "Timed checks for any skill, prepared and approved by reviewers.", viz: <VizChecks /> },
+  { id: "cv", accent: "#f0d48a", href: "/documents", cta: "Make your CV", title: "CV preview", text: "A clean, print-ready sheet generated from your profile.", viz: <VizCv /> },
+  { id: "roles", accent: "#8cc8ff", href: "/jobs", cta: "Find jobs", title: "Jobs that fit", text: "Live openings in Lebanon, the region and remote, ranked by how your skills match.", viz: <VizRoles /> },
+  { id: "tracker", accent: "#ffad8f", href: "/applications", cta: "Track applications", title: "Application tracker", text: "Follow each application from saved through to an offer.", viz: <VizTracker /> },
+  { id: "learning", accent: "#a6e3a1", href: "/learning-roadmap", cta: "Start learning", title: "Free learning roadmaps", text: "Step-by-step paths with free courses and projects, and honest limits on what they prove.", viz: <VizLearning /> },
+  { id: "assistant", accent: "#b8a6ff", href: "/career-assistant", cta: "Ask the assistant", title: "An AI that knows your profile", text: "Ask about careers, skills or your CV. It only sees what you choose to share.", viz: <VizAssistant /> },
+  { id: "portfolio", accent: "#f5a8c8", href: "/documents", cta: "Share a portfolio", title: "Shared only by choice", text: "Publish a snapshot of the fields you select, and only after you consent.", viz: <VizPortfolio /> }
 ];
 
 export function PublicHome() {
@@ -148,6 +150,16 @@ export function PublicHome() {
 
       <ForgeShowcase />
 
+      <section className="lp-section lp-inside" id="features" aria-labelledby="features-title">
+        <div className="lp-section-head lp-reveal">
+          <p className="eyebrow">EVERYTHING INSIDE</p>
+          <h2 id="features-title">One workspace. Every next step.</h2>
+          <p>Each part of CareerForge feeds the next, so your CV, your roles and your applications always agree with your profile.</p>
+        </div>
+        <CapabilityRing items={tools} />
+        <p className="lp-more"><Link href="/features" className="text-button">Browse every feature <span aria-hidden="true">&#8599;</span></Link></p>
+      </section>
+
       <section className="lp-section" id="platform" aria-labelledby="platform-title">
         <div className="lp-section-head lp-reveal">
           <p className="eyebrow">FROM WHAT YOU KNOW TO WHAT COMES NEXT</p>
@@ -164,20 +176,6 @@ export function PublicHome() {
         </Spotlight>
       </section>
 
-      <section className="lp-section" id="features" aria-labelledby="features-title">
-        <div className="lp-section-head lp-reveal">
-          <p className="eyebrow">EVERYTHING IN ONE PLACE</p>
-          <h2 id="features-title">One workspace. Every next step.</h2>
-          <p>Each part of CareerForge feeds the next, so your CV, your roles and your applications always agree with your profile.</p>
-        </div>
-        <Spotlight className="lp-bento">
-          {tiles.map(tile => <article key={tile.id} className={`lp-tile spot-card lp-reveal ${tile.cls}`}>
-            <div className="lp-viz">{tile.viz}</div>
-            <div><h3>{tile.title}</h3><p>{tile.text}</p></div>
-          </article>)}
-        </Spotlight>
-        <p className="lp-more lp-reveal"><Link href="/features" className="text-button">Browse every feature <span aria-hidden="true">&#8599;</span></Link></p>
-      </section>
 
       <section className="lp-section" id="principles" aria-labelledby="principles-title">
         <div className="lp-principles">

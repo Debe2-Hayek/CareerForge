@@ -18,7 +18,7 @@ part needs OpenRouter credits before it gives real answers.
   it (it shows their name); revoked certificates cannot be printed.
 - **Where:** `/account/certificates` → "Download" → `/account/certificates/<id>/print`.
 - **Try:** earn or create a test certificate, click Download, then Print / save as PDF.
-- **Status:** Ready (no database change: merging is enough).
+- **Status:** Live since 24 Nov 2026.
 - **Remember:** the QR code was decoded with an independent reader and opens the exact check address.
 - **Docs:** [WORKSHOP_CERTIFICATES.md](WORKSHOP_CERTIFICATES.md).
 ## Smarter skill matching with a Hugging Face model (PR #31)
@@ -36,7 +36,7 @@ part needs OpenRouter credits before it gives real answers.
   for Vercel functions).
 - **Where:** `/cv-analysis` (skill list shows "via …" and "close to your …"), `/career-analysis`
   (topic details say e.g. "Next.js (shows React)").
-- **Status:** Ready (no database change: merging is enough).
+- **Status:** Live since 24 Nov 2026.
 - **Remember:** to extend the list, run `scripts/suggest-skill-relations.mjs` and review its proposals
   into `src/data/skill-relations.ts` — never copy them blindly.
 - **Docs:** [CV_ANALYSIS.md](CV_ANALYSIS.md) (Related skills).

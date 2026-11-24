@@ -162,6 +162,29 @@ Migration `202611250002_languages.sql`. No AI and no credits are used.
   Passed on 24 November 2026.
 - Not yet: a CareerForge timed language test (reading/listening), and language badges on the CV.
 
+## Checked-profile page (part 5)
+
+Migration `202611250004_trust_page.sql`. No AI.
+
+- **Owner control** on the Verify page: an on/off switch (off by default), the link with Copy and Open,
+  "Make a new link" (the old link stops working) and a preview of exactly what visitors see
+  (`my_confirmed_facts`). Stored in `trust_pages` (owner-readable only; written by `set_trust_page`).
+- **Public page** `/v/<random id>` (`get_trust_page`, callable without signing in, returns nothing when
+  off or unknown; not indexed; no-store): name, headline and only checked facts with method and date:
+  reviewed degrees, jobs and languages whose record is unchanged since review; skills passed in a
+  CareerForge check (or reviewed proof); approved project interviews. No files, notes, emails or
+  self-declared facts. A footer explains what each method does and does not prove.
+- **CV** (`/cv/saved`): reviewed entries get "✓ Proof reviewed by CareerForge", languages are listed with
+  their badge, and when sharing is on the link is printed at the end.
+- **Portfolio**: `get_public_portfolio_site` also returns the owner's link while sharing is on; the
+  published site footer shows "See the facts CareerForge checked".
+- Unit: `src/lib/trust-page.test.ts` (formatting, rendering as text only, switch endpoint, CV marks).
+- Live on development: `scripts/verify-trust-page-live.mjs` (preview, switch on, signed-out visitor sees
+  only the 4 checked facts and not the pending job, the edited job, a self-declared skill or the email;
+  no anonymous table or preview access; CV link and marks; portfolio link; editing removes a fact; new
+  link kills the old; switch-off stops the page and the portfolio link; dark, light and phone). Passed on
+  24 November 2026.
+
 ## Limitations and next steps
 
 - Files of a deleted account stay in storage (database rows are deleted); a cleanup job

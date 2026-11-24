@@ -32,7 +32,8 @@ const noIndexSources = [
   "/career-assistant",
   "/graduation-simulator",
   "/p/:path*",
-  "/u/:path*"
+  "/u/:path*",
+  "/v/:path*"
 ];
 
 const nextConfig: NextConfig = {

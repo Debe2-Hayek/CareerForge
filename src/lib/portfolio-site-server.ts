@@ -36,12 +36,14 @@ export async function readOwnPortfolioSite(): Promise<SiteStatus | null> {
 }
 
 /** A published site by address. Invalid or unpublished content is treated as not found. */
-export async function readPublicPortfolioSite(slug: string): Promise<{ site: PublishedState; publishedAt: string | null } | null> {
+export async function readPublicPortfolioSite(slug: string): Promise<{ site: PublishedState; publishedAt: string | null; trustSlug: string | null } | null> {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(slug) || slug.length < 3 || slug.length > 40) return null;
   const client = await createClient();
   const { data, error } = await client.rpc("get_public_portfolio_site", { p_slug: slug.toLowerCase() });
   if (error || !data || typeof data !== "object") return null;
-  const record = data as { site?: unknown; publishedAt?: unknown };
+  const record = data as { site?: unknown; publishedAt?: unknown; trustSlug?: unknown };
   const site = publishedStateSchema.safeParse(record.site);
-  return site.success ? { site: site.data, publishedAt: typeof record.publishedAt === "string" ? record.publishedAt : null } : null;
+  // The owner's checked-profile link, only while they share it.
+  const trustSlug = typeof record.trustSlug === "string" && /^[0-9a-f-]{36}$/.test(record.trustSlug) ? record.trustSlug : null;
+  return site.success ? { site: site.data, publishedAt: typeof record.publishedAt === "string" ? record.publishedAt : null, trustSlug } : null;
 }

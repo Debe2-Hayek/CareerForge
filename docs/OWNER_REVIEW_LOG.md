@@ -10,6 +10,22 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Checked-profile page for employers; ✓ marks on the CV (PR #27)
+- **What:** A user can switch on a private link (off by default) to a page that lists only what
+  CareerForge checked: reviewed degrees, jobs and languages, skills passed in a timed check, and
+  project interviews, each with how and when. Nothing self-declared, no files, no contact details.
+  The saved CV marks reviewed entries with ✓, lists languages, and prints the link so an employer can
+  confirm it; a published portfolio shows "See the facts CareerForge checked". If a checked record is
+  edited it disappears from the page until checked again. "Make a new link" kills the old one;
+  switching off stops the page (and the portfolio link) at once.
+- **Where:** switch and preview on the Verify page (`/account/verification`), public page `/v/<link>`,
+  CV at `/cv/saved`, portfolio footer on `/u/<name>`.
+- **Try:** get one fact reviewed, turn the link on, open it in a private window.
+- **Status:** Ready. No AI used.
+- **Remember:** production needs migration 202611250004 (after 0001–0003). The page is hidden from
+  search engines; only people with the link can open it.
+- **Docs:** [CLAIMS.md](CLAIMS.md) (Checked-profile page).
+
 ## Languages with levels, proved by test scores (PR #26)
 - **What:** Users list the languages they speak, each at a CEFR level (A1–C2 or Native), optionally
   with a test result (IELTS, TOEFL, Duolingo, Cambridge, DELF/DALF, TCF, Goethe). Code converts the

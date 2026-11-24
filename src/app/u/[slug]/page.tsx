@@ -27,6 +27,7 @@ export default async function PublishedSitePage({ params }: { params: Params }) 
     <PublishedPortfolio state={result.site} />
     <footer className="published-site-credit">
       Made with <Link href="/">CareerForge</Link>
+      {result.trustSlug && <> · <Link href={`/v/${result.trustSlug}`} className="published-site-trust">✓ See the facts CareerForge checked</Link></>}
     </footer>
   </main>;
 }

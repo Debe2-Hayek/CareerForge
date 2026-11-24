@@ -2,6 +2,13 @@
 
 Owner-facing summary of every feature, with status and reminders: [OWNER_REVIEW_LOG.md](OWNER_REVIEW_LOG.md).
 
+## R1 part 5: checked-profile page and CV trust marks - verified on development, 24 November 2026
+
+An opt-in, unlisted page (`/v/<random id>`) lists only checked facts with method and date; the
+saved CV marks reviewed entries, lists languages and prints the link; published portfolio sites link
+to it. Facts edited since their review drop out; new link and switch-off take effect immediately. No
+AI. Production needs migration 202611250004. Details: [CLAIMS.md](CLAIMS.md).
+
 ## R1 part 4: language proficiency - verified on development, 24 November 2026
 
 Profiles list languages at a CEFR level (or Native) with an optional test result; code converts IELTS,

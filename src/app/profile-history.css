@@ -47,3 +47,9 @@
   .history-page-actions .button { white-space: normal; }
   .history-field input, .history-field textarea { font-size: 16px; }
 }
+/* Trust marks on the printed CV (paper colours in both themes). */
+.cv-sheet .cv-check { margin-top: 4px; color: #2f6b1f; font-size: 12px; font-weight: 600; }
+.cv-sheet .cv-check-inline { color: #2f6b1f; font-size: 12px; font-weight: 600; }
+.cv-sheet .cv-languages { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.cv-sheet .cv-trust { margin-top: 22px; padding-top: 12px; border-top: 1px solid #d8dcd6; color: #2f3532; font-size: 12px; }
+.cv-sheet .cv-trust a { color: #2f6b1f; overflow-wrap: anywhere; }

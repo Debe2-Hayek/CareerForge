@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CERTIFICATE_LIMITS, formatDay, kindHelp, kindLabel, sessionText, type CertifiedWorkshop } from "@/lib/certified-workshops";
@@ -69,7 +70,10 @@ export function LearnerWorkshops({ workshops, enrollments, certificates, origin,
             <span>{kindLabel[item.kind]} · {item.scope}</span>
             <small>{item.revokedAt ? `Revoked on ${formatDay(item.revokedAt)}` : `Issued ${formatDay(item.issuedAt)} · check at ${origin.replace(/^https:\/\//, "")}/certificates/${item.id.slice(0, 8)}…`}</small>
           </div>
-          <a className="text-button" href={`/certificates/${item.id}`} target="_blank" rel="noopener noreferrer">Public check ↗</a>
+          <div className="certificate-actions">
+            {!item.revokedAt && <Link className="button primary" href={`/account/certificates/${item.id}/print`}>Download</Link>}
+            <a className="text-button" href={`/certificates/${item.id}`} target="_blank" rel="noopener noreferrer">Public check ↗</a>
+          </div>
         </li>)}
       </ul>}
       <p className="muted-note">{CERTIFICATE_LIMITS} Valid certificates also appear on your checked-profile page.</p>

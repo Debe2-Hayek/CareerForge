@@ -10,6 +10,17 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Downloadable workshop certificate with a QR code (PR #32)
+- **What:** Learners can download their workshop certificate: "Download" on Workshops & certificates
+  opens a printable A4 landscape certificate (name, result such as "passed the workshop assessment:
+  88/100", workshop, dates, trainer, certificate id) with a QR code that opens the public check.
+  "Print / save as PDF" saves it as one PDF page. Arabic names print correctly. Only the holder can open
+  it (it shows their name); revoked certificates cannot be printed.
+- **Where:** `/account/certificates` → "Download" → `/account/certificates/<id>/print`.
+- **Try:** earn or create a test certificate, click Download, then Print / save as PDF.
+- **Status:** Ready (no database change: merging is enough).
+- **Remember:** the QR code was decoded with an independent reader and opens the exact check address.
+- **Docs:** [WORKSHOP_CERTIFICATES.md](WORKSHOP_CERTIFICATES.md).
 ## Smarter skill matching with a Hugging Face model (PR #31)
 - **What:** CV analysis and career analysis now understand related skills. "PostgreSQL" or "MySQL"
   on a profile counts for a job asking "SQL"; "Django" counts for "Python"; "Next.js" for React and

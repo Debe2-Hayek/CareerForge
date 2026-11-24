@@ -45,7 +45,20 @@ Migrations `202611250005_certified_workshops.sql` and `202611250006_workshop_sav
 - Fix found by the live test: editing an existing workshop failed (an ambiguous variable name in
   `save_certified_workshop`); migration 0006 fixes it.
 
+## Downloadable certificate (24 November 2026)
+
+- `/account/certificates/<id>/print` (holder only; anyone else gets the not-found page): an A4 landscape
+  certificate with the holder's profile name, the result, the workshop, dates, trainer, issue date, id and
+  a QR code (`qrcode`, MIT, drawn as SVG on the server) that opens `/certificates/<id>`. "Print / save as
+  PDF" uses the browser, so every script prints correctly (Arabic names included), which PDF libraries
+  with built-in fonts cannot do. A named print page (`@page certificate`) keeps other pages' printing
+  unchanged; the paper colours stay the same in both themes. Revoked certificates cannot be printed.
+- Live on development: `scripts/verify-certificate-print-live.mjs` (holder downloads; name, result, trainer,
+  check link and limits shown; the PDF is exactly one A4 landscape page, also with an Arabic name; another
+  student is refused; revoked cannot be printed; dark, light and phone). The QR code was decoded with an
+  independent reader (jsQR) and gives the exact check address. Passed on 24 November 2026.
+
 ## Not yet
 
-- Trainer onboarding requests (trainers are assigned by admins), certificate PDFs, and emails to
-  learners. Scheduling reminders and waiting lists.
+- Trainer onboarding requests (trainers are assigned by admins) and emails to learners. Scheduling
+  reminders and waiting lists.

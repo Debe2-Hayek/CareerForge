@@ -9,7 +9,7 @@
 // left alone, and so is any rule for one theme only (:root[data-theme="light"] ...). Things
 // that look the same in both themes (paper, published portfolios, print) are in `keep`.
 
-const keep = /\.cv-sheet|\.portfolio-(sheet|identity|headline|location|story|skills|source-note|empty-note|editorial\b(?!-layout))|\.viz-paper|\.lp-float-cv|\.published-site|\.pb \.cv|\.cv-page|\.hero-film|dateTile|::selection|\[data-theme=/;
+const keep = /\.cv-sheet|\.certificate-(paper|frame|brand|kind|intro|name|scope|title|when|qr|limits)\b|\.portfolio-(sheet|identity|headline|location|story|skills|source-note|empty-note|editorial\b(?!-layout))|\.viz-paper|\.lp-float-cv|\.published-site|\.pb \.cv|\.cv-page|\.hero-film|dateTile|::selection|\[data-theme=/;
 
 const srgbToLinear = c => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
 const linearToSrgb = c => c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055;

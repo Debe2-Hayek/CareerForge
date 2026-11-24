@@ -30,7 +30,7 @@ test("skills match topics as whole words, and priority follows the roadmap", () 
 });
 
 test("evidence strength: proven beats profile beats learned beats in progress; optional never counts", () => {
-  const detail = analyseCareer(roadmap, [{ name: "HTML", status: "verified" }, { name: "css", status: "self_declared" }, { name: "Vue", status: "self_declared" }],
+  const detail = analyseCareer(roadmap, [{ name: "HTML", status: "verified" }, { name: "css", status: "self_declared" }, { name: "Figma", status: "self_declared" }],
     { js: { state: "known", via: null }, react: { state: "in_progress", via: null } });
   const by = (id: string) => detail.topics.find(topic => topic.id === id)!;
   assert.equal(by("html").evidence, "proven");

@@ -813,3 +813,9 @@ body:has(.trust-page) .motion-toggle { display: none; }
   .text-check-findings li { grid-template-columns: 18px minmax(0, 1fr); }
   .text-check-findings li > span:not(:first-child), .text-check-findings li > em { grid-column: 2; }
 }
+
+/* CV analysis: skills covered through a related skill (reviewed relations, see src/data/skill-relations.ts). */
+.fit-skill-list li .fit-via { margin-left: auto; color: var(--muted); font-size: 11px; }
+.fit-skill-list li.related { border-style: dashed; border-color: light-dark(#d9a441, #7a5c22); }
+.fit-skill-list li.related span { color: light-dark(#8a5a00, #e9c77b); }
+.fit-skill-list li.related small { color: var(--muted); font-size: 11px; text-align: right; }

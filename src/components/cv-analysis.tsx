@@ -116,8 +116,8 @@ export function CvAnalysis({ candidate, jobs, initialJobId }: { candidate: Candi
         <section className="panel fit-skills" aria-labelledby="fit-skills-title">
           <h3 id="fit-skills-title">Skills the job lists</h3>
           {!analysis.skills.length ? <p className="muted-note">No skills CareerForge recognises were found in this posting.</p> : <>
-            <ul className="fit-skill-list">{analysis.skills.filter(skill => skill.matched).map(skill => <li key={skill.name} className="have"><span>✓ {skill.name}</span><ClaimBadge status={skill.status ?? "self_declared"} compact /></li>)}</ul>
-            <ul className="fit-skill-list">{analysis.skills.filter(skill => !skill.matched).map(skill => <li key={skill.name} className="missing"><span>✗ {skill.name}</span><small>not on your profile</small></li>)}</ul>
+            <ul className="fit-skill-list">{analysis.skills.filter(skill => skill.matched).map(skill => <li key={skill.name} className="have"><span>✓ {skill.name}</span>{skill.link?.relation === "shows" && <small className="fit-via">via {skill.link.via}</small>}<ClaimBadge status={skill.status ?? "self_declared"} compact /></li>)}</ul>
+            <ul className="fit-skill-list">{analysis.skills.filter(skill => !skill.matched).map(skill => <li key={skill.name} className={skill.link ? "related" : "missing"}><span>{skill.link ? "≈" : "✗"} {skill.name}</span><small>{skill.link ? `close to your ${skill.link.via} · half credit` : "not on your profile"}</small></li>)}</ul>
           </>}
         </section>
         <section className="panel fit-steps" aria-labelledby="fit-steps-title">

@@ -10,6 +10,32 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Friendlier forms everywhere (with a human touch)
+- **What:** Every form now shares one calm, clear design, in both dark and white mode, with small touches
+  that make it feel alive and easy.
+  - **All fields:** bigger, softer inputs (48 px tall, 16 px text on phones so nothing zooms), a clear glow
+    when you click in, a red ring with a message only after you have tried (never while you start typing), a
+    small ✓ once a required field is filled correctly, tidy dropdown arrows, and a spinner on the button while
+    a form is working. Errors arrive with a small nudge; good news pops in.
+  - **Sign in and register:** a greeting for the time of day ("👋 Good evening, welcome back"), a show/hide
+    password button, a Caps Lock warning, and when registering a live checklist (12+ characters, lowercase,
+    uppercase, number, symbol) that ticks green as you type, plus "✓ Passwords match". Password reset uses the
+    same fields.
+  - **Profile:** live counters on the headline and long texts ("39 / 160", amber near the limit), your skills
+    appear as chips while you type, and a floating "Unsaved changes" save bar stays in reach while you edit.
+    Long names, headlines and skills now wrap instead of pushing the page sideways (an older layout bug).
+  - **Education & work:** friendly examples in each field ("For example: BS in Computer Science").
+  - **CV analysis:** "(optional)" stays next to its label, so the two fields line up.
+  - **Jobs and applications:** the technical notes at the top moved into a small "About your data" section,
+    like the Overview, so the pages open on what matters.
+- **Where:** `/login`, `/register`, `/reset-password`, `/account`, `/account/history`, `/cv-analysis`,
+  `/jobs`, `/applications`, and every other form (proof links, languages, skill checks, workshop submission).
+- **Tests:** the full account live test passes again. Several old checks were updated to today's pages
+  (the profile skills list, the constellation, the "More" features group, folded "Coming soon" tools, the
+  learning gap summary), and two flaky steps were made reliable.
+- **Status:** Ready (no database change).
+
+
 ## Faster Overview: 79% less to download
 - **What:** The Overview used to download the whole job catalogue (up to 500 listings with descriptions) but
   only shows the 2 best matches. The server now picks the best 6 and sends only those, plus your tracked

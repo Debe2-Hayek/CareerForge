@@ -85,7 +85,7 @@ try {
   await a.page.getByRole("button", { name: "Save profile", exact: true }).click();
   await expect(a.page.getByRole("status")).toContainText("saved to your account");
   await expect(a.page.getByRole("link", { name: "See updated matches", exact: true })).toBeVisible();
-  await expect(a.page.locator(".profile-save-state")).toHaveText("No unsaved changes");
+  await expect(a.page.locator(".profile-save-state")).toHaveText("All changes saved");
   await a.page.reload();
   await expect(a.page.getByLabel("Full name")).toHaveValue("Live Test Owner A");
   await expect(a.page.getByLabel("Your skills", { exact: true })).toHaveValue("React, SQL");
@@ -140,9 +140,11 @@ try {
 
   stage = "saved profile drives workspace and matching";
   await a.page.goto("/dashboard");
-  await expect(a.page.locator(".demo-info")).toContainText("saved account profile");
+  // Signed in, the data note is folded into "About your data" (text is present even while closed).
+  await expect(a.page.locator(".workspace-data-note")).toContainText("saved account profile");
   await expect(a.page.locator(".app-sidebar-account").first()).toContainText("Live Test Owner A");
-  await expect(a.page.locator(".film-summary")).toContainText("2 self-reported skills");
+  // The Overview constellation counts every saved fact (checked, in review or stated): the two skills.
+  await expect.poll(() => a.page.locator(".constellation-legend b").evaluateAll(numbers => numbers.reduce((sum, number) => sum + Number(number.textContent), 0))).toBe(2);
   await a.page.goto("/jobs");
   await expect(a.page.locator(".outline-label")).toContainText(/\d+ live · 6 demo/);
   await a.page.getByLabel("Listing type").selectOption("demo");
@@ -177,7 +179,7 @@ try {
 
   stage = "second account workspace isolation";
   await b.page.goto("/dashboard");
-  await expect(b.page.locator(".film-summary")).toContainText("0 self-reported skills");
+  await expect.poll(() => b.page.locator(".constellation-legend b").evaluateAll(numbers => numbers.reduce((sum, number) => sum + Number(number.textContent), 0))).toBe(0);
   await b.page.goto("/applications");
   await expect(b.page.locator(".tracker-row")).toHaveCount(0);
   await b.page.goto("/account");

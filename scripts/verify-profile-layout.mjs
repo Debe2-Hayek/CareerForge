@@ -12,10 +12,10 @@ export async function verifyProfileLayout(context) {
       await page.setViewportSize({ width, height: 1000 });
       await page.goto("/account");
       await expect(page.getByLabel("Full name")).toHaveValue(fixture.name);
-      await expect(page.locator(".skill-tags .tag")).toHaveCount(40);
+      await expect(page.locator(".toolkit-list li")).toHaveCount(40);
       const overflow = await page.evaluate(() => ({
         width: innerWidth, scroll: document.documentElement.scrollWidth,
-        clipped: [...document.querySelectorAll(".identity-copy h2,.identity-copy > p,.identity-meta > span,.skill-tags .tag")]
+        clipped: [...document.querySelectorAll(".identity-copy h2,.identity-copy > p,.identity-meta > span,.toolkit-list li span")]
           .filter(node => node.checkVisibility() && node.scrollWidth > node.clientWidth + 1)
           .map(node => `${node.tagName}.${node.className}`)
       }));

@@ -32,8 +32,9 @@ export function AccountProfileEditor({ profile: initialProfile, email, trust = n
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const counts: StrengthCounts = trust?.counts ?? { education: 0, experience: 0, claims: null };
-  // Once the profile is well filled, AI autofill folds away so the page stays calm.
-  const established = profileStrength(profile, counts).percent >= 50;
+  // Once the profile is well filled, AI autofill folds away so the page stays calm. Decided when the page
+  // opens, not on every save: folding it mid-save would close the AI review before "Saved" can show.
+  const [established] = useState(() => profileStrength(profile, counts).percent >= 50);
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

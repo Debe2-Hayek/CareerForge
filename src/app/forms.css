@@ -125,3 +125,7 @@ form[aria-busy="true"] button[type="submit"]::after { content: ""; position: abs
 .overview-identity, .overview-identity :is(h1, h2, h3, p, span) { min-width: 0; overflow-wrap: anywhere; }
 .toolkit-list li { min-width: 0; }
 .toolkit-list li > span:first-child { min-width: 0; white-space: normal; overflow-wrap: anywhere; text-overflow: clip; }
+
+/* Role dialog: the full description fades in after the short excerpt. */
+.role-description { transition: opacity .25s; }
+.role-description.is-loading { opacity: .7; }

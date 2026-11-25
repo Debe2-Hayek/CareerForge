@@ -13,6 +13,7 @@ import { sky, type Sky } from "@/lib/constellation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AccountProfile } from "@/lib/account/schemas";
 import { rankJobs } from "@/lib/demo-workspace";
+import { withExcerpt } from "@/lib/tracker/schemas";
 
 /** "Your path" for the Overview. An addition: if anything fails, the Overview opens without it. */
 async function readJourney(client: SupabaseClient, userId: string, profile: AccountProfile, applications: { status: string }[]): Promise<{ path: Journey; sky: Sky } | null> {
@@ -58,7 +59,8 @@ export async function WorkspacePage({ view }: { view: "overview" | "profile" | "
     const [catalog, guide] = await Promise.all([listing, view === "overview" ? readJourney(client, user.id, profile, applications) : null]);
     // The Overview shows only the best matches (tracked roles arrive with the applications), so it
     // sends a few jobs instead of the whole catalog. A refresh on focus loads the full list.
-    const jobs = view === "overview" ? rankJobs(catalog, profile.skills).slice(0, 6) : catalog;
+    // Jobs: every listing, but with short descriptions; the dialog fetches the full one when opened.
+    const jobs = view === "overview" ? rankJobs(catalog, profile.skills).slice(0, 6) : view === "jobs" ? catalog.map(job => withExcerpt(job)) : catalog;
     account = { id: user.id, profile, tracker: { jobs, applications }, journey: guide?.path ?? null, sky: guide?.sky ?? null };
   } catch {
     if (anonymous) {

@@ -98,3 +98,20 @@ test("catalog filters by region and live/demo source, and rejects unknown filter
   for (const bad of ["region=mars", "source=fake"]) assert.equal((await h.jobs(new Request(`http://localhost/api/v1/jobs?${bad}`))).status, 400);
   assert.equal(demoListingFields.source, "fictional");
 });
+
+test("one job loads by id for its owner, refuses bad ids and anonymous callers, and 404s when missing", async () => {
+  const { withExcerpt } = await import("./schemas");
+  const full = { ...job, description: "word ".repeat(200).trim() };
+  const h = trackerHandlers(async () => access({ job: async id => id === "1" ? full : null }));
+  const ok = await h.job(new Request("http://localhost/api/v1/jobs/1"), "1");
+  assert.equal(ok.status, 200);
+  assert.equal((await ok.json()).job.description, full.description);
+  assert.equal((await h.job(new Request("http://localhost/api/v1/jobs/2"), "2")).status, 404);
+  assert.equal((await h.job(new Request("http://localhost/api/v1/jobs/x"), "../1")).status, 400);
+  assert.equal((await trackerHandlers(async () => null).job(new Request("http://localhost/api/v1/jobs/1"), "1")).status, 401);
+  // Lists get a word-boundary excerpt that says it is one; short descriptions stay whole.
+  const cut = withExcerpt(full);
+  assert.equal(cut.excerpt, true);
+  assert.ok(cut.description.length <= 261 && cut.description.endsWith("…") && !cut.description.includes("wor…"));
+  assert.equal(withExcerpt(job), job);
+});

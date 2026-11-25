@@ -19,7 +19,14 @@ export type ListingFields = {
   source: string; region: RegionKey | null; sourceUrl: string | null; applyUrl: string | null;
   seniority: string | null; level: LevelKey | null; salaryText: string | null; publishedAt: string | null; expiresAt: string | null; fetchedAt: string | null;
 };
-export type CatalogJob = Job & { isActive: boolean; isFictional: boolean } & ListingFields;
+export type CatalogJob = Job & { isActive: boolean; isFictional: boolean; /** The description is shortened; the full text loads on demand. */ excerpt?: boolean } & ListingFields;
+
+/** Long descriptions are cut on a word boundary for lists; the role dialog loads the full text. */
+export function withExcerpt(job: CatalogJob, length = 260): CatalogJob {
+  if (job.description.length <= length + 40) return job;
+  const cut = job.description.slice(0, length);
+  return { ...job, description: `${cut.slice(0, Math.max(cut.lastIndexOf(" "), length - 40)).trimEnd()}…`, excerpt: true };
+}
 export const demoListingFields: ListingFields = {
   source: "fictional", region: null, sourceUrl: null, applyUrl: null, seniority: null, level: "entry", salaryText: null, publishedAt: null, expiresAt: null, fetchedAt: null
 };

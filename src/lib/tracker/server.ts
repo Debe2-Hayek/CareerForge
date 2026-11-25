@@ -27,6 +27,11 @@ export function trackerAccess(client: SupabaseClient, userId: string): TrackerAc
       // RLS hides stale/expired listings, but keeps saved ones visible to their owner, so filter the catalog as well.
       return (data ?? []).map(catalogJob).filter(job => isCurrentListing(job));
     },
+    async job(id) {
+      const { data, error } = await client.from("job_postings").select(jobColumns).eq("id", id).maybeSingle();
+      if (error) throw error;
+      return data ? catalogJob(data) : null;
+    },
     async list() {
       const { data, error } = await own().order("created_at", { ascending: false });
       if (error) throw error;

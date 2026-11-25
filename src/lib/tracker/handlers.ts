@@ -9,6 +9,8 @@ export class TrackerError extends Error {
 export type TrackerAccess = {
   userId: string;
   jobs: () => Promise<CatalogJob[]>;
+  /** One job by id, as the catalogue shows it (RLS still applies). */
+  job?: (id: string) => Promise<CatalogJob | null>;
   list: () => Promise<TrackerEntry[]>;
   save: (id: string) => Promise<{ application: TrackerEntry; created: boolean }>;
   update: (id: string, revision: string, status: TrackerEntry["status"]) => Promise<TrackerEntry>;
@@ -47,6 +49,11 @@ export function trackerHandlers(authorize: () => Promise<TrackerAccess | null>, 
         (!source || (source === "demo") === job.isFictional) && (!level || level === job.level) &&
         `${job.title} ${job.company} ${job.location} ${job.skills.join(" ")}`.toLowerCase().includes(search));
       return json({ jobs });
+    }),
+    job: (request: Request, id: string) => run(request, async access => {
+      if (!jobIdSchema.safeParse(id).success || new URL(request.url).search) return invalid();
+      const job = await access.job?.(id);
+      return job ? json({ job }) : failure("NOT_FOUND", "This opportunity is no longer available.", 404);
     }),
     GET: (request: Request) => run(request, async access => {
       if (new URL(request.url).search) return invalid();

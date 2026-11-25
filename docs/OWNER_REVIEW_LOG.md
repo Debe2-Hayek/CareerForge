@@ -10,6 +10,18 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Faster "Find opportunities": short descriptions first, full text when you open a job
+- **What:** The jobs page used to download every job's full description (about 900 characters each, 182
+  jobs). Cards only show the first lines, so the list now gets a short excerpt (cut at a word, ending in "…"),
+  and when you open a job its full description loads at once from a new private endpoint. The page went from
+  354 KB to 263 KB. Search, filters, matching and saving work exactly as before.
+- **Where:** `/jobs`, and the job window.
+- **Tests:** new unit tests (one job by id, bad ids refused, anonymous callers refused, missing jobs 404,
+  excerpts cut on a word). The live jobs test passes (176 listings, filters, paging, layouts). Its counts now
+  skip expired or stale listings, as the page always has.
+- **Status:** Ready (no database change).
+
+
 ## Friendlier forms everywhere (with a human touch)
 - **What:** Every form now shares one calm, clear design, in both dark and white mode, with small touches
   that make it feel alive and easy.

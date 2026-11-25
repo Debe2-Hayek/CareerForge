@@ -14,6 +14,8 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 const expectedRef = process.env.EXPECTED_SUPABASE_PROJECT_REF;
 const connection = (process.env.DIRECT_URL || process.env.DATABASE_URL || "").trim();
 const shots = "test-results/ai-check-live";
+// The free text check (OCR) panel shares the ai-check styles; only the AI panels count here.
+const AI_PANEL = ".ai-check:not(.text-check)";
 const make = role => { const id = randomUUID(); return { id, role, email: `${id}@careerforge.invalid`, password: `Test-${randomUUID()}!` }; };
 const [student, admin] = [make("student"), make("admin")];
 const users = [student, admin];
@@ -77,15 +79,15 @@ try {
   const a = await signIn(admin);
   await a.page.goto("/admin/claims");
   const card = a.page.locator(".review-card").first();
-  await expect(card.locator(".ai-check")).toHaveCount(2);
+  await expect(card.locator(AI_PANEL)).toHaveCount(2);
   for (const index of [0, 1]) {
-    const panel = card.locator(".ai-check").nth(index);
+    const panel = card.locator(AI_PANEL).nth(index);
     await panel.getByRole("button", { name: "Run AI check" }).click();
     await expect(panel.locator(".ai-check-table")).toBeVisible({ timeout: 90000 });
   }
   const tableText = await card.locator(".ai-check-table").first().innerText();
   console.log("AI check (file 1):\n" + tableText.split("\n").filter(Boolean).join(" | "));
-  const test = await card.locator(".ai-check-title em").count();
+  const test = await card.locator(`${AI_PANEL} .ai-check-title em`).count();
   console.log(test ? "Mode: development test AI (no credits used)" : "Mode: real AI");
   await expect(card.locator(".ai-check-status").first()).toHaveText(/Consistent|Needs your attention/);
   await a.page.waitForTimeout(1200);

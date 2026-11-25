@@ -10,6 +10,20 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Tested with the real AI, and a fix for "Saved" disappearing after AI profile fill
+- **What:** With the new OpenRouter key (which has credits), every AI feature was tested on development with the
+  real AI (DeepSeek V4.1 Flash) instead of the test AI. Passed: AI proof check (read a diploma and matched name,
+  university, degree and dates), AI-drafted skill checks, CV vs job explanation, career analysis, the AI
+  assistant, AI profile fill from a CV, and "Generate with AI". The whole run cost about $0.003.
+  - **Bug fixed:** after the AI filled in a new profile and you pressed Save, the profile became strong enough
+    that the AI panel folded away mid-save, so the "Saved" message never showed (the data was saved). The panel
+    now stays open until you leave the page.
+  - Two tests were updated to match today's pages (the free text check panel; a slower list refresh).
+- **Where:** `/account` (AI profile fill); tests in `scripts/`.
+- **Status:** Ready (no database change).
+- **Remember:** project interviews were not tested with the real AI: that needs a real public GitHub
+  repository. The live site still uses the old free key until the new key is set in Vercel.
+
 ## Slim sidebar, "Your career constellation" and the homepage 3D ring
 - **What:** Three design upgrades, keeping every existing animation.
   - **Slim sidebar:** narrower (236 px, 212 px on smaller laptops) with tighter rows, so the whole menu fits

@@ -82,7 +82,7 @@ try {
   a.page.once("dialog", dialog => dialog.accept());
   await card.getByRole("button", { name: "Publish check" }).click();
   await expect(a.page.getByText(new RegExp(`Published: ${skill} version 1`))).toBeVisible({ timeout: 15000 });
-  await expect(a.page.locator(".studio-live")).toContainText(skill);
+  await expect(a.page.locator(".studio-live")).toContainText(skill, { timeout: 30000 });
   const bank = await db.query("select version, questions from careerforge_internal.skill_check_banks where skill = $1 order by version desc limit 1", [skill]);
   assert.equal(bank.rows[0].version, 1);
   assert.equal(bank.rows[0].questions.length, 5);

@@ -10,6 +10,89 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Faster "Find opportunities": short descriptions first, full text when you open a job
+- **What:** The jobs page used to download every job's full description (about 900 characters each, 182
+  jobs). Cards only show the first lines, so the list now gets a short excerpt (cut at a word, ending in "…"),
+  and when you open a job its full description loads at once from a new private endpoint. The page went from
+  354 KB to 263 KB. Search, filters, matching and saving work exactly as before.
+- **Where:** `/jobs`, and the job window.
+- **Tests:** new unit tests (one job by id, bad ids refused, anonymous callers refused, missing jobs 404,
+  excerpts cut on a word). The live jobs test passes (176 listings, filters, paging, layouts). Its counts now
+  skip expired or stale listings, as the page always has.
+- **Status:** Ready (no database change).
+
+
+## Friendlier forms everywhere (with a human touch)
+- **What:** Every form now shares one calm, clear design, in both dark and white mode, with small touches
+  that make it feel alive and easy.
+  - **All fields:** bigger, softer inputs (48 px tall, 16 px text on phones so nothing zooms), a clear glow
+    when you click in, a red ring with a message only after you have tried (never while you start typing), a
+    small ✓ once a required field is filled correctly, tidy dropdown arrows, and a spinner on the button while
+    a form is working. Errors arrive with a small nudge; good news pops in.
+  - **Sign in and register:** a greeting for the time of day ("👋 Good evening, welcome back"), a show/hide
+    password button, a Caps Lock warning, and when registering a live checklist (12+ characters, lowercase,
+    uppercase, number, symbol) that ticks green as you type, plus "✓ Passwords match". Password reset uses the
+    same fields.
+  - **Profile:** live counters on the headline and long texts ("39 / 160", amber near the limit), your skills
+    appear as chips while you type, and a floating "Unsaved changes" save bar stays in reach while you edit.
+    Long names, headlines and skills now wrap instead of pushing the page sideways (an older layout bug).
+  - **Education & work:** friendly examples in each field ("For example: BS in Computer Science").
+  - **CV analysis:** "(optional)" stays next to its label, so the two fields line up.
+  - **Jobs and applications:** the technical notes at the top moved into a small "About your data" section,
+    like the Overview, so the pages open on what matters.
+- **Where:** `/login`, `/register`, `/reset-password`, `/account`, `/account/history`, `/cv-analysis`,
+  `/jobs`, `/applications`, and every other form (proof links, languages, skill checks, workshop submission).
+- **Tests:** the full account live test passes again. Several old checks were updated to today's pages
+  (the profile skills list, the constellation, the "More" features group, folded "Coming soon" tools, the
+  learning gap summary), and two flaky steps were made reliable.
+- **Status:** Ready (no database change).
+
+
+## Faster Overview: 79% less to download
+- **What:** The Overview used to download the whole job catalogue (up to 500 listings with descriptions) but
+  only shows the 2 best matches. The server now picks the best 6 and sends only those, plus your tracked
+  roles. The page went from 318 KB to 67 KB, which matters most on phones. The journey steps now load at
+  the same time as the job list instead of after it. Matching works exactly as before (the same ranking
+  code is now shared by the page and the server, with a new test).
+- **Where:** `/dashboard` (Overview).
+- **Status:** Ready (no database change).
+- **Remember:** "Find opportunities" (`/jobs`) still loads the full list, because its filters work on all
+  jobs in the browser (354 KB). Moving its filters to the server is a possible next speed step.
+
+
+## AI assistant: a turning wireframe globe (after the reel you shared)
+- **What:** The assistant's round orb is replaced by a small 3D wireframe globe like the Instagram reel: a net
+  of thin lines with a slightly broken, jagged surface, warm sparks flickering inside (gold, green, lilac) and two
+  faint halo rings, slowly turning. When the assistant is thinking it spins faster and the sparks get busier.
+  - **White mode:** black ink lines with gold sparks, very close to the reel. **Dark mode:** pale mint lines.
+  - **Where it shows:** the big welcome globe, the header, the "thinking" bubble, and a still version on each
+    reply (still, so long chats stay light). The sidebar "AI assistant" icon is now a small globe too, and the
+    homepage AI card uses the mini globe.
+  - Drawn on a small canvas (no 3D library, no extra download). It stops when off screen, in a hidden tab,
+    with "reduce motion", or when the Motion switch is off.
+- **Where:** `/career-assistant`, the sidebar, and the homepage ring's AI card.
+- **Status:** Ready (no database change).
+
+
+## Faster, richer 3D rings (homepage and workshops)
+- **What:** Both 3D rings turn smoothly and can be scrolled with the mouse wheel.
+  - **Smoother:** while a ring turns, only each card's position and fade change, so the browser no longer
+    restyles the whole card every frame. When a new card reaches the front, only two cards are redrawn
+    instead of all of them. Mini animations run on the front card only. Measured on a local production build:
+    the long pauses at each turn are gone.
+  - **Homepage ring "Everything inside":** each card now has a real photo (free CC0 photos already used by
+    workshops) and a true number from the app's own data: 90 free roadmaps (34 careers, 56 skills, 2,222
+    topics), 26 free workshops, 5 questions per skill check, 5 application stages, 20 free assistant questions
+    a day, and more. A ninth card, "Workshops with certificates", was added. Photos load before the ring comes
+    into view. It starts turning sooner (3.2 s per card) and shows "Scroll, drag or use ← →".
+  - **Mouse wheel:** over the ring, each wheel notch turns one card; after the last card the page scrolls on.
+  - **White mode:** card text is black on white, accent links use a deep shade of their colour so they stay
+    readable, and the photo header stays dark so its numbers read on any photo.
+  - **Workshops ring:** the same speed fixes, and it moves on a little sooner (4.2 s per card).
+- **Where:** `/` (after The Forge) and `/workshops`.
+- **Try:** hover the ring and scroll the mouse wheel; switch to white mode with the sun/moon button.
+- **Status:** Ready (no database change).
+
 ## Tested with the real AI, and a fix for "Saved" disappearing after AI profile fill
 - **What:** With the new OpenRouter key (which has credits), every AI feature was tested on development with the
   real AI (DeepSeek V4.1 Flash) instead of the test AI. Passed: AI proof check (read a diploma and matched name,

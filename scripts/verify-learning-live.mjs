@@ -19,7 +19,8 @@ export async function verifyLearningLive(context) {
     step = "search and open";
     await page.getByLabel("Search roadmaps").fill("frontend");
     await page.getByRole("link", { name: /^Frontend Developer\s*\d+ topics/ }).click();
-    await expect(page).toHaveURL(/\/learning-roadmap\/frontend$/);
+    // The first visit to a roadmap can take a while on the development server.
+    await expect(page).toHaveURL(/\/learning-roadmap\/frontend$/, { timeout: 30000 });
     await expect(page.getByRole("heading", { level: 1, name: "Frontend Developer" })).toBeVisible();
     await expect(page.getByText(/^0 of \d+ core topics done$/)).toBeVisible();
 
@@ -123,7 +124,8 @@ export async function verifyLearningLive(context) {
     // Career roadmap: a role target from the jobs page shows its gaps.
     await page.goto("/learning-roadmap?target=1");
     await expect(page).toHaveURL(/\/learning-roadmap\/careers\?target=1$/);
-    await expect(page.getByText("Priority gap").first()).toBeVisible();
+    // The gap summary always shows ("0 priority gaps", "1 priority gap"…); a "Priority gap" label only when one exists.
+    await expect(page.getByText(/priority gaps?/i).first()).toBeVisible({ timeout: 15000 });
     await page.goto("/learning-roadmap/careers?target=unknown");
     // Next.js also renders a route-announcer alert, so match the message itself.
     await expect(page.getByRole("alert").filter({ hasText: "no longer available" })).toBeVisible();

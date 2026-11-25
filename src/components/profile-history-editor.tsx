@@ -164,12 +164,12 @@ export function ProfileHistoryEditor({ initial }: { initial: ProfileHistory }) {
       setNeedsReload(true);
     } finally { setPending(false); }
   }
-  function field(name: TextField, label: string, options: { type?: string; required?: boolean; maxLength?: number; multiline?: boolean } = {}) {
+  function field(name: TextField, label: string, options: { type?: string; required?: boolean; maxLength?: number; multiline?: boolean; placeholder?: string } = {}) {
     if (!draft) return null;
     const id = "history-" + name;
     const invalid = !!fieldErrors[name];
     const shared = { id, name, value: draft.values[name], onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => change(name, event.target.value),
-      required: options.required, maxLength: options.maxLength, "aria-invalid": invalid, "aria-describedby": invalid ? id + "-error" : undefined };
+      required: options.required, maxLength: options.maxLength, placeholder: options.placeholder, "aria-invalid": invalid, "aria-describedby": invalid ? id + "-error" : undefined };
     return <div className={"history-field" + (options.multiline ? " history-field-wide" : "")}>
       <label htmlFor={id}>{label}</label>
       {options.multiline ? <textarea {...shared} rows={4} /> : <input {...shared} type={options.type ?? "text"}
@@ -194,12 +194,12 @@ export function ProfileHistoryEditor({ initial }: { initial: ProfileHistory }) {
       <div className="section-heading"><h2>{draft.id ? "Edit " : "Add "}{draft.kind}</h2><span className="outline-label">Self-reported</span></div>
       <fieldset disabled={!ready || pending}><legend className="history-form-hint">Dates are optional. Leave unknown dates blank; mark current study or work explicitly.</legend>
         <div className="history-fields">
-          {draft.kind === "education" ? <>{field("institution", "Institution", { required: true, maxLength: 160 })}{field("degree", "Degree", { required: true, maxLength: 160 })}</>
-            : <>{field("company", "Company", { required: true, maxLength: 160 })}{field("role", "Role", { required: true, maxLength: 160 })}</>}
+          {draft.kind === "education" ? <>{field("institution", "Institution", { required: true, maxLength: 160, placeholder: "For example: Lebanese American University" })}{field("degree", "Degree", { required: true, maxLength: 160, placeholder: "For example: BS in Computer Science" })}</>
+            : <>{field("company", "Company", { required: true, maxLength: 160, placeholder: "Where you worked or volunteered" })}{field("role", "Role", { required: true, maxLength: 160, placeholder: "For example: Junior web developer" })}</>}
           {field("startDate", "Start date", { type: "date" })}{field("endDate", "End date", { type: "date" })}
           <label className="history-current history-field-wide"><input type="checkbox" checked={draft.values.isCurrent} onChange={event => setDraft(current => current ? { ...current, values: { ...current.values, isCurrent: event.target.checked, endDate: event.target.checked ? "" : current.values.endDate } } : current)} />{draft.kind === "education" ? "I currently study here" : "I currently work here"}</label>
           {draft.kind === "education" ? <>{field("gpa", "GPA (optional)", { type: "number" })}{field("gpaScale", "GPA scale (optional)", { type: "number" })}<p className="history-form-hint history-field-wide">Enter both GPA and its scale, such as 3.6 and 4, or leave both blank.</p></>
-            : field("description", "Experience description", { maxLength: 2000, multiline: true })}
+            : field("description", "Experience description", { maxLength: 2000, multiline: true, placeholder: "What you did, what you built and what changed because of it." })}
         </div>
       </fieldset>
       <div className="form-footer"><span className="profile-save-state">{dirty ? "Unsaved changes" : "No unsaved changes"}</span><div className="history-page-actions">

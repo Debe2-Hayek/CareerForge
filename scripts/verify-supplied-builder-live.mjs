@@ -240,8 +240,9 @@ export async function verifySuppliedBuilderLive(context) {
     await builder.getByRole("button", { name: "+ Add language", exact: true }).click();
     await languages.locator(".ed").last().fill("French draft");
     await builder.locator(".cv h1").click();
-    await languages.locator(".mx-skill").filter({ hasText: "French draft" }).hover();
-    await languages.getByRole("button", { name: "Remove French draft", exact: true }).click();
+    // The remove button shows on hover or keyboard focus. Use the keyboard: the builder's sticky bar
+    // can sit on top of a chip near the edge, which makes hovering unreliable.
+    await languages.getByRole("button", { name: "Remove French draft", exact: true }).press("Enter");
     await expect(languages.locator(".mx-skill")).toHaveCount(1);
     await builder.getByRole("tab", { name: "ATS-safe", exact: true }).click();
     await expect(builder.locator(".cv.ats h1")).toHaveText("Local Draft Person");
@@ -323,9 +324,13 @@ export async function verifySuppliedBuilderLive(context) {
     await page.emulateMedia({ media: "screen" });
 
     await builder.getByLabel("Your notes", { exact: true }).fill("i'm demo applicant, frontend developer.");
+    // This step checks the demo fallback when no AI is connected. Development may have the test AI or a
+    // real key, so the "not connected" answer is simulated for this one request (and nothing is spent).
+    await page.route("**/api/generate", route => route.fulfill({ status: 501, contentType: "application/json", body: JSON.stringify({ error: { code: "NOT_IMPLEMENTED", message: "AI generation is not connected. The builder can show fictional sample content in demo mode." } }) }));
     const generation = page.waitForResponse(response => new URL(response.url()).pathname === "/api/generate" && response.request().method() === "POST");
     await builder.getByRole("button", { name: "Generate with AI", exact: true }).click();
     assert.equal((await generation).status(), 501);
+    await page.unroute("**/api/generate");
     await expect(builder.locator(".note[role=status]")).toContainText("Demo mode");
     await expect(builder.locator(".cv h1")).toHaveText("Demo Applicant");
     assert.deepEqual(await (await context.request.get("/api/v1/profile")).json(), savedProfile);

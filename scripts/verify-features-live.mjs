@@ -9,10 +9,10 @@ export async function verifyFeaturesLive(context) {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("All features");
     const nav = page.locator(".app-sidebar nav");
     const plannedLinks = await nav.locator('a[title$="(planned)"], a[title$="(stretch)"]').evaluateAll(links => links.map(link => ({ href: link.getAttribute("href"), label: link.getAttribute("aria-label") })));
-    assert.equal(plannedLinks.length, 7);
+    assert.equal(plannedLinks.length, 4, "planned and stretch tools in the sidebar (they fold under Coming soon)");
     // Working tools and plans are separate, searchable and link to their own pages.
     const directory = page.locator("#main-content");
-    await expect(directory.getByRole("heading", { level: 2 })).toHaveText(["Learn", "Show it", "Find work", "Your space", "Coming later"]);
+    await expect(directory.getByRole("heading", { level: 2 })).toHaveText(["Learn", "Show it", "Find work", "Your space", "More", "Coming later"]);
     await expect(directory.getByRole("link", { name: /^Workshops/ })).toHaveAttribute("href", "/workshops");
     await page.getByLabel("Find a feature").fill("cv");
     await expect(directory.getByRole("link", { name: /^CV & Portfolio/ })).toBeVisible();
@@ -30,7 +30,8 @@ export async function verifyFeaturesLive(context) {
       assert.equal(response.status(), 200);
       assert.ok(response.headers()["cache-control"].includes("no-store"));
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText(`${label}.`);
+      // The page title is the plain name; "(planned)" stays in the sidebar link's name.
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(`${label.replace(/ \((planned|stretch)\)$/i, "")}.`);
       await expect(nav.getByRole("link", { name: label, exact: true })).toHaveAttribute("aria-current", "page");
       await expect(page.locator(".feature-workflow li")).toHaveCount(3);
       await expect(page.locator(".feature-readiness-note")).toContainText("does not run this feature");
@@ -56,7 +57,10 @@ export async function verifyFeaturesLive(context) {
     await menu.click();
     const dialog = page.getByRole("dialog", { name: "Navigation", exact: true });
     await expect(dialog.getByRole("button", { name: "Close navigation", exact: true })).toBeFocused();
-    await dialog.getByRole("link", { name: "Graduation simulator", exact: true }).click();
+    // Unfinished tools are folded under "Coming soon".
+    const soon = dialog.getByRole("button", { name: /Coming soon/ });
+    if ((await soon.getAttribute("aria-expanded")) !== "true") await soon.click();
+    await dialog.getByRole("link", { name: /^Graduation simulator/ }).click();
     await expect(dialog).not.toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Graduation simulator.");
     await menu.click();

@@ -16,7 +16,8 @@ const db = new Client({ connectionString: process.env.DATABASE_URL, connectionTi
 let browser, stage = "setup";
 try {
   await db.connect();
-  const live = (await db.query("select count(*)::int n from public.job_postings where source <> 'fictional' and is_active")).rows[0].n;
+  // Count only current listings, as the app does (isCurrentListing: fetched within 7 days, not expired).
+  const live = (await db.query("select count(*)::int n from public.job_postings where source <> 'fictional' and is_active and fetched_at > now() - interval '7 days' and (expires_at is null or expires_at > now())")).rows[0].n;
   assert.ok(live > 0, "run `npm run jobs:ingest` first");
   await db.query(`insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
     created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change, email_change_token_current, phone_change, phone_change_token, reauthentication_token)
@@ -49,7 +50,7 @@ try {
   stage = "region and listing filters";
   for (const [region, label] of [["lebanon", "Lebanon"], ["mena", "Middle East & North Africa"], ["worldwide", "Worldwide remote"]]) {
     await page.getByLabel("Region", { exact: true }).selectOption(region);
-    const expected = (await db.query("select count(*)::int n from public.job_postings where source <> 'fictional' and is_active and region=$1", [region])).rows[0].n;
+    const expected = (await db.query("select count(*)::int n from public.job_postings where source <> 'fictional' and is_active and fetched_at > now() - interval '7 days' and (expires_at is null or expires_at > now()) and region=$1", [region])).rows[0].n;
     await expect(page.locator(".results-heading > span").first()).toContainText(`${expected} opportunities`);
     if (expected) await expect(page.locator(".job-card").first().locator(".tag", { hasText: label })).toBeVisible();
   }

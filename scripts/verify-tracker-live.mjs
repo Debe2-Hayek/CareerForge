@@ -49,6 +49,9 @@ export async function verifyTrackerLive({ a, b, second, userB }) {
 
   // Refresh outage keeps confirmed data visible and blocks edits until retry.
   await a.page.route("**/api/v1/applications", route => route.fulfill({ status: 503, contentType: "application/json", body: "{}" }));
+  // The refresh button lives in the folded "About your data" note.
+  const dataNote = a.page.locator("details.workspace-data-note");
+  if (!(await dataNote.evaluate(element => element.open))) await dataNote.locator("summary").click();
   await a.page.getByRole("button", { name: "Refresh opportunities" }).click();
   await expect(a.page.locator(".account-error[role=alert]")).toContainText("could not be refreshed");
   await expect(desktopStatus).toBeDisabled();

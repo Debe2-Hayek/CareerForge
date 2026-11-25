@@ -19,7 +19,7 @@ part needs OpenRouter credits before it gives real answers.
 - **Tests:** new unit tests (one job by id, bad ids refused, anonymous callers refused, missing jobs 404,
   excerpts cut on a word). The live jobs test passes (176 listings, filters, paging, layouts). Its counts now
   skip expired or stale listings, as the page always has.
-- **Status:** Ready (no database change).
+- **Status:** Live since 25 Nov 2026 (no database change).
 
 
 ## Friendlier forms everywhere (with a human touch)
@@ -45,7 +45,7 @@ part needs OpenRouter credits before it gives real answers.
 - **Tests:** the full account live test passes again. Several old checks were updated to today's pages
   (the profile skills list, the constellation, the "More" features group, folded "Coming soon" tools, the
   learning gap summary), and two flaky steps were made reliable.
-- **Status:** Ready (no database change).
+- **Status:** Live since 25 Nov 2026 (no database change).
 
 
 ## Faster Overview: 79% less to download
@@ -55,7 +55,7 @@ part needs OpenRouter credits before it gives real answers.
   the same time as the job list instead of after it. Matching works exactly as before (the same ranking
   code is now shared by the page and the server, with a new test).
 - **Where:** `/dashboard` (Overview).
-- **Status:** Ready (no database change).
+- **Status:** Live since 25 Nov 2026 (no database change).
 - **Remember:** "Find opportunities" (`/jobs`) still loads the full list, because its filters work on all
   jobs in the browser (354 KB). Moving its filters to the server is a possible next speed step.
 
@@ -71,7 +71,7 @@ part needs OpenRouter credits before it gives real answers.
   - Drawn on a small canvas (no 3D library, no extra download). It stops when off screen, in a hidden tab,
     with "reduce motion", or when the Motion switch is off.
 - **Where:** `/career-assistant`, the sidebar, and the homepage ring's AI card.
-- **Status:** Ready (no database change).
+- **Status:** Live since 25 Nov 2026 (no database change).
 
 
 ## Faster, richer 3D rings (homepage and workshops)
@@ -91,7 +91,7 @@ part needs OpenRouter credits before it gives real answers.
   - **Workshops ring:** the same speed fixes, and it moves on a little sooner (4.2 s per card).
 - **Where:** `/` (after The Forge) and `/workshops`.
 - **Try:** hover the ring and scroll the mouse wheel; switch to white mode with the sun/moon button.
-- **Status:** Ready (no database change).
+- **Status:** Live since 25 Nov 2026 (no database change).
 
 ## Tested with the real AI, and a fix for "Saved" disappearing after AI profile fill
 - **What:** With the new OpenRouter key (which has credits), every AI feature was tested on development with the
@@ -103,9 +103,9 @@ part needs OpenRouter credits before it gives real answers.
     now stays open until you leave the page.
   - Two tests were updated to match today's pages (the free text check panel; a slower list refresh).
 - **Where:** `/account` (AI profile fill); tests in `scripts/`.
-- **Status:** Ready (no database change).
+- **Status:** Live since 25 Nov 2026 (no database change).
 - **Remember:** project interviews were not tested with the real AI: that needs a real public GitHub
-  repository. The live site still uses the old free key until the new key is set in Vercel.
+  repository. Since 25 Nov 2026 the live site uses the new OpenRouter key (ends …5b66), so AI works there too.
 
 ## Slim sidebar, "Your career constellation" and the homepage 3D ring
 - **What:** Three design upgrades, keeping every existing animation.

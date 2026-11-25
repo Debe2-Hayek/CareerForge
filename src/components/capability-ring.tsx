@@ -1,33 +1,43 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
+import { memo, useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { AppIcon } from "./app-icons";
+import { Picture } from "./workshops/picture";
 import { setRingPlaying, useRingMode } from "./workshops/hooks";
+import type { PictureKey } from "@/data/workshops/pictures";
 import { frontOf, offsetOf, placementOf } from "@/lib/workshops/ring";
 
-export type Capability = { id: string; title: string; text: string; href: string; cta: string; accent: string; viz: ReactNode };
+export type Capability = {
+  id: string; title: string; text: string; href: string; cta: string; accent: string;
+  /** A CC0 photo from /public/media/workshops. */ photo: PictureKey;
+  /** A true fact about the tool, such as "90 / free roadmaps". */ stat: { value: string; label: string };
+  viz: ReactNode;
+};
 
 const round = (value: number) => Math.round(value * 1000) / 1000;
-/** Written to the style attribute, so the first paint from the server is already a ring. */
-function styleOf(offset: number, count: number): Record<string, string> {
+/**
+ * Where a card stands. Only transform and opacity change while the ring moves: both are
+ * handled by the compositor, so the cards' contents are never restyled frame by frame.
+ */
+function placeOf(offset: number, count: number) {
   const at = placementOf(offset, count);
   return {
     transform: `translate(-50%, -50%) translate3d(calc(var(--w) * ${round(at.x)}), ${round(at.y * 100)}%, calc(var(--w) * ${round(at.z)})) rotateY(${round(at.turn)}deg) scale(${round(at.scale)})`,
     opacity: String(round(at.opacity)),
-    "--dim": String(round(at.dim))
+    dim: String(round(at.dim))
   };
 }
 
 /** How long a tool stays at the front, and how long the ring waits after someone turns it. */
-const dwell = 3800, rest = 10_000;
-const brisk = 8.5, soft = 3.2;
+const dwell = 3200, rest = 8000;
+const brisk = 9, soft = 3.6;
 const calm = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
  * "Everything inside": the homepage tools on a 3D ring, the same motion as the workshops ring.
- * It turns by itself, stops under the cursor or keyboard focus, and can be dragged, swiped or
- * turned with the arrow keys. Only transforms change each frame.
+ * It turns by itself, stops under the cursor or keyboard focus, and can be dragged, swiped,
+ * scrolled with the mouse wheel, or turned with the arrow keys.
  */
 export function CapabilityRing({ items }: { items: readonly Capability[] }) {
   const count = items.length;
@@ -42,6 +52,7 @@ export function CapabilityRing({ items }: { items: readonly Capability[] }) {
   const section = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLUListElement>(null);
+  const shades = useRef<(HTMLSpanElement | null)[]>([]);
   const motion = useRef({ position: 0, target: 0, frame: 0, last: 0, dragging: false, rate: brisk });
   const drag = useRef<{ id: number; x: number; y: number; from: number; lastX: number; lastTime: number; speed: number; active: boolean } | null>(null);
   const justDragged = useRef(false);
@@ -49,7 +60,12 @@ export function CapabilityRing({ items }: { items: readonly Capability[] }) {
   const paint = useCallback(() => {
     const { position } = motion.current;
     [...(list.current?.children ?? [])].forEach((item, index) => {
-      for (const [name, value] of Object.entries(styleOf(offsetOf(index, position, count), count))) (item as HTMLElement).style.setProperty(name, value);
+      const place = placeOf(offsetOf(index, position, count), count);
+      const style = (item as HTMLElement).style;
+      style.transform = place.transform;
+      style.opacity = place.opacity;
+      const shade = shades.current[index];
+      if (shade) shade.style.opacity = place.dim;
     });
     setFront(frontOf(position, count));
   }, [count]);
@@ -78,25 +94,41 @@ export function CapabilityRing({ items }: { items: readonly Capability[] }) {
     clearTimeout(restTimer.current);
     restTimer.current = setTimeout(() => setResting(false), rest);
   }, []);
-  const go = useCallback((steps: number) => { byHand(); motion.current.target += steps; glide(); }, [byHand, glide]);
-  const bring = (index: number) => {
+  const go = useCallback((steps: number) => { byHand(); motion.current.target = Math.round(motion.current.target) + steps; glide(); }, [byHand, glide]);
+  const bring = useCallback((index: number) => {
     const state = motion.current;
     state.target = Math.round(state.target) + Math.round(offsetOf(index, Math.round(state.target), count));
     byHand();
     glide();
-  };
+  }, [byHand, count, glide]);
+  const setShade = useCallback((index: number, element: HTMLSpanElement | null) => { shades.current[index] = element; }, []);
 
   useEffect(() => () => clearTimeout(restTimer.current), []);
 
+  // Off screen or in a hidden tab there is nobody to move for.
   useEffect(() => {
     const element = section.current;
     if (!element) return;
     let onScreen = false;
     const update = () => setSeen(onScreen && !document.hidden);
-    const observer = new IntersectionObserver(([entry]) => { onScreen = entry.isIntersecting; update(); }, { threshold: .35 });
+    const observer = new IntersectionObserver(([entry]) => { onScreen = entry.isIntersecting; update(); }, { threshold: .2 });
     observer.observe(element);
     document.addEventListener("visibilitychange", update);
     return () => { observer.disconnect(); document.removeEventListener("visibilitychange", update); };
+  }, []);
+
+  // Before the ring scrolls into view, fetch and decode every photo, so its first sweep does not
+  // stop to decode pictures.
+  useEffect(() => {
+    const element = section.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      observer.disconnect();
+      element.querySelectorAll("img").forEach(image => { image.loading = "eager"; image.decode?.().catch(() => undefined); });
+    }, { rootMargin: "900px 0px" });
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
 
   const canPlay = mode !== "still";
@@ -114,17 +146,44 @@ export function CapabilityRing({ items }: { items: readonly Capability[] }) {
     return () => clearTimeout(timer);
   }, [running, front, glide]);
 
-  // The ring turns into place once, the first time it comes into view.
+  // The ring sweeps into place the first time it comes into view.
   const arrived = useRef(false);
   useEffect(() => {
     if (!seen || arrived.current) return;
     arrived.current = true;
-    if (!calm()) { motion.current.position = -1.6; glide(); }
+    if (!calm()) { motion.current.position = -1.2; motion.current.rate = 6; glide(); }
   }, [seen, glide]);
   useEffect(() => {
     const state = motion.current;
     return () => { cancelAnimationFrame(state.frame); state.frame = 0; };
   }, []);
+
+  // The mouse wheel turns one card at a time while the pointer is over the ring. Going down
+  // past the last card, or up past the first, lets the page scroll on, so nobody gets stuck.
+  useEffect(() => {
+    const element = stage.current;
+    if (!element || count < 2) return;
+    let gathered = 0, lastStep = 0, lastEvent = 0;
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey) return;
+      const sideways = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+      const delta = (sideways ? event.deltaX : event.deltaY) * (event.deltaMode === 1 ? 32 : event.deltaMode === 2 ? 400 : 1);
+      if (!delta) return;
+      const here = frontOf(motion.current.target, count);
+      if (!sideways && (delta > 0 ? here >= count - 1 : here <= 0) && event.timeStamp - lastStep > 420) return;
+      event.preventDefault();
+      if (event.timeStamp - lastEvent > 220) gathered = 0;
+      lastEvent = event.timeStamp;
+      if (event.timeStamp - lastStep < 170) return;
+      gathered += delta;
+      if (Math.abs(gathered) < 30) return;
+      go(Math.sign(gathered));
+      gathered = 0;
+      lastStep = event.timeStamp;
+    };
+    element.addEventListener("wheel", onWheel, { passive: false });
+    return () => element.removeEventListener("wheel", onWheel);
+  }, [count, go]);
 
   function onKeyDown(event: KeyboardEvent) {
     const move = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
@@ -172,6 +231,7 @@ export function CapabilityRing({ items }: { items: readonly Capability[] }) {
     glide();
     setTimeout(() => { justDragged.current = false; }, 0);
   }
+  /** The cursor on a card stops the ring at once: a move in progress settles on the nearest card. */
   function hover(on: boolean) {
     setHovered(on);
     const state = motion.current;
@@ -180,20 +240,16 @@ export function CapabilityRing({ items }: { items: readonly Capability[] }) {
     state.target = Math.round(state.position);
     glide();
   }
-  function lean(event: PointerEvent<HTMLElement>) {
+  const lean = useCallback((event: PointerEvent<HTMLElement>) => {
     if (event.pointerType !== "mouse" || drag.current?.active || calm()) return;
     const box = event.currentTarget.getBoundingClientRect();
     event.currentTarget.style.setProperty("--lean-x", `${round(((event.clientX - box.left) / box.width - .5) * 8)}deg`);
     event.currentTarget.style.setProperty("--lean-y", `${round((.5 - (event.clientY - box.top) / box.height) * 6)}deg`);
-  }
-  function straighten(event: PointerEvent<HTMLElement>) {
-    event.currentTarget.style.removeProperty("--lean-x");
-    event.currentTarget.style.removeProperty("--lean-y");
-  }
+  }, []);
 
   const current = items[front];
   if (!current) return null;
-  return <div className="cap-ring" ref={section} aria-roledescription="carousel" aria-label="CareerForge tools" onKeyDown={onKeyDown} style={{ "--tool": current.accent } as CSSProperties}
+  return <div className="cap-ring" ref={section} data-seen={seen || undefined} aria-roledescription="carousel" aria-label="CareerForge tools" onKeyDown={onKeyDown} style={{ "--tool": current.accent } as CSSProperties}
     onFocus={event => { if (event.target.matches(":focus-visible")) setFocused(true); }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
     <span className="cap-ring-floor" aria-hidden="true" />
     <button type="button" className="cap-ring-arrow" aria-label="Previous tool" onClick={() => go(-1)}><AppIcon name="chevron" /></button>
@@ -201,20 +257,7 @@ export function CapabilityRing({ items }: { items: readonly Capability[] }) {
     <div className="cap-ring-stage" ref={stage} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
       onClickCapture={event => { if (justDragged.current) { event.preventDefault(); event.stopPropagation(); } }}>
       <ul className="cap-ring-list" ref={list} onPointerOver={event => { if (event.pointerType === "mouse") hover((event.target as Element).closest("li") !== null); }} onPointerLeave={() => hover(false)}>
-        {items.map((item, index) => {
-          const isFront = index === front;
-          return <li key={item.id} className="cap-ring-item" data-front={isFront || undefined} aria-hidden={!isFront || undefined} style={{ ...styleOf(offsetOf(index, 0, count), count), "--tool": item.accent } as CSSProperties}>
-            <article className="cap-card" onPointerMove={isFront ? lean : undefined} onPointerLeave={straighten} onClickCapture={isFront ? undefined : event => { event.preventDefault(); event.stopPropagation(); bring(index); }}>
-              <p className="cap-card-index"><span>{String(index + 1).padStart(2, "0")}</span> / {String(count).padStart(2, "0")}</p>
-              <div className="cap-card-viz">{item.viz}</div>
-              <div className="cap-card-text">
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-                <Link href={item.href} className="cap-card-link" tabIndex={isFront ? undefined : -1}>{item.cta} <span aria-hidden="true">→</span></Link>
-              </div>
-            </article>
-          </li>;
-        })}
+        {items.map((item, index) => <RingCard key={item.id} item={item} index={index} count={count} isFront={index === front} bring={bring} lean={lean} setShade={setShade} />)}
       </ul>
     </div>
     <div className="cap-ring-controls">
@@ -226,7 +269,35 @@ export function CapabilityRing({ items }: { items: readonly Capability[] }) {
           {index === front && canPlay && <i key={`${front}-${running}`} data-running={running || undefined} />}
         </button></li>)}
       </ol>
+      <p className="cap-ring-hint" aria-hidden="true">Scroll, drag or use ← →</p>
     </div>
     <p className="sr-only" role="status" aria-live="polite">{moved ? `${front + 1} of ${count}: ${current.title}` : ""}</p>
   </div>;
 }
+
+function straighten(event: PointerEvent<HTMLElement>) {
+  event.currentTarget.style.removeProperty("--lean-x");
+  event.currentTarget.style.removeProperty("--lean-y");
+}
+
+type CardProps = { item: Capability; index: number; count: number; isFront: boolean; bring: (index: number) => void; lean: (event: PointerEvent<HTMLElement>) => void; setShade: (index: number, element: HTMLSpanElement | null) => void };
+/** One card. Memoised: when another card reaches the front, only the old and the new front cards render again. */
+const RingCard = memo(function RingCard({ item, index, count, isFront, bring, lean, setShade }: CardProps) {
+  const place = placeOf(offsetOf(index, 0, count), count);
+  return <li className="cap-ring-item" data-front={isFront || undefined} aria-hidden={!isFront || undefined} style={{ transform: place.transform, opacity: place.opacity, "--tool": item.accent } as CSSProperties}>
+    <article className="cap-card" onPointerMove={isFront ? lean : undefined} onPointerLeave={straighten} onClickCapture={isFront ? undefined : event => { event.preventDefault(); event.stopPropagation(); bring(index); }}>
+      <div className="cap-card-media">
+        <Picture name={item.photo} sizes="(max-width: 760px) 76vw, 340px" eager={index < 2 || index === count - 1} />
+        <p className="cap-card-index"><span>{String(index + 1).padStart(2, "0")}</span> / {String(count).padStart(2, "0")}</p>
+        <p className="cap-card-stat"><strong>{item.stat.value}</strong><span>{item.stat.label}</span></p>
+        <div className="cap-card-viz">{item.viz}</div>
+      </div>
+      <div className="cap-card-text">
+        <h3>{item.title}</h3>
+        <p>{item.text}</p>
+        <Link href={item.href} className="cap-card-link" tabIndex={isFront ? undefined : -1}>{item.cta} <span aria-hidden="true">→</span></Link>
+      </div>
+      <span className="cap-card-shade" aria-hidden="true" ref={element => setShade(index, element)} style={{ opacity: place.dim }} />
+    </article>
+  </li>;
+});

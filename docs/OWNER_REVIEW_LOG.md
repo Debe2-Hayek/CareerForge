@@ -10,6 +10,26 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Faster, richer 3D rings (homepage and workshops)
+- **What:** Both 3D rings turn smoothly and can be scrolled with the mouse wheel.
+  - **Smoother:** while a ring turns, only each card's position and fade change, so the browser no longer
+    restyles the whole card every frame. When a new card reaches the front, only two cards are redrawn
+    instead of all of them. Mini animations run on the front card only. Measured on a local production build:
+    the long pauses at each turn are gone.
+  - **Homepage ring "Everything inside":** each card now has a real photo (free CC0 photos already used by
+    workshops) and a true number from the app's own data: 90 free roadmaps (34 careers, 56 skills, 2,222
+    topics), 26 free workshops, 5 questions per skill check, 5 application stages, 20 free assistant questions
+    a day, and more. A ninth card, "Workshops with certificates", was added. Photos load before the ring comes
+    into view. It starts turning sooner (3.2 s per card) and shows "Scroll, drag or use ← →".
+  - **Mouse wheel:** over the ring, each wheel notch turns one card; after the last card the page scrolls on.
+  - **White mode:** card text is black on white, accent links use a deep shade of their colour so they stay
+    readable, and the photo header stays dark so its numbers read on any photo.
+  - **Workshops ring:** the same speed fixes, and it moves on a little sooner (4.2 s per card).
+- **Where:** `/` (after The Forge) and `/workshops`.
+- **Try:** hover the ring and scroll the mouse wheel; switch to white mode with the sun/moon button.
+- **Status:** Ready (no database change).
+
+
 ## Slim sidebar, "Your career constellation" and the homepage 3D ring
 - **What:** Three design upgrades, keeping every existing animation.
   - **Slim sidebar:** narrower (236 px, 212 px on smaller laptops) with tighter rows, so the whole menu fits

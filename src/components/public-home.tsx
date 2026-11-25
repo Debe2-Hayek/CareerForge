@@ -4,6 +4,9 @@ import { LandingNav } from "./landing-nav";
 import { Spotlight } from "./spotlight";
 import { ForgeShowcase } from "./forge-showcase";
 import { CapabilityRing, type Capability } from "./capability-ring";
+import { roadmaps, roleRoadmaps, skillRoadmaps, topicCount } from "@/lib/roadmaps/catalog";
+import { curatedWorkshops } from "@/data/workshops/curated";
+import { statuses } from "@/lib/demo-workspace";
 
 const glyphs = {
   profile: "M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-3a8 6 0 0 1 16 0v3",
@@ -103,6 +106,12 @@ function VizAssistant() {
     <div className="viz-bubble ai"><span className="viz-orb" />Docker: it is the gap in 3 of your saved jobs.</div>
   </div>;
 }
+function VizWorkshops() {
+  return <div className="viz viz-workshops" aria-hidden="true">
+    <div className="viz-cert"><b>Certificate</b><i /><i className="short" /><span className="viz-qr" /></div>
+    <span className="viz-seal">✓ Checked</span>
+  </div>;
+}
 function VizPortfolio() {
   return <div className="viz viz-portfolio" aria-hidden="true">
     {[{ label: "Headline", on: true }, { label: "Projects", on: true }, { label: "Contact details", on: false }].map(({ label, on }) => <div key={label} className="viz-toggle"><b>{label}</b><span className={on ? "viz-switch on" : "viz-switch"} /></div>)}
@@ -110,15 +119,18 @@ function VizPortfolio() {
 }
 
 // The tools on the homepage ring, each with its own live picture and a way in.
+// True numbers, read from the app's own data when the page is built.
+const topics = roadmaps.reduce((sum, roadmap) => sum + topicCount(roadmap), 0).toLocaleString("en");
 const tools: Capability[] = [
-  { id: "profile", accent: "#c6e49e", href: "/account", cta: "Build your profile", title: "A profile that stays yours", text: "Education, projects and skills in one private, owner-only account.", viz: <VizProfile /> },
-  { id: "checks", accent: "#7fd6c2", href: "/skill-checks", cta: "Take a skill check", title: "Skills with evidence", text: "Timed checks for any skill, prepared and approved by reviewers.", viz: <VizChecks /> },
-  { id: "cv", accent: "#f0d48a", href: "/documents", cta: "Make your CV", title: "CV preview", text: "A clean, print-ready sheet generated from your profile.", viz: <VizCv /> },
-  { id: "roles", accent: "#8cc8ff", href: "/jobs", cta: "Find jobs", title: "Jobs that fit", text: "Live openings in Lebanon, the region and remote, ranked by how your skills match.", viz: <VizRoles /> },
-  { id: "tracker", accent: "#ffad8f", href: "/applications", cta: "Track applications", title: "Application tracker", text: "Follow each application from saved through to an offer.", viz: <VizTracker /> },
-  { id: "learning", accent: "#a6e3a1", href: "/learning-roadmap", cta: "Start learning", title: "Free learning roadmaps", text: "Step-by-step paths with free courses and projects, and honest limits on what they prove.", viz: <VizLearning /> },
-  { id: "assistant", accent: "#b8a6ff", href: "/career-assistant", cta: "Ask the assistant", title: "An AI that knows your profile", text: "Ask about careers, skills or your CV. It only sees what you choose to share.", viz: <VizAssistant /> },
-  { id: "portfolio", accent: "#f5a8c8", href: "/documents", cta: "Share a portfolio", title: "Shared only by choice", text: "Publish a snapshot of the fields you select, and only after you consent.", viz: <VizPortfolio /> }
+  { id: "profile", accent: "#c6e49e", photo: "desk", stat: { value: "4", label: "kinds of fact you can prove" }, href: "/account", cta: "Build your profile", title: "A profile that stays yours", text: "Education, work, skills and languages in one private, owner-only account.", viz: <VizProfile /> },
+  { id: "checks", accent: "#7fd6c2", photo: "magnifier", stat: { value: "5", label: "questions per timed check" }, href: "/skill-checks", cta: "Take a skill check", title: "Skills with evidence", text: "Timed checks for any skill, prepared and approved by reviewers.", viz: <VizChecks /> },
+  { id: "learning", accent: "#a6e3a1", photo: "books", stat: { value: String(roadmaps.length), label: `free roadmaps · ${topics} topics` }, href: "/learning-roadmap", cta: "Start learning", title: "Free learning roadmaps", text: `${roleRoadmaps.length} careers and ${skillRoadmaps.length} skills, step by step, with free courses and projects.`, viz: <VizLearning /> },
+  { id: "workshops", accent: "#ffd27a", photo: "lecture-hall", stat: { value: String(curatedWorkshops.length), label: "free hands-on workshops" }, href: "/workshops", cta: "Browse workshops", title: "Workshops with certificates", text: "Live and self-paced sessions. Pass one and get a certificate anyone can check by QR code.", viz: <VizWorkshops /> },
+  { id: "cv", accent: "#f0d48a", photo: "typewriter", stat: { value: "A4", label: "print-ready CV and PDF" }, href: "/documents", cta: "Make your CV", title: "CV preview", text: "A clean, print-ready sheet generated from your profile.", viz: <VizCv /> },
+  { id: "roles", accent: "#8cc8ff", photo: "dev-desk", stat: { value: "3", label: "markets: Lebanon, region, remote" }, href: "/jobs", cta: "Find jobs", title: "Jobs that fit", text: "Live openings ranked by how your skills match, with the gaps spelled out.", viz: <VizRoles /> },
+  { id: "tracker", accent: "#ffad8f", photo: "sticky-notes", stat: { value: String(statuses.length), label: "stages, from saved to offer" }, href: "/applications", cta: "Track applications", title: "Application tracker", text: "Follow each application from saved through to an offer.", viz: <VizTracker /> },
+  { id: "assistant", accent: "#b8a6ff", photo: "neon-keyboard", stat: { value: "20", label: "free questions a day" }, href: "/career-assistant", cta: "Ask the assistant", title: "An AI that knows your profile", text: "Ask about careers, skills or your CV. It only sees what you choose to share.", viz: <VizAssistant /> },
+  { id: "portfolio", accent: "#f5a8c8", photo: "padlock", stat: { value: "0", label: "fields shared without your consent" }, href: "/documents", cta: "Share a portfolio", title: "Shared only by choice", text: "Publish a snapshot of the fields you select, and only after you consent.", viz: <VizPortfolio /> }
 ];
 
 export function PublicHome() {

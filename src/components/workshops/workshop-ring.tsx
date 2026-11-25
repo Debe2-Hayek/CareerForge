@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
+import { memo, useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
 import { AppIcon } from "@/components/app-icons";
 import { pictureFor } from "@/data/workshops/pictures";
 import { lifecycleOf } from "@/lib/workshops/lifecycle";
@@ -12,18 +12,22 @@ import { ActionLink, areaOf, BookmarkButton, CountdownClock, Difficulty, duratio
 import styles from "./workshops.module.css";
 
 const round = (value: number) => Math.round(value * 1000) / 1000;
-/** Written to the style attribute, so the first paint from the server is already a ring. */
-function styleOf(offset: number, count: number): Record<string, string> {
+/**
+ * Written to the style attribute, so the first paint from the server is already a ring. Only
+ * transform and opacity change while it moves (the dimming is one shade's opacity), so nothing
+ * inside a card is restyled frame by frame.
+ */
+function placeOf(offset: number, count: number) {
   const at = placementOf(offset, count);
   return {
     transform: `translate(-50%, -50%) translate3d(calc(var(--w) * ${round(at.x)}), ${round(at.y * 100)}%, calc(var(--w) * ${round(at.z)})) rotateY(${round(at.turn)}deg) scale(${round(at.scale)})`,
     opacity: String(round(at.opacity)),
-    "--dim": String(round(at.dim))
+    dim: String(round(at.dim))
   };
 }
 
 /** How long a workshop stays at the front, and how long the ring leaves the learner alone after they turn it. */
-const dwell = 5000, rest = 12_000;
+const dwell = 4200, rest = 9000;
 /** How quickly the ring settles: brisk when turned by hand, soft when it moves by itself. */
 const brisk = 8.5, soft = 3.4;
 
@@ -48,6 +52,7 @@ export function WorkshopRing({ workshops, now, saved, held, onOpen, onToggle }: 
   const section = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLUListElement>(null);
+  const shades = useRef<(HTMLSpanElement | null)[]>([]);
   const motion = useRef({ position: 0, target: 0, frame: 0, last: 0, dragging: false, rate: brisk });
   const drag = useRef<{ id: number; x: number; y: number; from: number; lastX: number; lastTime: number; speed: number; active: boolean } | null>(null);
   const justDragged = useRef(false);
@@ -56,7 +61,12 @@ export function WorkshopRing({ workshops, now, saved, held, onOpen, onToggle }: 
   const paint = useCallback(() => {
     const { position } = motion.current;
     [...(list.current?.children ?? [])].forEach((item, index) => {
-      for (const [name, value] of Object.entries(styleOf(offsetOf(index, position, count), count))) (item as HTMLElement).style.setProperty(name, value);
+      const place = placeOf(offsetOf(index, position, count), count);
+      const style = (item as HTMLElement).style;
+      style.transform = place.transform;
+      style.opacity = place.opacity;
+      const shade = shades.current[index];
+      if (shade) shade.style.opacity = place.dim;
     });
     setFront(frontOf(position, count));
   }, [count]);
@@ -95,12 +105,13 @@ export function WorkshopRing({ workshops, now, saved, held, onOpen, onToggle }: 
     state.target = isClosed(count) ? next : ((next % count) + count) % count;
     glide();
   }, [byHand, count, glide]);
-  const bring = (index: number) => {
+  const bring = useCallback((index: number) => {
     const state = motion.current;
     state.target = Math.round(state.target) + Math.round(offsetOf(index, Math.round(state.target), count));
     byHand();
     glide();
-  };
+  }, [byHand, count, glide]);
+  const setShade = useCallback((index: number, element: HTMLSpanElement | null) => { shades.current[index] = element; }, []);
 
   useEffect(() => () => clearTimeout(restTimer.current), []);
 
@@ -223,16 +234,12 @@ export function WorkshopRing({ workshops, now, saved, held, onOpen, onToggle }: 
     glide();
   }
   /** The front card leans a little towards the mouse. */
-  function lean(event: PointerEvent<HTMLElement>) {
+  const lean = useCallback((event: PointerEvent<HTMLElement>) => {
     if (event.pointerType !== "mouse" || drag.current?.active || calm()) return;
     const box = event.currentTarget.getBoundingClientRect();
     event.currentTarget.style.setProperty("--lean-x", `${round(((event.clientX - box.left) / box.width - .5) * 7)}deg`);
     event.currentTarget.style.setProperty("--lean-y", `${round((.5 - (event.clientY - box.top) / box.height) * 5)}deg`);
-  }
-  function straighten(event: PointerEvent<HTMLElement>) {
-    event.currentTarget.style.removeProperty("--lean-x");
-    event.currentTarget.style.removeProperty("--lean-y");
-  }
+  }, []);
 
   const current = workshops[active];
   if (!current) return null;
@@ -252,36 +259,50 @@ export function WorkshopRing({ workshops, now, saved, held, onOpen, onToggle }: 
     <div className={styles.ringStage} ref={stage} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
       onClickCapture={event => { if (justDragged.current) { event.preventDefault(); event.stopPropagation(); } }}>
       <ul className={styles.ringList} ref={list} onPointerOver={event => { if (event.pointerType === "mouse") hover((event.target as Element).closest("li") !== null); }} onPointerLeave={() => hover(false)}>
-        {workshops.map((workshop, index) => {
-          const isFront = index === active;
-          const state = lifecycleOf(workshop, now);
-          return <li key={workshop.id} className={styles.ringItem} data-front={isFront || undefined} data-area={areaOf[workshop.category]} style={styleOf(offsetOf(index, 0, count), count) as CSSProperties}>
-            <div className={styles.ringCard} onPointerMove={isFront ? lean : undefined} onPointerLeave={straighten}>
-              <Picture name={pictureFor(workshop)} sizes="(max-width: 760px) 84vw, 560px" eager={index < 3 || index === count - 1} />
-              {state === "upcoming" && <DateTile iso={workshop.startDateTime!} />}
-              {isFront && <BookmarkButton saved={saved.has(workshop.id)} title={workshop.title} onToggle={() => onToggle(workshop)} />}
-              <div className={styles.ringText}>
-                <p className={styles.ringLabel}><span><AppIcon name={topicIcon[workshop.category]} />{workshop.category}</span><FormatLabel workshop={workshop} now={now} withDay={false} /></p>
-                <h3>
-                  {isFront
-                    ? <button type="button" data-workshop={workshop.id} aria-haspopup="dialog" onClick={() => onOpen(workshop.id)}>{workshop.title}</button>
-                    : <button type="button" tabIndex={-1} aria-label={`Bring to the front: ${workshop.title}`} onClick={() => bring(index)}>{workshop.title}</button>}
-                </h3>
-                {isFront && <div className={styles.ringMore}>
-                  <p className={styles.ringHook}>{workshop.outcomeHook}</p>
-                  <p className={styles.meta}><Difficulty workshop={workshop} /><span>{durationLabel(workshop)}</span><span>{workshop.priceType}</span><span>{workshop.instructorOrHost}</span></p>
-                  <div className={styles.ringActions}>
-                    <ActionLink workshop={workshop} now={now} primary />
-                    {state === "upcoming" && <CountdownClock workshop={workshop} now={now} />}
-                    {state === "upcoming" && <p className="sr-only"><LocalTime iso={workshop.startDateTime!} /></p>}
-                  </div>
-                </div>}
-              </div>
-            </div>
-          </li>;
-        })}
+        {workshops.map((workshop, index) => <RingCard key={workshop.id} workshop={workshop} index={index} count={count} isFront={index === active} now={now} saved={saved.has(workshop.id)} onOpen={onOpen} onToggle={onToggle} bring={bring} lean={lean} setShade={setShade} />)}
       </ul>
     </div>
     <p className="sr-only" role="status" aria-live="polite">{moved ? `${active + 1} of ${count}: ${current.title}` : ""}</p>
   </section>;
 }
+
+function straighten(event: PointerEvent<HTMLElement>) {
+  event.currentTarget.style.removeProperty("--lean-x");
+  event.currentTarget.style.removeProperty("--lean-y");
+}
+
+type CardProps = {
+  workshop: Workshop; index: number; count: number; isFront: boolean; now: number; saved: boolean;
+  onOpen: (id: string) => void; onToggle: (workshop: Workshop) => void; bring: (index: number) => void;
+  lean: (event: PointerEvent<HTMLElement>) => void; setShade: (index: number, element: HTMLSpanElement | null) => void;
+};
+/** One workshop card. Memoised: when another card reaches the front, only the old and the new front cards render again. */
+const RingCard = memo(function RingCard({ workshop, index, count, isFront, now, saved, onOpen, onToggle, bring, lean, setShade }: CardProps) {
+  const state = lifecycleOf(workshop, now);
+  const place = placeOf(offsetOf(index, 0, count), count);
+  return <li className={styles.ringItem} data-front={isFront || undefined} data-area={areaOf[workshop.category]} style={{ transform: place.transform, opacity: place.opacity } as CSSProperties}>
+    <div className={styles.ringCard} onPointerMove={isFront ? lean : undefined} onPointerLeave={straighten}>
+      <Picture name={pictureFor(workshop)} sizes="(max-width: 760px) 84vw, 560px" eager={index < 3 || index === count - 1} />
+      {state === "upcoming" && <DateTile iso={workshop.startDateTime!} />}
+      {isFront && <BookmarkButton saved={saved} title={workshop.title} onToggle={() => onToggle(workshop)} />}
+      <div className={styles.ringText}>
+        <p className={styles.ringLabel}><span><AppIcon name={topicIcon[workshop.category]} />{workshop.category}</span><FormatLabel workshop={workshop} now={now} withDay={false} /></p>
+        <h3>
+          {isFront
+            ? <button type="button" data-workshop={workshop.id} aria-haspopup="dialog" onClick={() => onOpen(workshop.id)}>{workshop.title}</button>
+            : <button type="button" tabIndex={-1} aria-label={`Bring to the front: ${workshop.title}`} onClick={() => bring(index)}>{workshop.title}</button>}
+        </h3>
+        {isFront && <div className={styles.ringMore}>
+          <p className={styles.ringHook}>{workshop.outcomeHook}</p>
+          <p className={styles.meta}><Difficulty workshop={workshop} /><span>{durationLabel(workshop)}</span><span>{workshop.priceType}</span><span>{workshop.instructorOrHost}</span></p>
+          <div className={styles.ringActions}>
+            <ActionLink workshop={workshop} now={now} primary />
+            {state === "upcoming" && <CountdownClock workshop={workshop} now={now} />}
+            {state === "upcoming" && <p className="sr-only"><LocalTime iso={workshop.startDateTime!} /></p>}
+          </div>
+        </div>}
+      </div>
+      <span className={styles.ringShade} aria-hidden="true" ref={element => setShade(index, element)} style={{ opacity: place.dim }} />
+    </div>
+  </li>;
+});

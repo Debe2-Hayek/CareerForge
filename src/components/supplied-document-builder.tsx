@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AppIcon } from "./app-shell";
 import PortfolioBuilder from "./PortfolioBuilder.jsx";
 import { PHOTO_MAX_CHARS, suggestSlug, type BuilderState, type SiteStatus } from "@/lib/portfolio-site";
+import { builderFonts } from "@/lib/builder-fonts";
 
 type SaveState = "idle" | "pending" | "saving" | "saved" | "error" | "conflict";
 
@@ -142,7 +143,7 @@ export function SuppliedDocumentBuilder({ initial, origin }: { initial: SiteStat
   const liveUrl = site?.isPublic && site.slug ? `${origin}/u/${site.slug}` : null;
   const status = !storageAvailable ? "Saving unavailable" : savedLabel(saveState, savedAt);
 
-  return <section className="supplied-builder-page" aria-label="CV and portfolio builder" data-notes-collapsed={notesCollapsed}>
+  return <section className={`supplied-builder-page ${builderFonts}`} aria-label="CV and portfolio builder" data-notes-collapsed={notesCollapsed}>
     <header className="supplied-builder-bar">
       <div className="builder-bar-summary">
         <span className="builder-bar-kicker"><AppIcon name="portfolio" /> Document studio</span>

@@ -697,11 +697,10 @@ function CVModern({ d, photo }) {
 }
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Inter:wght@400;500;600&display=swap');
 .pb{--ink:#eceef7;--mute:#a3a8c0;--line:#ffffff1a;height:100dvh;display:grid;grid-template-columns:340px 1fr;background:#0c0e17;color:var(--ink);
-  font:15px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  font:15px/1.6 var(--font-inter,Inter),ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .pb *{box-sizing:border-box}
-.pb h1,.pb h2,.pb h3,.pb h4,.pb .cv h1{font-family:"Bricolage Grotesque",Inter,sans-serif}
+.pb h1,.pb h2,.pb h3,.pb h4,.pb .cv h1{font-family:var(--font-bricolage,"Bricolage Grotesque"),var(--font-inter,Inter),sans-serif}
 
 /* Input panel */
 .pb .panel{padding:28px 24px;overflow:auto;border-right:1px solid var(--line);background:#0e1019}
@@ -787,6 +786,8 @@ const CSS = `
 .pb .contact .btn{width:auto;padding:13px 28px}
 .pb .rv{opacity:0}
 .pb .rv.in{opacity:1;animation:rvIn .6s ease calc(var(--i,0)*90ms) backwards}
+/* The hero is on screen from the start: it fades in with CSS at first paint instead of waiting for the script (faster first view). */
+.pb .hero .rv{opacity:1;animation:rvIn .6s ease calc(var(--i,0)*90ms) backwards}
 @keyframes rvIn{from{opacity:0;transform:translateY(16px)}}
 
 /* Hover effects */
@@ -899,7 +900,7 @@ const CSS = `
 .pb .av-btn img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s ease}
 .pb .avatar:hover img{transform:scale(1.05)}
 .pb .ph{position:absolute;inset:0;display:grid;place-content:center;gap:6px;text-align:center;background:radial-gradient(circle at 30% 20%,color-mix(in srgb,var(--a) 22%,transparent),transparent 70%),var(--surf)}
-.pb .ph b{font:800 clamp(48px,7vw,84px)/1 "Bricolage Grotesque",Inter,sans-serif;color:var(--at);letter-spacing:-.04em}
+.pb .ph b{font:800 clamp(48px,7vw,84px)/1 var(--font-bricolage,"Bricolage Grotesque"),var(--font-inter,Inter),sans-serif;color:var(--at);letter-spacing:-.04em}
 .pb .ph small{color:var(--mute);font-size:13px}
 .pb .av-over{position:absolute;left:0;right:0;bottom:0;padding:14px;display:flex;gap:8px;justify-content:center;align-items:center;font-size:13px;font-weight:600;color:#fff;background:linear-gradient(transparent,#000b);transform:translateY(100%);transition:transform .3s}
 .pb .av-btn:hover .av-over,.pb .av-btn:focus-visible .av-over{transform:none}
@@ -967,7 +968,7 @@ const CSS = `
 .pb .cv-side::before{content:"";position:absolute;width:280px;height:280px;border-radius:50%;left:-120px;top:-120px;background:radial-gradient(circle,color-mix(in srgb,var(--a) 45%,transparent),transparent 70%)}
 .pb .cv-side>*{position:relative}
 .pb .mx-photo{display:block;width:140px;height:140px;margin:0 auto 26px;border-radius:50%;object-fit:cover;border:3px solid var(--a);box-shadow:0 0 0 6px color-mix(in srgb,var(--a) 22%,transparent)}
-.pb .cv-side h3{margin:26px 0 12px;font:700 14px "Bricolage Grotesque",Inter,sans-serif;color:color-mix(in srgb,var(--a) 45%,#fff)}
+.pb .cv-side h3{margin:26px 0 12px;font:700 14px var(--font-bricolage,"Bricolage Grotesque"),var(--font-inter,Inter),sans-serif;color:color-mix(in srgb,var(--a) 45%,#fff)}
 .pb .mx-contact{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .pb .mx-contact li{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;word-break:break-word}
 .pb .mx-contact svg{flex:none;margin-top:2px;color:color-mix(in srgb,var(--a) 55%,#fff)}

@@ -10,6 +10,23 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Faster, more private CV & Portfolio page
+- **What:** Measured every signed-in page on a real production build (signed in): all answer in 0.25–0.5 s
+  with no heavy browser work. The learning roadmap and workshops were fine (their earlier slow numbers were
+  development-mode overhead). One page needed work, CV & Portfolio:
+  - **One session check instead of two:** the page asked Supabase "who is this?" twice in a row before
+    loading your draft. Now once, which makes the page about 0.5 s faster to arrive.
+  - **Fonts from CareerForge, not Google:** the builder's two typefaces were fetched from Google Fonts when
+    it appeared (so each visitor's address went to Google, and the big name could flash in a fallback font).
+    They are now served by CareerForge itself, preloaded. Published portfolios use the same fonts.
+  - **The top of the preview appears at once:** its fade-in now starts on the first paint instead of
+    waiting for the page's script; sections further down still fade in as you scroll.
+  - Result on the production build: the builder is fully drawn about 0.9 s after opening the page.
+- **Where:** `/documents` and published portfolios (`/u/<name>`).
+- **Tests:** the full account live test passes (it includes the builder, saving and publishing).
+- **Status:** Ready (no database change).
+
+
 ## Faster "Find opportunities": short descriptions first, full text when you open a job
 - **What:** The jobs page used to download every job's full description (about 900 characters each, 182
   jobs). Cards only show the first lines, so the list now gets a short excerpt (cut at a word, ending in "…"),

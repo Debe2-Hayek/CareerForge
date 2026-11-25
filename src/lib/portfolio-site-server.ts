@@ -25,14 +25,18 @@ export async function authorizePortfolioSite(): Promise<PortfolioSiteAccess | nu
   };
 }
 
-/** The signed-in owner's saved draft and publication status, or null if unavailable. */
-export async function readOwnPortfolioSite(): Promise<SiteStatus | null> {
+/**
+ * For the builder page: one session check, then the saved draft. Signed out gives { signedIn: false };
+ * a session check that cannot run throws; a draft that cannot be read gives site: null (the builder
+ * then works as a local sandbox, as before).
+ */
+export async function openOwnPortfolioSite(): Promise<{ signedIn: false } | { signedIn: true; site: SiteStatus | null }> {
+  const access = await authorizePortfolioSite();
+  if (!access) return { signedIn: false };
   try {
-    const access = await authorizePortfolioSite();
-    if (!access) return null;
     const parsed = siteStatusSchema.safeParse(await access.read());
-    return parsed.success ? parsed.data : null;
-  } catch { return null; }
+    return { signedIn: true, site: parsed.success ? parsed.data : null };
+  } catch { return { signedIn: true, site: null }; }
 }
 
 /** A published site by address. Invalid or unpublished content is treated as not found. */

@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { authorizeProfile } from "@/lib/account/server";
-import { readOwnPortfolioSite } from "@/lib/portfolio-site-server";
+import { openOwnPortfolioSite } from "@/lib/portfolio-site-server";
 import { siteOrigin } from "@/lib/site-url";
 import { AppShell } from "./app-shell";
 import { SuppliedDocumentBuilder } from "./supplied-document-builder";
@@ -16,16 +15,18 @@ async function publicOrigin() {
 
 export async function SuppliedDocumentPage() {
   if (!(await cookies()).getAll().some(cookie => cookie.name.startsWith("sb-"))) redirect("/login");
-  let access;
-  try { access = await authorizeProfile(); }
+  // One session check (it used to be two in a row), then the draft and the site address together.
+  let opened;
+  try { opened = await openOwnPortfolioSite(); }
   catch {
     return <AppShell pageTitle="CV & Portfolio" privateAccount>
       <div className="empty-state"><h1>The builder is temporarily unavailable.</h1><p>We could not confirm your session. Try again.</p><Link href="/documents" className="button primary">Try again</Link></div>
     </AppShell>;
   }
-  if (!access) redirect("/login");
+  if (!opened.signedIn) redirect("/login");
   // A failed read keeps the builder usable as a local sandbox; saving is then disabled.
-  const [site, origin] = await Promise.all([readOwnPortfolioSite(), publicOrigin()]);
+  const site = opened.site;
+  const origin = await publicOrigin();
   return <AppShell pageTitle="CV & Portfolio" privateAccount contentClassName="document-workspace">
     <SuppliedDocumentBuilder initial={site} origin={origin} />
   </AppShell>;

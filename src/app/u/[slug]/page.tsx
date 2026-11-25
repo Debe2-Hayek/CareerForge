@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PublishedPortfolio } from "@/components/PortfolioBuilder.jsx";
 import { readPublicPortfolioSite } from "@/lib/portfolio-site-server";
 import "./published-site.css";
+import { builderFonts } from "@/lib/builder-fonts";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: { params: Params }) {
 export default async function PublishedSitePage({ params }: { params: Params }) {
   const result = await readPublicPortfolioSite((await params).slug);
   if (!result) notFound();
-  return <main className="published-site">
+  return <main className={`published-site ${builderFonts}`}>
     <PublishedPortfolio state={result.site} />
     <footer className="published-site-credit">
       Made with <Link href="/">CareerForge</Link>

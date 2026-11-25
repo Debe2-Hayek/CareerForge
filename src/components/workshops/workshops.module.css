@@ -84,7 +84,7 @@
 .ringItem[data-front] .ringCard { border-color: color-mix(in srgb, var(--accent) 75%, #2c3728); box-shadow: 0 44px 90px -38px color-mix(in srgb, var(--accent) 70%, #000), 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent); }
 .ringCard > .picture { z-index: -2; }
 .ringCard::before { content: ""; position: absolute; z-index: -1; inset: 0; background: linear-gradient(0deg, #080b07f5 0, #080b07d6 42%, #080b0733 78%, #080b0759), linear-gradient(120deg, color-mix(in srgb, var(--accent) 18%, transparent), transparent 55%); }
-.ringCard::after { content: ""; position: absolute; z-index: 3; inset: 0; background: #070a06; opacity: var(--dim, 0); pointer-events: none; }
+.ringShade { position: absolute; z-index: 3; inset: 0; background: #070a06; pointer-events: none; }
 .ringText { width: 100%; padding: clamp(16px, 4cqw, 28px); }
 .ringLabel { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 14px; margin: 0; font-size: 13.5px; font-weight: 500; }
 .ringLabel > span:first-child { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); }

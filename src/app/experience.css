@@ -641,56 +641,88 @@ body:has(.ambient[data-paused]) .lp-forge-sparks i { animation-play-state: pause
 @media (prefers-reduced-motion: reduce) { .app-nav-soon-list { animation: none; } }
 
 /* ---------- Homepage "Everything inside": the tools on a 3D ring (src/components/capability-ring.tsx) ---------- */
+/* Speed: while the ring turns, only each card's transform and opacity and one shade's opacity change.
+   Nothing inside a card is restyled per frame, and mini animations run on the front card only. */
 .lp-inside { overflow-x: clip; }
 .lp-inside .lp-more { margin-top: 8px; text-align: center; }
-.cap-ring { --tool: #c6e49e; position: relative; container-type: inline-size; margin-top: 10px; }
-.cap-ring-stage { --w: clamp(250px, 29cqw, 330px); position: relative; height: calc(var(--w) * 1.24 + 120px); perspective: 1400px; perspective-origin: 50% 30%; overflow-x: clip; touch-action: pan-y; user-select: none; cursor: grab; mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
-.cap-ring-stage:active { cursor: grabbing; }
-.cap-ring-list { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; transform-style: preserve-3d; }
-.cap-ring-item { color-scheme: dark; --ink: #f2f6ec; --muted: #a3b098; --line: #2d352a; --surface: #191d19; --raised: #20251f; --paper: #111411; --green: #c5ed85; --sand: #e0cd8a; --accent-ink: #1c2911; position: absolute; left: 50%; top: 50%; width: var(--w); height: calc(var(--w) * 1.24); will-change: transform; }
-.cap-card { position: relative; isolation: isolate; display: flex; flex-direction: column; gap: 14px; height: 100%; padding: 18px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--tool) 28%, #263021); border-radius: 24px; background: radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--tool) 18%, transparent), transparent 62%), linear-gradient(180deg, #151d12, #0b100a); color: var(--ink); box-shadow: 0 30px 60px -32px #000000d9; transform: rotateY(var(--lean-x, 0deg)) rotateX(var(--lean-y, 0deg)); transition: transform .25s ease-out, box-shadow .5s, border-color .5s; cursor: pointer; }
-.cap-card::after { content: ""; position: absolute; inset: 0; z-index: 3; border-radius: inherit; background: #050805; opacity: var(--dim, 0); pointer-events: none; transition: opacity .3s; }
-.cap-ring-item[data-front] .cap-card { cursor: auto; border-color: color-mix(in srgb, var(--tool) 70%, #263021); box-shadow: 0 46px 90px -40px color-mix(in srgb, var(--tool) 65%, #000), 0 0 0 1px color-mix(in srgb, var(--tool) 25%, transparent), inset 0 1px 0 #ffffff14; }
-.cap-card::before { content: ""; position: absolute; inset: -40% -60% auto; z-index: -1; height: 70%; background: linear-gradient(100deg, transparent 40%, color-mix(in srgb, var(--tool) 22%, transparent) 50%, transparent 60%); transform: translateX(-60%); opacity: 0; pointer-events: none; }
-.cap-ring-item[data-front] .cap-card::before { animation: cap-sheen 1.6s .15s ease-out both; }
-.cap-card-index { display: flex; align-items: center; justify-content: space-between; margin: 0; color: var(--muted); font: 500 10.5px/1 var(--mono); letter-spacing: 1.2px; }
-.cap-card-index span { color: var(--tool); }
-.cap-card-viz { display: grid; flex: 1; align-content: center; min-height: 0; padding: 14px; overflow: hidden; border: 1px solid #ffffff12; border-radius: 15px; background: #0a0e09b8; }
-.cap-card-text h3 { margin: 0; font-size: 19px; font-weight: 560; letter-spacing: -.02em; line-height: 1.2; }
-.cap-card-text p { margin: 6px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.55; }
-.cap-card-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; color: var(--tool); font-size: 14px; font-weight: 600; text-decoration: none; opacity: 0; transform: translateY(4px); transition: opacity .35s, transform .35s, gap .2s; }
-.cap-ring-item[data-front] .cap-card-link { opacity: 1; transform: none; }
-.cap-card-link:hover { gap: 10px; }
-.cap-card-link:focus-visible { outline: 2px solid var(--tool); outline-offset: 3px; border-radius: 6px; }
-.cap-ring-floor { position: absolute; left: 50%; bottom: 40px; width: min(860px, 92%); height: 130px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--tool) 26%, transparent), transparent 72%); filter: blur(22px); pointer-events: none; transition: background .8s; }
-.cap-ring-floor::after { content: ""; position: absolute; inset: 34% 6%; border: 1px solid color-mix(in srgb, var(--tool) 30%, transparent); border-radius: 50%; filter: blur(.4px); }
-.cap-ring-arrow { position: absolute; z-index: 5; left: max(4px, 3%); top: calc(50% - 50px); display: grid; place-items: center; width: 46px; height: 46px; padding: 0; border: 1px solid #ffffff1f; border-radius: 50%; background: light-dark(#ffffffcc, #0f160ccc); color: var(--ink); cursor: pointer; backdrop-filter: blur(10px); transition: transform .2s, border-color .2s, background .2s; }
-.cap-ring-arrow[data-next] { left: auto; right: max(4px, 3%); }
-.cap-ring-arrow[data-next] svg { transform: rotate(180deg); }
-.cap-ring-arrow:hover { transform: scale(1.06); border-color: var(--tool); }
-.cap-ring-arrow svg { width: 18px; height: 18px; }
-.cap-ring-controls { display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 44px; margin-top: 4px; }
-.cap-ring-pause { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: none; color: var(--muted); cursor: pointer; }
-.cap-ring-pause:hover { color: var(--ink); border-color: var(--tool); }
-.cap-ring-dots { display: flex; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.cap-ring-dots button { position: relative; display: block; width: 8px; height: 8px; padding: 0; overflow: hidden; border: 0; border-radius: 9px; background: var(--line-strong, #3a4830); cursor: pointer; transition: width .35s var(--ease), background .3s; }
-.cap-ring-dots button::before { content: ""; position: absolute; inset: -12px -4px; }
-.cap-ring-dots button[aria-current] { width: 38px; background: color-mix(in srgb, var(--tool) 30%, transparent); }
-.cap-ring-dots i { position: absolute; inset: 0; width: 100%; border-radius: inherit; background: var(--tool); transform-origin: left; }
-.cap-ring-dots i[data-running] { animation: cap-progress 3.8s linear both; }
-@keyframes cap-progress { from { transform: scaleX(0); } }
-@keyframes cap-sheen { 0% { opacity: 0; transform: translateX(-60%); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateX(60%); } }
-@media (max-width: 760px) {
-  .cap-ring-stage { --w: min(76cqw, 300px); height: calc(var(--w) * 1.3 + 90px); mask-image: none; }
-  .cap-ring-item { height: calc(var(--w) * 1.3); }
-  .cap-ring-arrow { display: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .cap-card, .cap-card-link, .cap-ring-floor, .cap-ring-dots button { transition: none; }
-  .cap-ring-item[data-front] .cap-card::before, .cap-ring-dots i[data-running] { animation: none; }
-}
 .lp-inside .lp-section-head { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); align-items: end; gap: 8px 48px; max-width: none; }
 .lp-inside .lp-section-head .eyebrow { grid-column: 1 / -1; }
 .lp-inside .lp-section-head h2 { margin-bottom: 0; }
 .lp-inside .lp-section-head > p:last-child { margin: 0; padding-bottom: 6px; }
 @media (max-width: 900px) { .lp-inside .lp-section-head { grid-template-columns: minmax(0, 1fr); row-gap: 16px; } }
+
+.cap-ring { --tool: #c6e49e; position: relative; container-type: inline-size; margin-top: 10px; }
+/* Accent text that stays readable: the accent itself on dark, a deep shade of it on white. */
+.cap-ring, .cap-ring-item { --tool-ink: light-dark(color-mix(in oklab, var(--tool) 42%, black), var(--tool)); }
+.cap-ring-stage { --w: clamp(260px, 29cqw, 336px); position: relative; height: calc(var(--w) * 1.3 + 96px); perspective: 1400px; perspective-origin: 50% 30%; overflow-x: clip; touch-action: pan-y; user-select: none; cursor: grab; }
+.cap-ring-stage:active { cursor: grabbing; }
+.cap-ring-list { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; transform-style: preserve-3d; }
+.cap-ring-item { position: absolute; left: 50%; top: 50%; width: var(--w); height: calc(var(--w) * 1.3); will-change: transform, opacity; }
+.cap-card { position: relative; isolation: isolate; display: flex; flex-direction: column; height: 100%; overflow: hidden; contain: layout paint style; border: 1px solid color-mix(in srgb, var(--tool) 30%, light-dark(#d9d9d9, #263021)); border-radius: 24px; background: light-dark(#ffffff, #10160d); color: var(--ink); box-shadow: 0 18px 30px -24px light-dark(#00000040, #000000b3); transform: rotateY(var(--lean-x, 0deg)) rotateX(var(--lean-y, 0deg)); transition: transform .25s ease-out, box-shadow .5s, border-color .5s; cursor: pointer; }
+.cap-ring-item[data-front] .cap-card { cursor: auto; border-color: color-mix(in srgb, var(--tool) 75%, light-dark(#d9d9d9, #263021)); box-shadow: 0 46px 90px -42px color-mix(in srgb, var(--tool) 70%, light-dark(#00000080, #000)), 0 0 0 1px color-mix(in srgb, var(--tool) 25%, transparent); }
+.cap-card-shade { position: absolute; inset: 0; z-index: 5; border-radius: inherit; background: light-dark(#f4f4f4, #050805); pointer-events: none; }
+
+/* The photo header: dark glass in both themes, so the number and mini picture read on any photo. */
+.cap-card-media { color-scheme: dark; --ink: #f2f6ec; --muted: #b5c2a9; --line: #2d352a; --surface: #191d19; --raised: #20251f; --paper: #111411; --green: #c5ed85; --sand: #e0cd8a; --accent-ink: #1c2911;
+  position: relative; isolation: isolate; flex: 0 0 60%; display: flex; flex-direction: column; gap: 8px; padding: 14px; overflow: hidden; background: #0c110a; color: var(--ink); }
+.cap-card-media > span:first-child { z-index: -2; }
+.cap-card-media > span:first-child img { transform: scale(1.04); transition: transform 6s ease-out; filter: saturate(.9); }
+.cap-ring-item[data-front] .cap-card-media > span:first-child img { transform: scale(1.12); }
+.cap-card-media::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #050805a6 0%, #0508051a 45%, #050805cc 100%), linear-gradient(135deg, color-mix(in srgb, var(--tool) 28%, transparent), transparent 55%); }
+.cap-card-index { display: flex; align-items: center; justify-content: space-between; margin: 0; color: #d7e0cd; font: 500 10.5px/1 var(--mono); letter-spacing: 1.2px; }
+.cap-card-index span { color: var(--tool); }
+.cap-card-stat { display: grid; gap: 3px; margin: 4px 0 0; max-width: 80%; }
+.cap-card-stat strong { color: #ffffff; font-size: clamp(34px, 3.4cqw, 44px); font-weight: 650; letter-spacing: -.04em; line-height: 1; text-shadow: 0 2px 24px #000000b3; }
+.cap-card-stat span { color: #e6eedd; font-size: 12.5px; line-height: 1.3; text-shadow: 0 1px 10px #000; }
+.cap-card-viz { display: grid; align-content: center; margin-top: auto; padding: 11px 12px; overflow: hidden; border: 1px solid #ffffff1f; border-radius: 14px; background: #0a0e09c7; font-size: 12px; }
+.cap-card-viz .viz { gap: 8px; zoom: .8; }
+
+.cap-card-text { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 14px 16px 16px; }
+.cap-card-text h3 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -.02em; line-height: 1.2; }
+.cap-card-text p { margin: 5px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cap-card-link { display: inline-flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 8px; color: var(--tool-ink); font-size: 14px; font-weight: 650; text-decoration: none; opacity: 0; transform: translateY(4px); transition: opacity .35s, transform .35s, gap .2s; }
+.cap-ring-item[data-front] .cap-card-link { opacity: 1; transform: none; }
+.cap-card-link:hover { gap: 10px; }
+.cap-card-link:focus-visible { outline: 2px solid var(--tool-ink); outline-offset: 3px; border-radius: 6px; }
+/* Only the front card animates its mini picture; the others hold still, which keeps the turn smooth. */
+.cap-ring-item:not([data-front]) .cap-card-viz *, .cap-ring:not([data-seen]) .cap-card-viz * { animation-play-state: paused !important; }
+
+.cap-ring-floor { position: absolute; left: 50%; bottom: 44px; width: min(860px, 92%); height: 130px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--tool) 26%, transparent), color-mix(in srgb, var(--tool) 8%, transparent) 45%, transparent 70%); pointer-events: none; transition: background .8s; }
+.cap-ring-floor::after { content: ""; position: absolute; inset: 34% 6%; border: 1px solid color-mix(in srgb, var(--tool) 34%, transparent); border-radius: 50%; }
+.cap-ring-arrow { position: absolute; z-index: 5; left: max(4px, 3%); top: calc(50% - 50px); display: grid; place-items: center; width: 46px; height: 46px; padding: 0; border: 1px solid light-dark(#d4d4d4, #ffffff24); border-radius: 50%; background: light-dark(#ffffff, #131b10); color: var(--ink); cursor: pointer; box-shadow: 0 10px 24px -14px #00000080; transition: transform .2s, border-color .2s; }
+.cap-ring-arrow[data-next] { left: auto; right: max(4px, 3%); }
+.cap-ring-arrow[data-next] svg { transform: rotate(180deg); }
+.cap-ring-arrow:hover { transform: scale(1.06); border-color: var(--tool-ink); }
+.cap-ring-arrow svg { width: 18px; height: 18px; }
+.cap-ring-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 14px; min-height: 44px; margin-top: 4px; }
+.cap-ring-pause { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: none; color: var(--muted); cursor: pointer; }
+.cap-ring-pause:hover { color: var(--ink); border-color: var(--tool-ink); }
+.cap-ring-dots { display: flex; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.cap-ring-dots button { position: relative; display: block; width: 8px; height: 8px; padding: 0; overflow: hidden; border: 0; border-radius: 9px; background: light-dark(#cfcfcf, #3a4830); cursor: pointer; transition: width .35s var(--ease), background .3s; }
+.cap-ring-dots button::before { content: ""; position: absolute; inset: -12px -4px; }
+.cap-ring-dots button[aria-current] { width: 38px; background: color-mix(in srgb, var(--tool-ink) 25%, transparent); }
+.cap-ring-dots i { position: absolute; inset: 0; width: 100%; border-radius: inherit; background: var(--tool-ink); transform-origin: left; }
+.cap-ring-dots i[data-running] { animation: cap-progress 3.2s linear both; }
+.cap-ring-hint { margin: 0; color: var(--muted); font: 500 10.5px/1 var(--mono); letter-spacing: .8px; text-transform: uppercase; }
+@keyframes cap-progress { from { transform: scaleX(0); } }
+@media (max-width: 760px) {
+  .cap-ring-stage { --w: min(78cqw, 300px); height: calc(var(--w) * 1.42 + 80px); }
+  .cap-ring-item { height: calc(var(--w) * 1.42); }
+  .cap-ring-arrow, .cap-ring-hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cap-card, .cap-card-link, .cap-ring-floor, .cap-ring-dots button, .cap-card-media > span:first-child img { transition: none; }
+  .cap-ring-dots i[data-running] { animation: none; }
+}
+.viz-workshops { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.viz-cert { position: relative; display: grid; gap: 6px; width: 62%; padding: 10px 12px; border-radius: 8px; background: #f3efe2; color: #2a2417; }
+.viz-cert b { font: 600 10px/1 var(--mono); letter-spacing: 1px; text-transform: uppercase; color: #6b5a2a; }
+.viz-cert i { display: block; height: 5px; border-radius: 3px; background: #2a241733; }
+.viz-cert i.short { width: 60%; }
+.viz-qr { position: absolute; right: 8px; bottom: 8px; width: 18px; height: 18px; background: conic-gradient(#2a2417 25%, transparent 0 50%, #2a2417 0 75%, transparent 0) 0 0 / 6px 6px; border-radius: 2px; }
+.viz-seal { padding: 6px 10px; border-radius: 999px; background: #c5ed8526; color: #c5ed85; font: 600 11px/1 var(--mono); white-space: nowrap; animation: viz-seal 3.2s ease-in-out infinite; }
+@keyframes viz-seal { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 #c5ed8540; } 50% { transform: scale(1.06); box-shadow: 0 0 0 8px #c5ed8500; } }
+@media (prefers-reduced-motion: reduce) { .viz-seal { animation: none; } }
+
+/* The homepage assistant bubble uses the same wireframe globe as the assistant. */
+.viz-orb.viz-orb-globe { display: grid; place-items: center; width: 22px; height: 22px; background: radial-gradient(circle, #1b2615, #0c120a 72%); box-shadow: inset 0 0 0 1px #2c3a25; animation: none; }

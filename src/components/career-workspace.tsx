@@ -12,7 +12,7 @@ import { CareerConstellation } from "./career-constellation";
 import { sky as skyOf, type Sky } from "@/lib/constellation";
 import type { Journey } from "@/lib/journey";
 import { useEffect, useState, useSyncExternalStore, useRef, type FormEvent } from "react";
-import { initialWorkspace, jobs, matchSkills, readWorkspace, statuses, type Job, type Workspace } from "@/lib/demo-workspace";
+import { initialWorkspace, jobs, matchSkills, readWorkspace, statuses, type Job, type Workspace, rankJobs } from "@/lib/demo-workspace";
 
 type View = "overview" | "profile" | "jobs" | "applications";
 const storageKey = "careerforge-demo-v1";
@@ -53,6 +53,19 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
   const [level, setLevel] = useState<"all" | "unstated" | LevelKey>("all");
   const [visible, setVisible] = useState(pageSize);
   const [selected, setSelected] = useState<AnyJob | null>(null);
+  // The jobs list sends short descriptions; the full text is fetched once a role is opened.
+  const [fullText, setFullText] = useState<Record<string, string>>({});
+  const wantsFull = !!selected && "excerpt" in selected && !!selected.excerpt && !(selected.id in fullText);
+  useEffect(() => {
+    if (!wantsFull || !selected) return;
+    const id = selected.id;
+    const controller = new AbortController();
+    fetch(`/api/v1/jobs/${encodeURIComponent(id)}`, { cache: "no-store", signal: controller.signal })
+      .then(response => response.ok ? response.json() : null)
+      .then(body => { if (typeof body?.job?.description === "string") setFullText(current => ({ ...current, [id]: body.job.description })); })
+      .catch(() => { /* the excerpt stays; the listing link has the rest */ });
+    return () => controller.abort();
+  }, [wantsFull, selected]);
   const [roleOpen, setRoleOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -67,11 +80,7 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
   const profile = workspace.profile;
   const entries = Object.entries(workspace.applications);
   const liveCount = catalog.filter(isLive).length;
-  // Rank by how many listed skills match first, so a single detected skill cannot outrank broader matches, then by percentage and recency.
-  const rankOf = (job: AnyJob) => { const { score, missing } = matchSkills(profile.skills, job.skills); return { matched: job.skills.length - missing.length, score }; };
-  const ranked = [...catalog as AnyJob[]].map(job => ({ job, rank: rankOf(job) }))
-    .sort((a, b) => b.rank.matched - a.rank.matched || b.rank.score - a.rank.score || (b.job.publishedAt ?? "").localeCompare(a.job.publishedAt ?? ""))
-    .map(({ job }) => job);
+  const ranked = rankJobs(catalog as AnyJob[], profile.skills);
   const filtered = ranked.filter(job => `${job.title} ${job.company} ${job.location} ${job.skills.join(" ")}`.toLowerCase().includes(query.toLowerCase()) && (mode === "All work modes" || mode === job.mode) && (!savedOnly || !!workspace.applications[job.id])
     && (region === "all" || job.region === region) && (listing === "all" || (listing === "live") === isLive(job))
     && (level === "all" || (level === "unstated" ? levelOf(job) === null : levelOf(job) === level)));
@@ -147,7 +156,7 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
 
   return <AppShell pageTitle={{ overview: "Overview", profile: "My profile", jobs: "Find opportunities", applications: "Applications" }[view]} displayName={profile.name} applicationCount={entries.length} privateAccount={!!account}>
         {/* On the guided Overview these notes move to the bottom, so the page opens on "Your path". */}
-        {!(view === "overview" && account?.journey) && <><div className={`demo-info ${account ? "account-workspace-info" : ""}`}>{account ? "Matches use your saved account profile. Live listings come from Himalayas and public employer job boards; demo roles are fictional and labeled. Your tracker syncs to your account; CareerForge never submits applications for you." : "Fictional jobs. Sample profile. Edits stay in this browser; no applications are submitted."}</div>
+        {!account && <><div className={`demo-info ${account ? "account-workspace-info" : ""}`}>{account ? "Matches use your saved account profile. Live listings come from Himalayas and public employer job boards; demo roles are fictional and labeled. Your tracker syncs to your account; CareerForge never submits applications for you." : "Fictional jobs. Sample profile. Edits stay in this browser; no applications are submitted."}</div>
         {account && <div className="tracker-sync-info"><p>Your online tracker syncs across devices. Earlier browser-only saves remain on this device and were not imported.</p><button className="text-button" onClick={() => void remote.refresh()}>Refresh opportunities</button></div>}</>}
         {remote.error && <div className="account-error" role="alert">{remote.error} <Link href="/login">Sign in</Link></div>}
         {remote.message && <div className="notice" role="status">{remote.message}</div>}
@@ -180,11 +189,11 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
           {entries.length ? <section className="panel tracker"><div className="section-heading"><div><h2>Your opportunities</h2><p>Update statuses manually as your search progresses.</p></div></div>{allJobs.filter(j => workspace.applications[j.id]).map(job => <article className="tracker-row" key={job.id}><span className={`company-mark ${job.color}`}>{job.initials}</span><div className="tracker-role"><button className="job-title" onClick={e => openRole(job, e.currentTarget)}>{job.title}</button><p>{job.company} · {job.location}{("isActive" in job && !job.isActive) || !isCurrentFor(job) ? " · No longer active" : ""}</p></div><label className="status-select"><span className="sr-only">Status for {job.title}</span><select value={workspace.applications[job.id]} disabled={busy(job.id)} onChange={e => changeStatus(job, e.target.value as (typeof statuses)[number])}>{statuses.map(status => <option key={status}>{status}</option>)}</select></label><button className="remove-button" disabled={busy(job.id)} onClick={() => toggleSaved(job)} aria-label={`Remove ${job.title} from tracker`}>×</button></article>)}</section> : <div className="empty-state"><span className="empty-icon">↗</span><h2>Your next chapter is still unwritten.</h2><p>Save an opportunity that catches your eye.<br />Keep track of every next step right here.</p><Link href="/jobs" className="button primary">Explore opportunities ↗</Link></div>}
           <p className="muted-note">This is a personal demo tracker. Changing a status does not submit an application or contact an employer.</p>
         </>}
-        {view === "overview" && account?.journey && <details className="workspace-data-note"><summary>About your data</summary><p>Matches use your saved account profile. Live listings come from Himalayas and public employer job boards; demo roles are fictional and labeled. Your tracker syncs across devices; CareerForge never submits applications for you.</p><button className="text-button" onClick={() => void remote.refresh()}>Refresh opportunities</button></details>}
+        {account && (view !== "overview" || account.journey) && <details className="workspace-data-note"><summary>About your data</summary><p>Matches use your saved account profile. Live listings come from Himalayas and public employer job boards; demo roles are fictional and labeled. Your tracker syncs across devices; CareerForge never submits applications for you.</p><button className="text-button" onClick={() => void remote.refresh()}>Refresh opportunities</button></details>}
         <footer className="page-footer"><span>CareerForge <span className="footer-dot">✳</span> A little closer to what’s next.</span>{!account && <button onClick={() => { if (window.confirm("Reset your demo profile and tracker? This only clears CareerForge demo data in this browser.")) save(initialWorkspace, "Demo workspace reset."); }}>Reset demo</button>}</footer>
     <dialog ref={dialogRef} className="role-dialog" aria-labelledby="role-title" onClose={restoreRoleFocus} onClick={e => { if (e.target === e.currentTarget) { const rect = e.currentTarget.getBoundingClientRect(); if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) closeRole(); } }}>{selected && <><button className="modal-close" onClick={closeRole} aria-label="Close role details">×</button><span className={`company-mark ${selected.color}`}>{selected.initials}</span><p className="eyebrow">{isLive(selected) ? `LIVE LISTING · VIA ${(sourceLabels[selected.source!] ?? selected.source!).toUpperCase()}` : "FICTIONAL DEMO OPPORTUNITY"}</p><h2 id="role-title">{selected.title}</h2><p>{selected.company} · {selected.location}</p><div className="tag-row">{jobTags(selected).map(tag => <span className="tag" key={tag}>{tag}</span>)}</div>
       {isLive(selected) && <p className="muted-note role-provenance">{[postedLabel(selected), selected.salaryText && `Salary listed: ${selected.salaryText}`, selected.expiresAt && `Listed until ${new Date(selected.expiresAt).toLocaleDateString()}`].filter(Boolean).join(" · ")}{!isCurrentFor(selected) && " · This listing is no longer active."}</p>}
-      <h3>About the role</h3><p>{selected.description}</p>{isLive(selected) && <p className="muted-note">Excerpt from the listing. Read the full description on the original posting.</p>}
+      <h3>About the role</h3><p className={wantsFull ? "role-description is-loading" : "role-description"}>{fullText[selected.id] ?? selected.description}</p>{isLive(selected) && <p className="muted-note">Excerpt from the listing. Read the full description on the original posting.</p>}
       <h3>Your skill connection</h3>{selected.skills.length ? <><p>{matchSkills(profile.skills, selected.skills).score}% of {isLive(selected) ? "skills detected in this posting" : "listed skills"} match your self-reported profile.</p><div className="tag-row">{selected.skills.map(skill => <span key={skill} className={`tag ${matchSkills(profile.skills, [skill]).score ? "skill-have" : "skill-missing"}`}>{matchSkills(profile.skills, [skill]).score ? "✓ " : "+ "}{skill}</span>)}</div><p className="muted-note">Green skills are in your profile. Other skills are gaps to explore.{isLive(selected) ? " Skills are detected by keyword and may be incomplete." : " No live vacancy or application submission is available."}</p></> : <p className="muted-note">No skills were detected in this posting’s text, so no match score is shown. Check the original posting for its requirements.</p>}
       {isLive(selected) && isCurrentFor(selected) && selected.applyUrl && selected.sourceUrl && <div className="role-source"><a className="button primary" href={selected.applyUrl} target="_blank" rel="noopener noreferrer">Apply on {selected.source === "himalayas" ? "Himalayas" : `${selected.company}'s page`} <span className="sr-only">(opens in a new tab)</span><span aria-hidden="true">↗</span></a><p className="muted-note">Listing from <a href={selected.sourceUrl} target="_blank" rel="noopener noreferrer">{sourceLabels[selected.source!] ?? selected.source}<span className="sr-only"> (opens in a new tab)</span></a>. Applying opens the original site; CareerForge does not submit applications or share your profile.{selected.source === "himalayas" && " Himalayas lists this remote role as open to applicants in Lebanon, and its text names no other country restriction CareerForge could detect. Check the location and work-permit requirements on the posting before applying."}</p></div>}
       {account && catalog.some(job => job.id === selected.id) && selected.skills.length > 0 && <Link className="text-button role-learning-link" href={`/learning-roadmap/careers?target=${encodeURIComponent(selected.id)}`} onClick={closeRole}>Build a learning plan for this role ↗</Link>}{account && catalog.some(job => job.id === selected.id) && <Link className="text-button role-learning-link" href={`/cv-analysis?job=${encodeURIComponent(selected.id)}`} onClick={closeRole}>Analyse my CV for this job ↗</Link>}<button className="button primary" disabled={busy(selected.id)} onClick={() => toggleSaved(selected)}>{workspace.applications[selected.id] ? "Remove from tracker" : "Save opportunity"}</button></>}</dialog>

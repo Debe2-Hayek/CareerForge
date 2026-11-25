@@ -1,0 +1,131 @@
+/* ===================== Forms: one calm, friendly field system (25 Nov 2026) =====================
+   Every form on the site shares these fields: a soft card-like input, a clear focus glow, a gentle
+   red ring with a message when something is wrong, and a small tick once a field is done. Colours are
+   written for both themes with light-dark(), so white mode is designed, not converted. */
+
+:root {
+  --field-bg: light-dark(#ffffff, #10170d);
+  --field-bg-hover: light-dark(#fcfcfb, #131b10);
+  --field-line: light-dark(#d4d4ce, #34432b);
+  --field-line-hover: light-dark(#a6a69e, #4f6541);
+  --field-focus: light-dark(#111111, #c6e49e);
+  --field-ring: light-dark(#11111117, #c6e49e26);
+  --field-placeholder: light-dark(#8b8b85, #7d8f6d);
+  --field-danger: light-dark(#c2382a, #ff8f80);
+  --field-danger-ring: light-dark(#c2382a1f, #ff8f8026);
+  --field-ok: light-dark(#1d7a3a, #b7e38a);
+  --field-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b7e38a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  --field-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a9b59c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+:root[data-theme="light"] {
+  --field-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d7a3a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  --field-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* The forms that share the system. */
+:is(.form-grid, .profile-form, .history-form, .language-form, .fit-paste, .claim-link-form, .interview-form, .interview-create, .check-form, .studio-form, .workshop-editor, .review-reason, .learning-target-form, .profile-ai-notes, .roster-actions, .trust-share-link)
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]), select, textarea) {
+  width: 100%; min-width: 0; min-height: 48px; padding: 12px 14px; border: 1px solid var(--field-line); border-radius: 12px;
+  background-color: var(--field-bg); color: var(--ink); font-size: 15px; line-height: 1.5;
+  box-shadow: inset 0 1px 2px light-dark(#0000000a, #00000038);
+  transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+:is(.form-grid, .profile-form, .history-form, .language-form, .fit-paste, .claim-link-form, .interview-form, .interview-create, .check-form, .studio-form, .workshop-editor, .review-reason, .learning-target-form, .profile-ai-notes, .roster-actions, .trust-share-link) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]), select, textarea)::placeholder { color: var(--field-placeholder); opacity: 1; }
+:is(.form-grid, .profile-form, .history-form, .language-form, .fit-paste, .claim-link-form, .interview-form, .interview-create, .check-form, .studio-form, .workshop-editor, .review-reason, .learning-target-form, .profile-ai-notes, .roster-actions, .trust-share-link) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]), select, textarea):hover:not(:disabled):not(:focus) { border-color: var(--field-line-hover); background-color: var(--field-bg-hover); }
+:is(.form-grid, .profile-form, .history-form, .language-form, .fit-paste, .claim-link-form, .interview-form, .interview-create, .check-form, .studio-form, .workshop-editor, .review-reason, .learning-target-form, .profile-ai-notes, .roster-actions, .trust-share-link) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]), select, textarea):focus { outline: none; border-color: var(--field-focus); box-shadow: 0 0 0 4px var(--field-ring); }
+:is(.form-grid, .profile-form, .history-form, .language-form, .fit-paste, .claim-link-form, .interview-form, .interview-create, .check-form, .studio-form, .workshop-editor, .review-reason, .learning-target-form, .profile-ai-notes, .roster-actions, .trust-share-link) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]), select, textarea):focus-visible { outline: 2px solid var(--field-focus); outline-offset: 2px; }
+:is(.form-grid, .profile-form, .history-form, .language-form, .fit-paste, .claim-link-form, .interview-form, .interview-create, .check-form, .studio-form, .workshop-editor, .review-reason, .learning-target-form, .profile-ai-notes, .roster-actions, .trust-share-link) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]), select, textarea):disabled { opacity: .6; cursor: not-allowed; }
+:is(.form-grid, .profile-form, .history-form, .language-form, .fit-paste, .claim-link-form, .interview-form, .interview-create, .check-form, .studio-form, .workshop-editor, .review-reason, .learning-target-form, .profile-ai-notes, .roster-actions, .trust-share-link) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]), select, textarea):user-invalid { border-color: var(--field-danger); box-shadow: 0 0 0 4px var(--field-danger-ring); }
+/* A small tick once a required text field is filled correctly. */
+:is(.form-grid, .profile-form, .history-form, .language-form, .claim-link-form, .interview-create, .studio-form, .workshop-editor)
+  input:is([type="text"], [type="email"], [type="url"], :not([type])):required:user-valid:not(:placeholder-shown) {
+  padding-right: 40px; background-image: var(--field-tick); background-repeat: no-repeat; background-position: right 14px center; background-size: 16px;
+}
+:is(.form-grid, .profile-form, .history-form, .language-form, .fit-paste, .claim-link-form, .interview-form, .interview-create, .check-form, .studio-form, .workshop-editor, .learning-target-form) select {
+  appearance: none; padding-right: 40px; background-image: var(--field-chevron); background-repeat: no-repeat; background-position: right 14px center; background-size: 16px; cursor: pointer;
+}
+:is(.form-grid, .profile-form, .history-form, .language-form, .fit-paste, .interview-form, .studio-form, .workshop-editor, .review-reason, .profile-ai-notes) textarea { min-height: 120px; resize: vertical; }
+
+/* Labels read like a person talking; hints sit quietly underneath. */
+.form-grid label, .form-grid .password-field > label { display: grid; gap: 8px; color: var(--ink); font-size: 13.5px; font-weight: 560; letter-spacing: -.005em; }
+.form-grid small, .history-form small, .language-form small { color: var(--muted); font-size: 12.5px; font-weight: 400; line-height: 1.5; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--green); }
+
+/* Show/hide password, Caps Lock and the new-password checklist. */
+.password-field { display: grid; gap: 8px; }
+.password-box { position: relative; }
+.password-box input { padding-right: 52px !important; letter-spacing: .02em; }
+.password-toggle { position: absolute; top: 50%; right: 6px; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 10px; background: none; color: var(--muted); transform: translateY(-50%); transition: color .15s, background .15s; }
+.password-toggle:hover { color: var(--ink); background: light-dark(#0000000a, #ffffff0d); }
+.password-toggle[aria-pressed="true"] { color: var(--ink); }
+.password-caps { display: inline-flex; align-items: center; gap: 6px; color: light-dark(#8a5a00, #f0d48a) !important; font-weight: 560 !important; animation: field-pop .25s ease-out; }
+.password-caps::before { content: "⇪"; }
+.password-meter { height: 4px; overflow: hidden; border-radius: 9px; background: light-dark(#ececea, #222b1d); }
+.password-meter span { display: block; height: 100%; border-radius: inherit; transition: width .35s cubic-bezier(.2,.8,.2,1), background .35s; }
+.password-meter span[data-level="low"] { background: light-dark(#d0573f, #ff9a7a); }
+.password-meter span[data-level="mid"] { background: light-dark(#c48a12, #f0d48a); }
+.password-meter span[data-level="high"] { background: light-dark(#1d7a3a, #b7e38a); }
+.password-checks { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 0; padding: 0; list-style: none; }
+.password-checks li { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border: 1px solid var(--field-line); border-radius: 999px; color: var(--muted); font-size: 12px; transition: color .2s, border-color .2s, background .2s; }
+.password-checks li[data-met] { border-color: light-dark(#1d7a3a59, #b7e38a59); background: light-dark(#1d7a3a0f, #b7e38a14); color: var(--field-ok); animation: field-pop .3s ease-out; }
+.password-match { color: var(--muted) !important; }
+.password-match.is-match { color: var(--field-ok) !important; font-weight: 560 !important; animation: field-pop .3s ease-out; }
+.auth-help { margin-top: -6px; }
+
+/* A friendly hello on sign-in and register. */
+.auth-hello { display: inline-flex; align-items: center; gap: 8px; }
+.auth-wave { display: inline-block; font-size: 15px; transform-origin: 70% 80%; animation: auth-wave 2.4s ease-in-out .4s 2; }
+@keyframes auth-wave { 0%, 60%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(16deg); } 20% { transform: rotate(-8deg); } 40% { transform: rotate(10deg); } }
+
+/* Messages arrive with a little life: errors nudge, good news pops. */
+.form-error { animation: field-nudge .38s ease-out; }
+.notice, .profile-ai-done, .confirmation { animation: field-pop .32s cubic-bezier(.2,.9,.3,1.2); }
+@keyframes field-nudge { 0% { opacity: 0; transform: translateX(0); } 25% { opacity: 1; transform: translateX(-5px); } 50% { transform: translateX(4px); } 75% { transform: translateX(-2px); } 100% { transform: none; } }
+@keyframes field-pop { from { opacity: 0; transform: translateY(4px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* Buttons respond to the press, and a busy form shows it is working. */
+.button { transition: transform .12s ease, background-color .18s, box-shadow .18s, border-color .18s; }
+.button:active:not(:disabled) { transform: translateY(1px) scale(.985); }
+form[aria-busy="true"] button[type="submit"] { position: relative; color: transparent !important; }
+form[aria-busy="true"] button[type="submit"]::after { content: ""; position: absolute; inset: 0; margin: auto; width: 18px; height: 18px; border: 2px solid var(--accent-ink); border-right-color: transparent; border-radius: 50%; animation: field-spin .7s linear infinite; }
+@keyframes field-spin { to { transform: rotate(360deg); } }
+
+/* Phones: 16px text so the browser never zooms into a field, and roomy touch targets. */
+@media (max-width: 760px) {
+  :is(.form-grid, .profile-form, .history-form, .language-form, .fit-paste, .claim-link-form, .interview-form, .interview-create, .check-form, .studio-form, .workshop-editor, .review-reason, .learning-target-form, .profile-ai-notes)
+    :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]), select, textarea) { font-size: 16px; min-height: 50px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-wave, .form-error, .notice, .profile-ai-done, .confirmation, .password-checks li[data-met], .password-match.is-match, .password-caps { animation: none; }
+  .button:active:not(:disabled) { transform: none; }
+}
+
+/* Profile form: counters, live skill chips and a save bar that stays in reach while editing. */
+.field-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.field-counter { color: var(--muted); font: 500 11.5px/1 var(--mono); font-variant-numeric: tabular-nums; transition: color .2s; }
+.field-counter[data-state="near"] { color: light-dark(#8a5a00, #f0d48a); }
+.field-counter[data-state="full"] { color: var(--field-danger); }
+.skill-chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; max-width: 100%; }
+.skill-chip { max-width: 100%; overflow-wrap: anywhere; padding: 4px 10px; border: 1px solid light-dark(#1d7a3a40, #b7e38a40); border-radius: 999px; background: light-dark(#1d7a3a0d, #b7e38a12); color: var(--ink); font-size: 12.5px; font-weight: 500; animation: field-pop .22s ease-out; }
+.skill-chip.is-over { border-color: var(--field-danger); color: var(--field-danger); background: none; }
+.profile-save-bar { position: sticky; bottom: 12px; z-index: 4; margin-inline: -12px; padding: 12px 12px 12px 18px; border: 1px solid transparent; border-radius: 16px; transition: background .25s, border-color .25s, box-shadow .25s; }
+.profile-save-bar[data-dirty] { border-color: light-dark(#d4d4ce, #3c4c31); background: light-dark(#ffffffeb, #141c10eb); box-shadow: 0 18px 40px -22px light-dark(#00000059, #000000cc); backdrop-filter: blur(8px); }
+.profile-save-state { display: inline-flex; align-items: center; gap: 8px; }
+.profile-save-state i { width: 8px; height: 8px; border-radius: 50%; background: light-dark(#c48a12, #f0d48a); box-shadow: 0 0 0 0 light-dark(#c48a1266, #f0d48a66); animation: save-pulse 1.8s ease-out infinite; }
+@keyframes save-pulse { 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .skill-chip, .profile-save-state i { animation: none; } }
+
+/* Labels across the paste, language and proof forms: readable, with "(optional)" kept on the same line. */
+:is(.fit-paste, .language-form, .claim-link-form, .interview-create, .studio-form, .workshop-editor) label { color: var(--ink); font-size: 13.5px; font-weight: 560; }
+:is(.fit-paste, .language-form, .claim-link-form, .interview-create, .studio-form, .workshop-editor) label > small:first-of-type { display: inline; margin-left: 4px; color: var(--muted); font-weight: 400; }
+.fit-paste label:has(> small:first-of-type) { grid-template-columns: max-content 1fr; align-items: baseline; }
+.fit-paste label:has(> small:first-of-type) > :is(input, textarea, select) { grid-column: 1 / -1; }
+
+/* Long words never push the page sideways: names, headlines and skills wrap inside their boxes. */
+.overview-identity, .overview-identity :is(h1, h2, h3, p, span) { min-width: 0; overflow-wrap: anywhere; }
+.toolkit-list li { min-width: 0; }
+.toolkit-list li > span:first-child { min-width: 0; white-space: normal; overflow-wrap: anywhere; text-overflow: clip; }
+
+/* Role dialog: the full description fades in after the short excerpt. */
+.role-description { transition: opacity .25s; }
+.role-description.is-loading { opacity: .7; }

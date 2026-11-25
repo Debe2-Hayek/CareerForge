@@ -11,6 +11,7 @@ import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { profileSchema, type AccountProfile } from "@/lib/account/schemas";
 import { profileStrength, type StrengthCounts } from "@/lib/profile-strength";
 import type { ClaimStatus } from "@/lib/claims/model";
+import { FieldCounter, SkillChips } from "./field-helpers";
 
 const subscribeReady = () => () => {};
 function readDraft(form: HTMLFormElement) {
@@ -89,14 +90,14 @@ export function AccountProfileEditor({ profile: initialProfile, email, trust = n
           <fieldset className="form-grid profile-fields" disabled={!ready || pending}>
             <label>Full name<input id="account-name" name="name" required maxLength={100} autoComplete="name" defaultValue={profile.name} /></label>
             <label>Location<input name="location" maxLength={120} defaultValue={profile.location} /></label>
-            <label className="full-field">Your headline<input id="account-headline" placeholder="Your interests and the role you are working toward" name="headline" maxLength={160} defaultValue={profile.headline} /></label>
-            <label className="full-field">A little about you<textarea id="account-bio" name="bio" rows={3} maxLength={1000} defaultValue={profile.bio} placeholder="What drives you, what you are good at, what you want to do next." /></label>
+            <label className="full-field"><span className="field-label-row">Your headline<FieldCounter htmlFor="account-headline" max={160} /></span><input id="account-headline" placeholder="For example: Computer science student building web apps" name="headline" maxLength={160} defaultValue={profile.headline} /></label>
+            <label className="full-field"><span className="field-label-row">A little about you<FieldCounter htmlFor="account-bio" max={1000} /></span><textarea id="account-bio" name="bio" rows={3} maxLength={1000} defaultValue={profile.bio} placeholder="What drives you, what you are good at, what you want to do next." /></label>
             <label className="full-field">Education summary<input name="education" maxLength={240} defaultValue={profile.education} /></label>
-            <label className="full-field">Featured project<textarea id="account-project" placeholder="What did you build, what was your contribution, and which tools did you use?" name="project" rows={3} maxLength={1000} defaultValue={profile.project} /></label>
-            <label className="full-field">Your skills<input id="account-skills" placeholder="Tools you have used, separated by commas" name="skills" aria-label="Your skills" aria-describedby="account-skills-help" maxLength={2500} defaultValue={profile.skills.join(", ")} /><small id="account-skills-help">Separate with commas. Up to 40 skills.</small></label>
+            <label className="full-field"><span className="field-label-row">Featured project<FieldCounter htmlFor="account-project" max={1000} /></span><textarea id="account-project" placeholder="What did you build, what was your contribution, and which tools did you use?" name="project" rows={3} maxLength={1000} defaultValue={profile.project} /></label>
+            <label className="full-field">Your skills<input id="account-skills" placeholder="Tools you have used, separated by commas" name="skills" aria-label="Your skills" aria-describedby="account-skills-help" maxLength={2500} defaultValue={profile.skills.join(", ")} /><SkillChips htmlFor="account-skills" /><small id="account-skills-help">Separate with commas. Up to 40 skills.</small></label>
           </fieldset>
           <p className="muted-note">Save before leaving. Unsaved drafts stay only on this page; browser Back may discard them.</p>
-          <div className="form-footer"><span className="profile-save-state">{dirty ? "Unsaved changes" : "No unsaved changes"}</span><button className="button primary" type="submit" disabled={!ready || pending || !dirty}>{pending ? "Please wait…" : "Save profile"}</button></div>
+          <div className="form-footer profile-save-bar" data-dirty={dirty || undefined}><span className="profile-save-state">{dirty ? <><i aria-hidden="true" />Unsaved changes</> : "All changes saved"}</span><button className="button primary" type="submit" disabled={!ready || pending || !dirty}>{pending ? "Please wait…" : "Save profile"}</button></div>
         </form>
 
         <aside className="profile-aside">

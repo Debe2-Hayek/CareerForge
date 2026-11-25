@@ -31,7 +31,8 @@ const glyphs: Record<IconName, { line: string; soft?: string }> = {
   portfolio: { line: "M3 5h18v14H3z M3 9.5h18 M6.5 7.25h.01 M9.5 7.25h.01 M7 13h4v3.5H7z M14 13h3 M14 16.5h3", soft: "M3 5h18v4.5H3z" },
   agent: { line: "M7 8h10a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3z M12 8V4.5 M12 3.5h.01 M9 13h.01 M15 13h.01 M9.5 16.5h5 M2 12.5v2 M22 12.5v2", soft: "M7 8h10a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3z" },
   outcomes: { line: "M4 4v16h16 M7.5 15.5l3.5-4.5 3 2.5 4.5-6", soft: "M7.5 15.5l3.5-4.5 3 2.5 4.5-6V20H7.5z" },
-  assistant: { line: "M5 4h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-4.5 4v-4H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z M8.5 10h.01 M12 10h.01 M15.5 10h.01", soft: "M5 4h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-4.5 4v-4H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" },
+  // A wireframe globe with a spark: the same mark as the assistant's turning globe.
+  assistant: { line: "M11.5 5a8 8 0 1 0 0 16 8 8 0 0 0 0-16z M11.5 5c-2.7 2.2-2.7 13.8 0 16 M11.5 5c2.7 2.2 2.7 13.8 0 16 M3.8 10.8h15.4 M4.2 15.4h14.6 M19.6 1.8l.55 1.45 1.45.55-1.45.55-.55 1.45-.55-1.45-1.45-.55 1.45-.55z", soft: "M11.5 10.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8z" },
   simulator: { line: "M2.5 9L12 4l9.5 5L12 14z M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5 M21.5 9v5.5", soft: "M2.5 9L12 4l9.5 5L12 14z" },
   cv: { line: "M6 3h8l4 4v14H6z M14 3v4h4 M9 11h6 M9 14.5h6 M9 18h3.5", soft: "M6 3h8l4 4v14H6z" },
   checks: { line: "M12 3l8 3v5.5c0 4.5-3.2 8-8 9.5-4.8-1.5-8-5-8-9.5V6z M8.5 12l2.5 2.5 4.5-5", soft: "M12 3l8 3v5.5c0 4.5-3.2 8-8 9.5-4.8-1.5-8-5-8-9.5V6z" },

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { linkify, type ContextChoice } from "@/lib/assistant/context";
 import { AppIcon, type IconName } from "./app-icons";
+import { AiGlobe } from "./ai-globe";
 
 type Message = { role: "user" | "assistant"; content: string; test?: boolean };
 const STARTERS: { text: string; hint: string; icon: IconName }[] = [
@@ -24,8 +25,11 @@ function Reply({ text }: { text: string }) {
 }
 
 /** The assistant's living mark: a slowly turning, breathing orb (still when motion is reduced). */
-function Orb({ size = "small", thinking = false }: { size?: "small" | "large"; thinking?: boolean }) {
-  return <span className={`ai-orb ai-orb-${size}${thinking ? " is-thinking" : ""}`} aria-hidden="true"><span className="ai-orb-core" /><span className="ai-orb-shine" /></span>;
+/** The assistant's mark: a turning wireframe globe. Message avatars stay still to keep long chats light. */
+function Orb({ size = "small", thinking = false, live = false }: { size?: "small" | "large"; thinking?: boolean; live?: boolean }) {
+  return <span className={`ai-orb ai-orb-${size}${thinking ? " is-thinking" : ""}`} aria-hidden="true">
+    <AiGlobe size={size === "large" ? 150 : 34} live={size === "large" || live || thinking} thinking={thinking} />
+  </span>;
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -88,7 +92,7 @@ export function CareerAssistant({ service, firstName = "" }: { service: string |
   return <section className="chat" aria-labelledby="chat-title" data-empty={messages.length ? "no" : "yes"}>
     <header className="chat-top">
       <div className="chat-identity">
-        <Orb thinking={busy} />
+        <Orb thinking={busy} live />
         <div>
           <h1 id="chat-title">Career assistant</h1>
           <p>{busy ? "Thinking…" : service ? <>Ready · answers come from <strong>{service}</strong></> : "Not available right now"}</p>

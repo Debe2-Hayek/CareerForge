@@ -10,6 +10,20 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## AI assistant: a turning wireframe globe (after the reel you shared)
+- **What:** The assistant's round orb is replaced by a small 3D wireframe globe like the Instagram reel: a net
+  of thin lines with a slightly broken, jagged surface, warm sparks flickering inside (gold, green, lilac) and two
+  faint halo rings, slowly turning. When the assistant is thinking it spins faster and the sparks get busier.
+  - **White mode:** black ink lines with gold sparks, very close to the reel. **Dark mode:** pale mint lines.
+  - **Where it shows:** the big welcome globe, the header, the "thinking" bubble, and a still version on each
+    reply (still, so long chats stay light). The sidebar "AI assistant" icon is now a small globe too, and the
+    homepage AI card uses the mini globe.
+  - Drawn on a small canvas (no 3D library, no extra download). It stops when off screen, in a hidden tab,
+    with "reduce motion", or when the Motion switch is off.
+- **Where:** `/career-assistant`, the sidebar, and the homepage ring's AI card.
+- **Status:** Ready (no database change).
+
+
 ## Faster, richer 3D rings (homepage and workshops)
 - **What:** Both 3D rings turn smoothly and can be scrolled with the mouse wheel.
   - **Smoother:** while a ring turns, only each card's position and fade change, so the browser no longer

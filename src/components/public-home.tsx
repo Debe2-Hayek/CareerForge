@@ -4,6 +4,7 @@ import { LandingNav } from "./landing-nav";
 import { Spotlight } from "./spotlight";
 import { ForgeShowcase } from "./forge-showcase";
 import { CapabilityRing, type Capability } from "./capability-ring";
+import { AiGlobe } from "./ai-globe";
 import { roadmaps, roleRoadmaps, skillRoadmaps, topicCount } from "@/lib/roadmaps/catalog";
 import { curatedWorkshops } from "@/data/workshops/curated";
 import { statuses } from "@/lib/demo-workspace";
@@ -103,7 +104,7 @@ function VizLearning() {
 function VizAssistant() {
   return <div className="viz viz-assistant" aria-hidden="true">
     <div className="viz-bubble user">What should I learn next?</div>
-    <div className="viz-bubble ai"><span className="viz-orb" />Docker: it is the gap in 3 of your saved jobs.</div>
+    <div className="viz-bubble ai"><span className="viz-orb viz-orb-globe"><AiGlobe size={22} /></span>Docker: it is the gap in 3 of your saved jobs.</div>
   </div>;
 }
 function VizWorkshops() {

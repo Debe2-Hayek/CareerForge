@@ -31,6 +31,16 @@ export function matchSkills(profileSkills: string[], requiredSkills: string[]) {
   return { score: required.length ? Math.round((required.length - missing.length) / required.length * 100) : 0, missing };
 }
 
+/**
+ * Best matches first: by how many listed skills match (so one detected skill cannot outrank broader
+ * matches), then by percentage, then the newest. Shared by the page and the server.
+ */
+export function rankJobs<T extends { skills: string[]; publishedAt?: string | null }>(jobs: readonly T[], profileSkills: string[]): T[] {
+  return jobs.map(job => { const { score, missing } = matchSkills(profileSkills, job.skills); return { job, matched: job.skills.length - missing.length, score }; })
+    .sort((a, b) => b.matched - a.matched || b.score - a.score || (b.job.publishedAt ?? "").localeCompare(a.job.publishedAt ?? ""))
+    .map(({ job }) => job);
+}
+
 export function readWorkspace(raw: string | null): Workspace {
   if (!raw) return initialWorkspace;
   try {

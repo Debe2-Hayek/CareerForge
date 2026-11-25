@@ -20,3 +20,15 @@ test("browser state preserves valid edits and discards unknown jobs and invalid 
   const saved = { profile: { ...initialWorkspace.profile, name: "Sam", skills: ["SQL"] }, applications: { "1": "Interview", "2": "invented", "99": "Saved" } };
   assert.deepEqual(readWorkspace(JSON.stringify(saved)), { profile: saved.profile, applications: { "1": "Interview" } });
 });
+
+test("jobs are ranked by matched skills, then percentage, then newest", async () => {
+  const { rankJobs } = await import("./demo-workspace");
+  const jobs = [
+    { id: "one-skill", skills: ["SQL"], publishedAt: "2026-11-20" },
+    { id: "two-of-four", skills: ["SQL", "Python", "Go", "Rust"], publishedAt: "2026-11-01" },
+    { id: "two-of-two-old", skills: ["SQL", "Python"], publishedAt: "2026-10-01" },
+    { id: "two-of-two-new", skills: ["sql", "python"], publishedAt: "2026-11-10" },
+    { id: "none", skills: ["Java"], publishedAt: "2026-11-24" }
+  ];
+  assert.deepEqual(rankJobs(jobs, ["SQL", "Python"]).map(job => job.id), ["two-of-two-new", "two-of-two-old", "two-of-four", "one-skill", "none"]);
+});

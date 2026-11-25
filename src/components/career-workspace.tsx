@@ -12,7 +12,7 @@ import { CareerConstellation } from "./career-constellation";
 import { sky as skyOf, type Sky } from "@/lib/constellation";
 import type { Journey } from "@/lib/journey";
 import { useEffect, useState, useSyncExternalStore, useRef, type FormEvent } from "react";
-import { initialWorkspace, jobs, matchSkills, readWorkspace, statuses, type Job, type Workspace } from "@/lib/demo-workspace";
+import { initialWorkspace, jobs, matchSkills, readWorkspace, statuses, type Job, type Workspace, rankJobs } from "@/lib/demo-workspace";
 
 type View = "overview" | "profile" | "jobs" | "applications";
 const storageKey = "careerforge-demo-v1";
@@ -67,11 +67,7 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
   const profile = workspace.profile;
   const entries = Object.entries(workspace.applications);
   const liveCount = catalog.filter(isLive).length;
-  // Rank by how many listed skills match first, so a single detected skill cannot outrank broader matches, then by percentage and recency.
-  const rankOf = (job: AnyJob) => { const { score, missing } = matchSkills(profile.skills, job.skills); return { matched: job.skills.length - missing.length, score }; };
-  const ranked = [...catalog as AnyJob[]].map(job => ({ job, rank: rankOf(job) }))
-    .sort((a, b) => b.rank.matched - a.rank.matched || b.rank.score - a.rank.score || (b.job.publishedAt ?? "").localeCompare(a.job.publishedAt ?? ""))
-    .map(({ job }) => job);
+  const ranked = rankJobs(catalog as AnyJob[], profile.skills);
   const filtered = ranked.filter(job => `${job.title} ${job.company} ${job.location} ${job.skills.join(" ")}`.toLowerCase().includes(query.toLowerCase()) && (mode === "All work modes" || mode === job.mode) && (!savedOnly || !!workspace.applications[job.id])
     && (region === "all" || job.region === region) && (listing === "all" || (listing === "live") === isLive(job))
     && (level === "all" || (level === "unstated" ? levelOf(job) === null : levelOf(job) === level)));

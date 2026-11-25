@@ -10,6 +10,18 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Faster Overview: 79% less to download
+- **What:** The Overview used to download the whole job catalogue (up to 500 listings with descriptions) but
+  only shows the 2 best matches. The server now picks the best 6 and sends only those, plus your tracked
+  roles. The page went from 318 KB to 67 KB, which matters most on phones. The journey steps now load at
+  the same time as the job list instead of after it. Matching works exactly as before (the same ranking
+  code is now shared by the page and the server, with a new test).
+- **Where:** `/dashboard` (Overview).
+- **Status:** Ready (no database change).
+- **Remember:** "Find opportunities" (`/jobs`) still loads the full list, because its filters work on all
+  jobs in the browser (354 KB). Moving its filters to the server is a possible next speed step.
+
+
 ## AI assistant: a turning wireframe globe (after the reel you shared)
 - **What:** The assistant's round orb is replaced by a small 3D wireframe globe like the Instagram reel: a net
   of thin lines with a slightly broken, jagged surface, warm sparks flickering inside (gold, green, lilac) and two

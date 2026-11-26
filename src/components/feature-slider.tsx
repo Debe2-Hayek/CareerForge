@@ -159,7 +159,7 @@ export function FeatureSlider({ items }: { items: readonly Feature[] }) {
     <div className="fs-tabs" ref={tabs} role="group" aria-label="Choose a tool">
       {items.map((item, index) => <button key={item.id} type="button" aria-current={index === active || undefined} aria-controls={`fs-slide-${item.id}`} style={{ "--tool": item.accent } as CSSProperties}
         onClick={() => { byHand(); go(index); }}>
-        {item.tab}
+        <span className="fs-tab-num" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>{item.tab}
         {index === active && canPlay && <i key={`${active}-${playing}`} className="fs-tab-progress" data-running={playing || undefined} style={{ animationDuration: `${DWELL}ms` }} />}
       </button>)}
     </div>

@@ -33,10 +33,20 @@ export type ProfileTrust = { counts: StrengthCounts; skillStatus: Record<string,
 export type DocumentsStatus = { hasDraft: boolean; isPublic: boolean; slug: string | null; hasUnpublishedChanges: boolean } | null;
 
 function Section({ id, title, intro, children }: { id: string; title: string; intro: ReactNode; children: ReactNode }) {
-  return <section className="profile-section" aria-labelledby={`${id}-title`}>
+  return <section className="profile-section" id={`profile-${id}`} aria-labelledby={`${id}-title`}>
     <div className="profile-section-intro"><h3 id={`${id}-title`}>{title}</h3><p>{intro}</p></div>
     <div className="profile-section-fields form-grid">{children}</div>
   </section>;
+}
+
+/** Which parts of the form already hold something (from the saved profile). */
+function sectionStatus(profile: AccountProfile) {
+  return [
+    { id: "basics", label: "The basics", done: Boolean(profile.name && profile.headline && profile.location) },
+    { id: "story", label: "Your story", done: Boolean(profile.bio && profile.project) },
+    { id: "education", label: "Education", done: Boolean(profile.education) },
+    { id: "skills", label: "Skills", done: profile.skills.length >= 3 }
+  ];
 }
 
 /** Shown until a CV or portfolio exists: one clear way to make them, with a picture of the result. */
@@ -123,7 +133,7 @@ export function AccountProfileEditor({ profile: initialProfile, email, trust = n
   return <AppShell pageTitle="My profile" displayName={profile.name || "Your account"} privateAccount accountActions={<button className="button primary" onClick={logout} disabled={!ready || pending}>Sign out</button>}>
     <div className="account-content profile-page">
       <div className="page-heading profile-heading">
-        <div><p className="eyebrow">MY PROFILE</p><h1>Your story starts here<span>.</span></h1><p>Only you can see this page. Signed in as <strong>{email}</strong>.</p></div>
+        <div><p className="eyebrow">MY PROFILE</p><h1>Your story starts here<span>.</span></h1><p>Only you can see this page. Your CV, portfolio and job matches are built from it.</p></div>
       </div>
       {message && <div className="notice" role="status"><span>{message}</span>{needsDocuments
         ? <Link className="text-button" href="/documents">Next: make your CV &amp; portfolio <span aria-hidden="true">→</span></Link>
@@ -142,7 +152,14 @@ export function AccountProfileEditor({ profile: initialProfile, email, trust = n
       <div className="profile-layout">
         <form className="panel profile-form" method="post" onInput={event => setDirty(!sameDraft(readDraft(event.currentTarget), profile))}
           onReset={() => { setDirty(false); setError(""); }} onSubmit={save} key={JSON.stringify(profile)} aria-busy={pending || undefined}>
-          <div className="profile-form-head"><h2>Your profile details</h2><p>Everything here can appear on your CV and portfolio. Only include what you can talk about in an interview.</p></div>
+          <div className="profile-form-head"><h2>Your profile details</h2><p>Everything here can appear on your CV and portfolio. Only include what you can talk about in an interview.</p>
+            {/* A small map of the form: each part with a tick once it has something saved in it. */}
+            <nav className="profile-section-nav" aria-label="Parts of your profile">
+              {sectionStatus(profile).map(part => <a key={part.id} href={`#profile-${part.id}`} data-done={part.done || undefined}>
+                <span className="section-dot" aria-hidden="true">{part.done ? "✓" : ""}</span>{part.label}<span className="sr-only">{part.done ? ", filled in" : ", not filled in yet"}</span>
+              </a>)}
+            </nav>
+          </div>
           <fieldset className="profile-fields" disabled={!ready || pending}>
             <Section id="basics" title="The basics" intro="How you appear to employers, on your CV and in job matches.">
               <label>Full name<input id="account-name" name="name" required maxLength={100} autoComplete="name" defaultValue={profile.name} placeholder="e.g. Karim Nassar" /></label>
@@ -183,6 +200,7 @@ export function AccountProfileEditor({ profile: initialProfile, email, trust = n
             <Link href="/account/verification" className="button primary">Verify your profile <span aria-hidden="true">→</span></Link>
           </section>
           <nav className="panel profile-links" aria-label="Profile shortcuts">
+            <p className="profile-signin">Signed in as <strong>{email}</strong></p>
             <Link href="/account/history"><span>Education &amp; experience<small>Degrees and jobs with dates</small></span><span aria-hidden="true">→</span></Link>
             <Link href="/cv/saved"><span>Your saved-profile CV<small>Built from this page</small></span><span aria-hidden="true">→</span></Link>
             <Link href="/jobs"><span>Explore your matches<small>Jobs that fit your skills</small></span><span aria-hidden="true">→</span></Link>

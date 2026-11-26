@@ -14,7 +14,8 @@ part needs OpenRouter credits before it gives real answers.
 - **My profile:** the form is now grouped like a settings page in a well-made app: The basics, Your story,
   Education and Skills, each with a one-line explanation on the left and the fields on the right. Skills
   are tags: type one and press Enter (or paste a list); suggestions are the skills employers ask for; proven
-  skills show a ✓. The save bar stays quietly at the end and only follows you down the page when there is
+  skills show a ✓. A small map at the top of the form shows each part with a ✓ once it is filled in, and
+  jumps to it; your sign-in email sits apart, in the shortcuts card. The save bar stays quietly at the end and only follows you down the page when there is
   something to save, with a Discard button. Once all seven profile steps are done, the checklist steps aside.
 - **No CV or portfolio yet?** The profile shows one clear card, "You don't have a CV or portfolio yet",
   with a picture of the result and a button to CV & Portfolio. After saving, the message points there too.
@@ -28,6 +29,9 @@ part needs OpenRouter credits before it gives real answers.
   facts, a skill-check question, a roadmap, a certificate, a CV, matched jobs, an application board, an AI
   answer, and a portfolio website like the builder's). All examples use one fictional person and say
   "Example". Swipe, drag, arrows, tabs or the keyboard; it moves on by itself only while you are not using it.
+- **References used:** Mobbin (edit-profile and settings screens from Base44, Buy Me a Coffee, Flodesk and Lindy;
+  feature-tab sections from Ada and Heron AI), SaaSFrame (user-profile and empty-state guides), Page Flows (profile
+  flows), Godly, Dribbble and Awwwards for overall polish. Principles only; nothing copied.
 - **Where:** `/account`, `/documents`, the homepage "Everything inside" section.
 - **Status:** Ready (no database change).
 

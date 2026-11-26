@@ -125,3 +125,15 @@
   .art-cv, .art-site, .skill-tags li, .skill-tags li[data-flash] { animation: none; }
 }
 body:has(.ambient[data-paused]) :is(.art-cv, .art-site) { animation-play-state: paused; }
+
+/* A map of the form (as in well-made settings pages): each part, with a tick once it holds something. */
+.profile-section-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.profile-section-nav a { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 12px 0 6px; border: 1px solid #2f3e26; border-radius: 999px; color: var(--muted); font-size: 12.5px; font-weight: 500; text-decoration: none; transition: border-color .2s, color .2s; }
+.profile-section-nav a:hover { border-color: #61734e; color: var(--ink); }
+.profile-section-nav a:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.profile-section-nav a[data-done] { color: var(--ink); }
+.section-dot { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1.5px dashed #4a5b3c; font-size: 10px; font-weight: 700; }
+.profile-section-nav a[data-done] .section-dot { border: 0; background: var(--green); color: var(--accent-ink); }
+.profile-section { scroll-margin-top: 96px; }
+.profile-signin { margin: 2px 12px 8px; padding-bottom: 10px; border-bottom: 1px solid #2b3a22; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.profile-signin strong { color: var(--ink); font-weight: 500; }

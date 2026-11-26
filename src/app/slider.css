@@ -226,3 +226,7 @@
   .fs-stage > span:first-child img { transition: none; }
 }
 body:has(.ambient[data-paused]) .fs-slide * { animation-play-state: paused !important; }
+
+/* Numbered tabs, so the order of the tools reads at a glance. */
+.fs-tab-num { margin-right: 7px; color: var(--muted); font: 500 10.5px/1 var(--mono); transition: color .2s; }
+.fs-tabs button[aria-current] .fs-tab-num { color: var(--tool-ink); }

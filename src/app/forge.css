@@ -1,0 +1,138 @@
+/* ---------- The Forge: a small working bench (src/components/forge-showcase.tsx) ----------
+   Rule for every piece here: its resting style IS its finished state, and animations only play the
+   arrival. So with the motion switch off or reduced motion (animation: none) everything is visible and
+   complete. Paper and the portfolio-like pieces keep fixed colours in both themes (light-dark pairs). */
+
+/* Steps on the left: buttons with a progress line while the walkthrough plays. */
+.fw-steps { display: grid; gap: 8px; margin-top: 6px; }
+.fw-step { position: relative; display: flex; align-items: flex-start; gap: 14px; width: 100%; padding: 14px 16px; overflow: hidden; border: 1px solid transparent; border-radius: 16px; background: transparent; color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: background .25s, border-color .25s; }
+.fw-step:hover { background: #ffffff06; border-color: #2c3826; }
+.fw-step[aria-selected="true"] { background: #17210fcc; border-color: #3f5532; box-shadow: 0 18px 40px -28px #000; }
+.fw-step:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.fw-step-n { display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #4a6531; color: #c6e49e; font: 600 12px/1 var(--mono); transition: background .25s, color .25s, border-color .25s; }
+.fw-step[aria-selected="true"] .fw-step-n { border-color: transparent; background: var(--green); color: var(--accent-ink); box-shadow: 0 0 0 5px #c5ed851f; }
+.fw-step[data-done] .fw-step-n { background: #1f2b18; }
+.fw-step-copy { display: grid; gap: 3px; }
+.fw-step-copy strong { font-size: 15.5px; font-weight: 560; }
+.fw-step-copy small { color: var(--muted); font-size: 13.5px; line-height: 1.5; }
+.fw-step:not([aria-selected="true"]) .fw-step-copy small { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.fw-step-bar { position: absolute; left: 16px; right: 16px; bottom: 6px; height: 2px; border-radius: 2px; background: var(--green); transform-origin: left; transform: scaleX(1); opacity: .9; }
+.fw-step-bar[data-running] { animation: fw-progress linear both; }
+.fw-step-bar:not([data-running]) { opacity: .25; }
+@keyframes fw-progress { from { transform: scaleX(0); } }
+.fw-play { margin-top: 12px; padding: 6px 2px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 12.5px; text-decoration: underline; text-decoration-color: #4a5b3c; text-underline-offset: 3px; cursor: pointer; }
+.fw-play:hover { color: var(--ink); }
+
+/* The bench on the right. */
+.fw-bench { position: relative; min-width: 0; }
+.fw-bench::before { content: ""; position: absolute; inset: -6% -4%; z-index: -1; border-radius: 40px; background: radial-gradient(60% 60% at 50% 45%, #9fd35d24, transparent 70%); pointer-events: none; }
+.fw-stage { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr); align-items: center; gap: 18px; padding: 22px; border: 1px solid #2e3c26; border-radius: 28px; background: linear-gradient(160deg, #141b11f2, #0d120bf2); box-shadow: 0 40px 100px -40px #000000d9, inset 0 1px 0 #ffffff0d; }
+.fw-scene-wrap { position: relative; display: grid; min-height: 340px; }
+.fw-scene { display: grid; align-content: center; gap: 14px; }
+
+.fw-paper { position: relative; overflow: hidden; border-radius: 12px; background: light-dark(#fffdf7, #fffdf7); color: light-dark(#17210f, #17210f); box-shadow: 0 26px 50px -22px #000000cc, 0 0 0 1px light-dark(#e6e2d4, #e6e2d4); animation: fw-arrive .55s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes fw-arrive { from { opacity: 0; transform: translateY(14px) rotate(-1.5deg) scale(.97); } }
+
+/* 1. The CV is read. */
+.fw-doc { display: grid; gap: 7px; padding: 16px 18px 20px; }
+.fw-file { margin: 0 0 4px; color: light-dark(#4a6531, #4a6531); font: 600 10px/1 var(--mono); letter-spacing: .8px; text-transform: uppercase; }
+.fw-line { display: block; height: 7px; border-radius: 4px; background: light-dark(#dcdfd7, #dcdfd7); }
+.fw-line.name { width: 55%; height: 11px; background: light-dark(#2c3a22, #2c3a22); }
+.fw-line.head { width: 30%; height: 7px; margin-top: 6px; background: light-dark(#7fae4d, #7fae4d); }
+.w50 { width: 50%; } .w60 { width: 60%; } .w70 { width: 70%; } .w80 { width: 80%; } .w85 { width: 85%; }
+.fw-beam { position: absolute; left: 0; right: 0; top: 0; height: 34%; background: linear-gradient(180deg, transparent, light-dark(#9fd35d40, #9fd35d40) 70%, light-dark(#7fae4d, #7fae4d) 100%); opacity: 0; animation: fw-scan 1.5s .35s ease-in-out both; pointer-events: none; }
+@keyframes fw-scan { 0% { transform: translateY(-100%); opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(300%); opacity: 0; } }
+.fw-found { display: grid; justify-items: start; gap: 7px; }
+.fw-found p { margin: 0 0 2px; color: var(--muted); font: 500 10.5px/1.3 var(--mono); letter-spacing: .4px; }
+.fw-chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px 6px 6px; border: 1px solid #4a6531; border-radius: 999px; background: #1a2414; color: var(--ink); font-size: 12.5px; font-weight: 500; animation: fw-fly .5s var(--d, 0s) cubic-bezier(.2, .8, .2, 1) both; }
+.fw-chip i, .fw-checks i, .fw-badges i { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--green); color: var(--accent-ink); font-size: 10px; font-style: normal; font-weight: 700; }
+@keyframes fw-fly { from { opacity: 0; transform: translateX(-18px) scale(.9); } }
+
+/* 2. The diploma is reviewed. */
+.fw-diploma { padding: 22px 18px; text-align: center; box-shadow: 0 26px 50px -22px #000000cc, inset 0 0 0 5px light-dark(#fffdf7, #fffdf7), inset 0 0 0 6px light-dark(#c9b98a, #c9b98a); }
+.fw-diploma p { margin: 0; }
+.fw-diploma-kind { font-family: Georgia, "Times New Roman", serif; font-size: 22px; }
+.fw-diploma-what { margin-top: 6px !important; color: light-dark(#4c5350, #4c5350); font-size: 12px; }
+.fw-diploma-who { margin-top: 8px !important; font-family: Georgia, serif; font-size: 17px; font-style: italic; }
+.fw-stamp { position: absolute; right: 12px; bottom: 10px; padding: 4px 10px; border: 2px solid light-dark(#2f7a3a, #2f7a3a); border-radius: 6px; color: light-dark(#2f7a3a, #2f7a3a); font: 700 11px/1 var(--mono); letter-spacing: 1.5px; text-transform: uppercase; transform: rotate(-8deg); animation: fw-stamp .45s var(--d, 0s) cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes fw-stamp { from { opacity: 0; transform: rotate(-20deg) scale(2.2); } }
+.fw-checks { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.fw-checks li { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border: 1px solid #2c3b24; border-radius: 12px; background: #141c10; color: var(--ink); font-size: 13px; animation: fw-fly .45s var(--d, 0s) ease-out both; }
+
+/* 3. A skill check is passed. */
+.fw-quiz { display: grid; gap: 8px; padding: 16px; border: 1px solid #33452a; border-radius: 16px; background: #121a0f; animation: fw-arrive .5s ease-out both; }
+.fw-quiz-top { display: flex; justify-content: space-between; margin: 0; color: var(--muted); font: 500 10.5px/1.3 var(--mono); }
+.fw-quiz-q { margin: 2px 0 4px; font-size: 15px; font-weight: 600; line-height: 1.4; }
+.fw-opt { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid #2c3b24; border-radius: 11px; color: var(--ink); font: 500 12.5px/1 var(--mono); }
+.fw-opt b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; border: 1px solid #3f5232; color: var(--muted); font-size: 10.5px; }
+.fw-opt i { margin-left: auto; color: var(--green); font-style: normal; font-weight: 700; }
+.fw-opt.picked { border-color: var(--green); background: #1f2b18; animation: fw-pick .4s var(--d, 0s) ease-out both; }
+.fw-opt.picked b { border-color: transparent; background: var(--green); color: var(--accent-ink); }
+@keyframes fw-pick { from { border-color: #2c3b24; background: transparent; } }
+.fw-dots { display: flex; gap: 6px; margin-top: 4px; }
+.fw-dots i { flex: 1; height: 5px; border-radius: 5px; background: var(--green); animation: fw-dot .3s var(--d, 0s) ease-out both; }
+@keyframes fw-dot { from { background: #26311f; } }
+@property --score { syntax: "<integer>"; inherits: false; initial-value: 5; }
+.fw-score { display: flex; align-items: baseline; gap: 10px; animation: fw-fly .4s var(--d, 0s) ease-out both; }
+.fw-count { --score: 5; counter-reset: score var(--score); font-size: 44px; font-weight: 700; letter-spacing: -.04em; color: #e9f5d6; animation: fw-count 1s calc(var(--d, 0s) + .1s) ease-out both; }
+.fw-count::after { content: counter(score); }
+.fw-score span { color: #c6e49e; font-size: 14px; font-weight: 600; }
+@keyframes fw-count { from { --score: 0; } }
+
+/* 4. A certificate is scanned. */
+.fw-cert { position: relative; min-height: 300px; align-content: center; }
+.fw-certificate { width: 82%; padding: 18px 18px 18px; box-shadow: 0 26px 50px -22px #000000cc, inset 0 0 0 5px light-dark(#fffdf7, #fffdf7), inset 0 0 0 6px light-dark(#c9b98a, #c9b98a); }
+.fw-certificate p { margin: 0; }
+.fw-cert-kind { color: light-dark(#7a6630, #7a6630); font: 600 9.5px/1 var(--mono); letter-spacing: 1.3px; text-transform: uppercase; }
+.fw-cert-name { margin-top: 10px !important; font-family: Georgia, serif; font-size: 22px; font-style: italic; }
+.fw-cert-for { margin-top: 4px !important; color: light-dark(#5b5240, #5b5240); font-size: 12px; }
+.fw-qr { display: block; width: 58px; height: 58px; margin-top: 14px; }
+.fw-qr path { fill: light-dark(#16210f, #16210f); }
+.fw-phone { position: absolute; right: 2%; bottom: 4%; display: grid; place-items: center; width: 120px; height: 200px; border: 6px solid light-dark(#0f140d, #0f140d); border-radius: 24px; background: light-dark(#121a10, #121a10); box-shadow: 0 30px 60px -20px #000; overflow: hidden; animation: fw-phone .6s var(--d, 0s) cubic-bezier(.2, .8, .2, 1) both; color-scheme: dark; }
+@keyframes fw-phone { from { opacity: 0; transform: translate(40px, 20px) rotate(8deg); } }
+.fw-phone-scan { position: absolute; left: 12%; right: 12%; top: 22%; height: 44%; border: 2px dashed #9fd35d99; border-radius: 10px; }
+.fw-phone-scan::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: #c6e49e; box-shadow: 0 0 12px #c6e49e; animation: fw-qrscan 1.1s calc(var(--d, 0s) + .2s) ease-in-out 1 both; opacity: 0; }
+@keyframes fw-qrscan { 0% { top: 0; opacity: 1; } 100% { top: 100%; opacity: 0; } }
+.fw-phone-ok { position: absolute; left: 50%; bottom: 14%; padding: 6px 10px; border-radius: 999px; background: #7ddc6a; color: #0c1409; font: 700 11px/1 var(--mono); white-space: nowrap; transform: translateX(-50%); animation: fw-pop .4s var(--d, 0s) cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes fw-pop { from { opacity: 0; transform: translateX(-50%) scale(.5); } }
+
+/* The sample profile that collects the proof. */
+.fw-profile { display: grid; gap: 12px; padding: 18px; border: 1px solid #3a4b2e; border-radius: 20px; background: linear-gradient(170deg, #1a2414, #111810); }
+.fw-sample { margin: 0; color: var(--muted); font: 500 10px/1 var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+.fw-who { display: flex; align-items: center; gap: 12px; }
+.fw-who > span:last-child { display: grid; gap: 2px; min-width: 0; }
+.fw-who b { font-size: 15px; font-weight: 600; }
+.fw-who small { color: var(--muted); font-size: 12px; }
+@property --p { syntax: "<number>"; inherits: true; initial-value: 0; }
+.fw-ring { --p: 25; display: grid; place-items: center; flex: none; width: 52px; height: 52px; border-radius: 50%; background: conic-gradient(var(--green) calc(var(--p) * 1%), #26311f 0); transition: --p .9s cubic-bezier(.2, .8, .2, 1); }
+.fw-ring b { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: #121810; font: 700 13px/1 var(--mono); }
+.fw-meter { display: grid; gap: 5px; }
+.fw-meter > span { display: block; height: 5px; border-radius: 5px; background: var(--green); transition: width .9s cubic-bezier(.2, .8, .2, 1); }
+.fw-meter { background: linear-gradient(#26311f, #26311f) top / 100% 5px no-repeat; }
+.fw-meter small { color: var(--muted); font: 500 10.5px/1 var(--mono); }
+.fw-badges { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.fw-badges li { position: relative; display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px dashed #33432a; border-radius: 11px; color: var(--muted); font-size: 12.5px; transition: border-color .3s, background .3s, color .3s; }
+.fw-badges li i { background: #26311f; color: transparent; transition: background .3s, color .3s; }
+.fw-badges li[data-on] { border-style: solid; border-color: #4a6531; background: #1c2816; color: var(--ink); }
+.fw-badges li[data-on] i { background: var(--green); color: var(--accent-ink); }
+.fw-badges li[data-new] { animation: fw-earn .6s 1.6s cubic-bezier(.2, 1.4, .4, 1) both; }
+.fw-badges li[data-new]::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; box-shadow: 0 0 0 0 #c5ed8580; opacity: 0; animation: fw-ping .9s 1.7s ease-out both; pointer-events: none; }
+@keyframes fw-earn { from { border-style: dashed; border-color: #33432a; background: transparent; color: var(--muted); transform: scale(.96); } 60% { transform: scale(1.04); } }
+@keyframes fw-ping { 0% { opacity: 1; box-shadow: 0 0 0 0 #c5ed8580; } 100% { opacity: 0; box-shadow: 0 0 0 14px #c5ed8500; } }
+
+@media (max-width: 1100px) {
+  .fw-stage { grid-template-columns: minmax(0, 1fr); }
+  .fw-scene-wrap { min-height: 0; }
+  .fw-cert { min-height: 260px; }
+}
+@media (max-width: 560px) {
+  .fw-stage { padding: 14px; border-radius: 22px; }
+  .fw-step { padding: 12px; }
+  .fw-phone { width: 96px; height: 160px; }
+  .fw-certificate { width: 88%; }
+}
+/* Motion off or reduced: no arrivals, the finished bench. */
+@media (prefers-reduced-motion: reduce) {
+  .fw-bench *, .fw-step-bar { animation: none !important; transition: none !important; }
+}
+body:has(.ambient[data-paused]) .fw-bench *, body:has(.ambient[data-paused]) .fw-step-bar { animation: none !important; }

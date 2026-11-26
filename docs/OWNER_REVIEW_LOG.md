@@ -10,6 +10,20 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## The Forge becomes a working bench, and the slider works with motion off
+- **What:** The homepage "Bring your documents. Leave with proof." section is rebuilt. The four steps are
+  buttons; each plays a short, true-to-life scene on a bench next to a sample profile card: the CV is scanned
+  and its details fly in (you approve each one), the diploma is checked line by line and stamped "Reviewed",
+  an SQL skill check is answered and the score counts up to 5/5, and a phone scans a certificate QR code that
+  reads "Valid". With each step the profile card earns a badge and its ring fills (25% to 100%). It moves on by
+  itself only while you are not using it, with a "Pause the walkthrough" link. The old "Passed in time" text
+  is gone (checks have no time limit now).
+- **Fixed:** with the site’s "Motion off" switch on, the slider’s example windows (and the old Forge badges)
+  stayed frozen on their first, invisible frame. Now, with motion off, everything simply shows in its finished
+  state; the same rule is built into the new Forge.
+- **Where:** the homepage.
+- **Status:** Ready (no database change).
+
 ## Skill checks: no timer, part of verification, and connected everywhere
 - **What:** Skill checks are now clearly part of verification: passing one is the fastest way to make a
   skill Verified ✓. There is **no time limit** any more: take your time, leave and come back, even reload;

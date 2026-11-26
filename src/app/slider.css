@@ -198,8 +198,7 @@
 .fs-slide[data-active] .d-site-name { animation: d-in .6s .2s ease-out both; }
 .fs-slide[data-active] .d-site-photo { animation: fs-rise .7s .35s cubic-bezier(.2, .8, .2, 1) both; }
 
-/* Only the slide in view animates; the others hold still. */
-.fs-slide:not([data-active]) * { animation-play-state: paused !important; }
+/* Arrivals and loops only run on the slide in view (every rule above is scoped to [data-active]). */
 
 @media (max-width: 900px) {
   .fs-tabs { justify-content: flex-start; }
@@ -225,7 +224,9 @@
   .fs-tab-progress { display: none; }
   .fs-stage > span:first-child img { transition: none; }
 }
-body:has(.ambient[data-paused]) .fs-slide * { animation-play-state: paused !important; }
+/* Motion switch off: no arrivals at all, so every example simply shows in its finished state.
+   (Pausing instead would freeze arrivals on their first, invisible frame.) */
+body:has(.ambient[data-paused]) .fs-slide *, body:has(.ambient[data-paused]) .fs-tab-progress { animation: none !important; }
 
 /* Numbered tabs, so the order of the tools reads at a glance. */
 .fs-tab-num { margin-right: 7px; color: var(--muted); font: 500 10.5px/1 var(--mono); transition: color .2s; }

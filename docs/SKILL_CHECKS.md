@@ -1,7 +1,8 @@
-# Skill checks: AI-drafted, admin-approved, server-timed
+# Skill checks: AI-drafted, admin-approved, part of verification
 
 Requirement R1 asks for skill validation "via questions that are well prepared and a time
-limit". Students can take a check for any skill an admin has published; passing marks the
+limit". On 26 Nov 2026 the owner asked to remove the time limit; fairness now comes from the measures
+below instead (a deliberate change from the report's wording). Students can take a check for any skill an admin has published; passing marks the
 skill **Verified** (CareerForge check) on the verification page, the profile and the CV.
 
 ## How a check is made
@@ -17,13 +18,27 @@ skill **Verified** (CareerForge check) on the verification page, the profile and
    stores only `id`, `prompt`, `options` and `answer` as the next version of that skill in
    `careerforge_internal.skill_check_banks`. Explanations stay in the draft.
 
-## How a check is taken (unchanged, now for any skill)
+## How a check is taken (since 26 Nov 2026: no clock)
 
-- The skill must be on the student's profile. Only the latest version can be started.
-- The server sets the deadline (10 minutes, or 100 with extended time), grades in the database
-  (4 of 5 to pass) and enforces a one-minute pause between attempts.
-- Answer keys never reach the browser: the catalogue strips them.
-- Earlier passes stay valid when a new version is published.
+Migration `202611260002_untimed_skill_checks.sql`; functions `start_untimed_skill_check` and
+`submit_untimed_skill_check` (the timed `start_skill_check` and `submit_timed_skill_check` are revoked).
+
+- **Part of verification.** A pass is CareerForge's own confirmation (the "Verified" level). Checks are
+  offered from the Verification page (the check opens in a dialog there), `/skill-checks`, the
+  profile's skills, job details (skills in the posting that have a check), skill roadmaps, career
+  analysis gaps and CV-analysis next steps; `/skill-checks?skill=React` opens one check directly.
+- **No time limit.** An attempt stays open until it is sent or ended; an abandoned one lapses after
+  24 hours. Answers are kept on the device (sessionStorage) so leaving or reloading loses nothing.
+- **A new order every attempt.** The server stores a random question order and, per question, a random
+  option order; the browser answers in that order and the server maps the answers back before grading.
+  Answer keys never reach the browser.
+- **24 hours after a failed attempt** before the same skill can be taken again (other skills are not
+  blocked; a later pass ends the wait). One minute between any two attempts, as before.
+- **One step from the profile.** If the skill is not on the profile, the person can add it and start in
+  one step (`p_add_to_profile`), up to the 40-skill limit.
+- Only the latest version can be started; earlier passes stay valid. 4 of 5 to pass.
+- One question at a time with a progress bar, a review screen, and a result that says what changed
+  (pass: links to the CV and to matching jobs; not yet: the retry time and the free roadmap).
 
 ## Data and limits
 

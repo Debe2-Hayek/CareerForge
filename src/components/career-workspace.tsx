@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useAccountTracker } from "./use-account-tracker";
 import type { CatalogJob, TrackerData } from "@/lib/tracker/schemas";
+import { checkHref, findCheck } from "@/lib/skill-checks";
 import { isCurrentListing, levelLabels, regionLabels, relativeDays, sourceLabels, type LevelKey, type RegionKey } from "@/lib/jobs/display";
 import type { AccountProfile } from "@/lib/account/schemas";
 import { AppShell } from "./app-shell";
@@ -35,7 +37,7 @@ function postedLabel(job: AnyJob) {
   return [posted && `Posted ${posted}`, refreshed && `checked ${refreshed}`].filter(Boolean).join(" · ");
 }
 
-export function CareerWorkspace({ view, account }: { view: View; account?: { id: string; profile: AccountProfile; tracker: TrackerData; journey?: Journey | null; sky?: Sky | null } }) {
+export function CareerWorkspace({ view, account }: { view: View; account?: { id: string; profile: AccountProfile; tracker: TrackerData; journey?: Journey | null; sky?: Sky | null; checks?: string[] } }) {
   const remote = useAccountTracker(account?.tracker);
   const catalog = remote.data?.jobs ?? jobs;
   const allJobs = [...new Map([...catalog, ...(remote.data?.applications.map(entry => entry.job) ?? [])].map(job => [job.id, job])).values()];
@@ -45,7 +47,9 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
   const workspace = account
     ? { profile: account.profile, applications: Object.fromEntries((remote.data?.applications ?? []).map(entry => [entry.jobId, entry.status])) }
     : temporary ?? readWorkspace(raw);
-  const [query, setQuery] = useState("");
+  // A link such as /jobs?q=React (from a passed skill check) opens the list already searched.
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get("q")?.slice(0, 80) ?? "");
   const [mode, setMode] = useState("All work modes");
   const [savedOnly, setSavedOnly] = useState(false);
   const [region, setRegion] = useState<"all" | RegionKey>("all");
@@ -194,7 +198,7 @@ export function CareerWorkspace({ view, account }: { view: View; account?: { id:
     <dialog ref={dialogRef} className="role-dialog" aria-labelledby="role-title" onClose={restoreRoleFocus} onClick={e => { if (e.target === e.currentTarget) { const rect = e.currentTarget.getBoundingClientRect(); if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) closeRole(); } }}>{selected && <><button className="modal-close" onClick={closeRole} aria-label="Close role details">×</button><span className={`company-mark ${selected.color}`}>{selected.initials}</span><p className="eyebrow">{isLive(selected) ? `LIVE LISTING · VIA ${(sourceLabels[selected.source!] ?? selected.source!).toUpperCase()}` : "FICTIONAL DEMO OPPORTUNITY"}</p><h2 id="role-title">{selected.title}</h2><p>{selected.company} · {selected.location}</p><div className="tag-row">{jobTags(selected).map(tag => <span className="tag" key={tag}>{tag}</span>)}</div>
       {isLive(selected) && <p className="muted-note role-provenance">{[postedLabel(selected), selected.salaryText && `Salary listed: ${selected.salaryText}`, selected.expiresAt && `Listed until ${new Date(selected.expiresAt).toLocaleDateString()}`].filter(Boolean).join(" · ")}{!isCurrentFor(selected) && " · This listing is no longer active."}</p>}
       <h3>About the role</h3><p className={wantsFull ? "role-description is-loading" : "role-description"}>{fullText[selected.id] ?? selected.description}</p>{isLive(selected) && <p className="muted-note">Excerpt from the listing. Read the full description on the original posting.</p>}
-      <h3>Your skill connection</h3>{selected.skills.length ? <><p>{matchSkills(profile.skills, selected.skills).score}% of {isLive(selected) ? "skills detected in this posting" : "listed skills"} match your self-reported profile.</p><div className="tag-row">{selected.skills.map(skill => <span key={skill} className={`tag ${matchSkills(profile.skills, [skill]).score ? "skill-have" : "skill-missing"}`}>{matchSkills(profile.skills, [skill]).score ? "✓ " : "+ "}{skill}</span>)}</div><p className="muted-note">Green skills are in your profile. Other skills are gaps to explore.{isLive(selected) ? " Skills are detected by keyword and may be incomplete." : " No live vacancy or application submission is available."}</p></> : <p className="muted-note">No skills were detected in this posting’s text, so no match score is shown. Check the original posting for its requirements.</p>}
+      <h3>Your skill connection</h3>{selected.skills.length ? <><p>{matchSkills(profile.skills, selected.skills).score}% of {isLive(selected) ? "skills detected in this posting" : "listed skills"} match your self-reported profile.</p><div className="tag-row">{selected.skills.map(skill => <span key={skill} className={`tag ${matchSkills(profile.skills, [skill]).score ? "skill-have" : "skill-missing"}`}>{matchSkills(profile.skills, [skill]).score ? "✓ " : "+ "}{skill}</span>)}</div>{(() => { const provable = selected.skills.map(skill => findCheck(account?.checks ?? [], skill)).filter((skill): skill is string => Boolean(skill)); return provable.length ? <p className="role-prove">Prove {provable.length === 1 ? "it" : "them"} with a skill check: {provable.map((skill, i) => <span key={skill}>{i ? " · " : ""}<Link href={checkHref(skill)} onClick={closeRole}>{skill} ✓</Link></span>)}</p> : null; })()}<p className="muted-note">Green skills are in your profile. Other skills are gaps to explore.{isLive(selected) ? " Skills are detected by keyword and may be incomplete." : " No live vacancy or application submission is available."}</p></> : <p className="muted-note">No skills were detected in this posting’s text, so no match score is shown. Check the original posting for its requirements.</p>}
       {isLive(selected) && isCurrentFor(selected) && selected.applyUrl && selected.sourceUrl && <div className="role-source"><a className="button primary" href={selected.applyUrl} target="_blank" rel="noopener noreferrer">Apply on {selected.source === "himalayas" ? "Himalayas" : `${selected.company}'s page`} <span className="sr-only">(opens in a new tab)</span><span aria-hidden="true">↗</span></a><p className="muted-note">Listing from <a href={selected.sourceUrl} target="_blank" rel="noopener noreferrer">{sourceLabels[selected.source!] ?? selected.source}<span className="sr-only"> (opens in a new tab)</span></a>. Applying opens the original site; CareerForge does not submit applications or share your profile.{selected.source === "himalayas" && " Himalayas lists this remote role as open to applicants in Lebanon, and its text names no other country restriction CareerForge could detect. Check the location and work-permit requirements on the posting before applying."}</p></div>}
       {account && catalog.some(job => job.id === selected.id) && selected.skills.length > 0 && <Link className="text-button role-learning-link" href={`/learning-roadmap/careers?target=${encodeURIComponent(selected.id)}`} onClick={closeRole}>Build a learning plan for this role ↗</Link>}{account && catalog.some(job => job.id === selected.id) && <Link className="text-button role-learning-link" href={`/cv-analysis?job=${encodeURIComponent(selected.id)}`} onClick={closeRole}>Analyse my CV for this job ↗</Link>}<button className="button primary" disabled={busy(selected.id)} onClick={() => toggleSaved(selected)}>{workspace.applications[selected.id] ? "Remove from tracker" : "Save opportunity"}</button></>}</dialog>
   </AppShell>;

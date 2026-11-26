@@ -120,7 +120,7 @@ export function SkillDraftStudio({ drafts, live }: { drafts: DraftRow[]; live: B
     <section className="panel studio-new" aria-labelledby="studio-new-title">
       <div>
         <p className="eyebrow">NEW CHECK</p>
-        <h2 id="studio-new-title">Draft 5 timed questions for any skill</h2>
+        <h2 id="studio-new-title">Draft 5 questions for any skill</h2>
         <p>The AI writes practical questions with three options and an explanation. You edit and approve them; nothing reaches students until you publish. Students get 10 minutes (100 with extended time) and need 4 of 5 to pass.</p>
       </div>
       <form className="studio-form" onSubmit={event => start(event, "generate")}>

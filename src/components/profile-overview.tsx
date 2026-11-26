@@ -8,8 +8,9 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 /** The profile's headline card: who you are, how strong the profile is, and the one next step. */
 export function ProfileOverview({ profile, counts }: { profile: AccountProfile; counts: StrengthCounts }) {
   const { percent, steps, next, level, done } = profileStrength(profile, counts);
+  const complete = done === steps.length;
   const initials = profile.name.split(" ").filter(Boolean).map(word => word[0]).slice(0, 2).join("").toUpperCase() || "CF";
-  return <section className="panel profile-overview" aria-labelledby="profile-strength-title">
+  return <section className="panel profile-overview" data-complete={complete || undefined} aria-labelledby="profile-strength-title">
     <div className="overview-identity">
       <div className="overview-avatar" aria-hidden="true">{initials}</div>
       <div>
@@ -31,18 +32,20 @@ export function ProfileOverview({ profile, counts }: { profile: AccountProfile; 
       <div className="strength-copy">
         <h3 id="profile-strength-title">{level.title}</h3>
         <p>{level.message}</p>
+        {complete && <p className="strength-all-done"><span aria-hidden="true">✓</span> All {steps.length} profile steps done</p>}
         {next ? <Link href={next.href} className="button primary strength-next">Next: {next.label} <span aria-hidden="true">→</span></Link>
           : <Link href="/cv/saved" className="button primary strength-next">See your CV <span aria-hidden="true">→</span></Link>}
       </div>
     </div>
 
-    <ol className="strength-steps" aria-label={`Profile steps: ${done} of ${steps.length} done`}>
+    {/* Once every step is done the checklist steps aside, so a finished profile stays calm. */}
+    {!complete && <ol className="strength-steps" aria-label={`Profile steps: ${done} of ${steps.length} done`}>
       {steps.map(step => <li key={step.id} className={step.done ? "done" : next?.id === step.id ? "next" : undefined}>
         <Link href={step.href}>
           <span className="step-mark" aria-hidden="true">{step.done ? "✓" : `+${step.points}`}</span>
           <span><strong>{step.label}<span className="sr-only">{step.done ? ", done" : `, not done yet, worth ${step.points} points`}</span></strong><small>{step.detail}</small></span>
         </Link>
       </li>)}
-    </ol>
+    </ol>}
   </section>;
 }

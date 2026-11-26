@@ -347,3 +347,11 @@
 @media print {
   .tracks, .progressRow, .toast, .reset { display: none; }
 }
+
+/* A skill roadmap's check: the natural last step once the basics are learned. */
+.proveBlock { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 16px 20px; padding: 22px 24px; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 18px; background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%); }
+.proveBlock p { margin: 4px 0 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.proveMark { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: var(--accent); color: var(--accent-ink, #10170c); font-size: 20px; font-weight: 700; }
+.proveLink { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; background: var(--accent); color: var(--accent-ink, #10170c) !important; font-size: 14px !important; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.proveLink:hover { filter: brightness(1.05); }
+@media (max-width: 720px) { .proveBlock { grid-template-columns: auto minmax(0, 1fr); } .proveLink { grid-column: 1 / -1; justify-content: center; } }

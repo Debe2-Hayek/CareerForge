@@ -7,8 +7,8 @@ Owner-facing summary of every feature, with status and reminders: [OWNER_REVIEW_
 The desktop sidebar is narrower with tighter rows, and Planned/Stretch tools fold into one "Coming soon" row
 (`src/components/app-shell.tsx`). Signed-in Overview opens with "Your career constellation"
 (`src/lib/constellation.ts`, unit-tested; `src/components/career-constellation.tsx`) built from the claims
-overview. The homepage tile grid becomes a 3D ring (`src/components/capability-ring.tsx`) reusing the workshops
-ring placement maths (`src/lib/workshops/ring.ts`). Reduced motion and the motion switch respected. No database change.
+overview. The homepage tile grid became a 3D ring, replaced on 26 Nov by a 2D feature slider
+(`src/components/feature-slider.tsx`, examples in `feature-demos.tsx`). Reduced motion and the motion switch respected. No database change.
 
 ## Design pass: guided Overview, immersive assistant, homepage showcase - verified on development, 24 November 2026
 
@@ -72,7 +72,7 @@ production needs migration 202611250001. Details: [CLAIMS.md](CLAIMS.md).
 `/career-assistant` answers career questions with only the parts of the profile the user ticks
 (profile and skills with trust badges, work and education, career matches). OpenAI (`gpt-6-luna`)
 when an OpenAI key is set, otherwise the existing DeepSeek/OpenRouter provider; plain-text replies
-with allow-listed internal links; 20 messages per day; chats not saved. Moves from Stretch to Pilot.
+with allow-listed internal links; 20 messages per day; chats saved to the account (26 Nov, migration 202611260001: sidebar of past chats, rename, search, delete). Moves from Stretch to Pilot.
 Built on PR #23. Production needs 0004 to 0009. Details: [ASSISTANT.md](ASSISTANT.md).
 
 ## R1: Project interviews - verified on development with the test AI and test GitHub, 23 November 2026

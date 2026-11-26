@@ -1,6 +1,7 @@
 // Live check of the career assistant on DEVELOPMENT only. A temporary student with a profile
 // asks a starter question and a follow-up (test AI with AI_FAKE=1, or the real AI: 2 calls),
-// with only some context shared; links to CareerForge pages work; then the account is deleted.
+// with only some context shared; links to CareerForge pages work; the chat is saved to the account (kept
+// after a refresh and after signing out, renamed, deleted); then the account is deleted.
 //   PLAYWRIGHT_BASE_URL=http://localhost:3100 EXPECTED_SUPABASE_PROJECT_REF=<dev ref> node --env-file=.env scripts/verify-assistant-live.mjs
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -73,12 +74,56 @@ try {
   await noOverflow(s.page);
   await s.page.screenshot({ path: `${shots}/1-chat-dark.png`, fullPage: true });
 
+  stage = "the chat is saved to the account: kept after a refresh and a visit to another page";
+  await expect(s.page).toHaveURL(/\?chat=[0-9a-f-]{36}$/);
+  await s.page.reload();
+  await expect(replies).toHaveCount(2, { timeout: 15000 });
+  await s.page.goto("/account");
+  await s.page.goto("/career-assistant");
+  await expect(s.page.locator(".chat-welcome")).toBeVisible();
+  await expect(s.page.locator(".chat-history-item")).toHaveCount(1);
+  await expect(s.page.locator(".chat-history-item")).toContainText("What should I learn next?");
+  await s.page.locator(".chat-history-item").first().click();
+  await expect(replies).toHaveCount(2, { timeout: 15000 });
+
+  stage = "a chat can be renamed";
+  await s.page.getByRole("button", { name: /^Rename chat:/ }).click();
+  await s.page.getByLabel("Chat name").fill("My learning plan");
+  await s.page.getByLabel("Chat name").press("Enter");
+  await expect(s.page.locator(".chat-history-item")).toContainText("My learning plan");
+
   stage = "a link opens the page inside CareerForge";
   const link = replies.first().getByRole("link").first();
-  if (await link.count()) { await link.click(); await expect(s.page).toHaveURL(/\/skill-checks$/); }
+  if (await link.count()) {
+    const href = await link.getAttribute("href");
+    await link.click();
+    await expect(s.page).toHaveURL(`${baseURL}${href}`);
+  }
+
+  stage = "chats stay after signing out, on another browser, and only for their owner";
+  await s.page.goto("/account");
+  await s.page.getByRole("button", { name: "Sign out" }).click();
+  await expect(s.page).toHaveURL(/\/login/, { timeout: 30000 });
+  await s.context.close();
+  const again = await signIn();
+  await again.page.goto("/career-assistant");
+  await expect(again.page.locator(".chat-history-item")).toHaveCount(1);
+  await expect(again.page.locator(".chat-history-item")).toContainText("My learning plan");
+  await again.page.locator(".chat-history-item").first().click();
+  await expect(again.page.locator(".assistant-message.from-assistant:not(.typing)")).toHaveCount(2, { timeout: 15000 });
+  const rows = await db.query("select count(*)::int n, sum(jsonb_array_length(messages))::int m from public.assistant_chats where user_id = $1", [user.id]);
+  assert.deepEqual(rows.rows[0], { n: 1, m: 4 }, "one saved chat with two questions and two answers");
+
+  stage = "deleting a chat removes it from the account";
+  again.page.once("dialog", dialog => dialog.accept());
+  await again.page.getByRole("button", { name: /^Delete chat:/ }).click();
+  await expect(again.page.locator(".chat-history-item")).toHaveCount(0);
+  await expect.poll(async () => (await db.query("select count(*)::int n from public.assistant_chats where user_id = $1", [user.id])).rows[0].n).toBe(0);
+  await again.context.close();
 
   stage = "signed out is refused";
   const anonymous = await browser.newContext({ baseURL });
+  assert.equal((await anonymous.request.get("/api/v1/assistant/chats")).status(), 401);
   assert.equal((await anonymous.request.post("/api/v1/assistant", { headers: { Origin: baseURL }, data: { messages: [{ role: "user", content: "Hi" }], context: { profile: true, history: true, careers: true } } })).status(), 401);
   await anonymous.close();
 
@@ -87,7 +132,7 @@ try {
     const v = await signIn(options);
     if (name === "light") await v.page.evaluate(() => localStorage.setItem("careerforge-theme", "light"));
     await v.page.goto("/career-assistant");
-    await v.page.getByRole("button", { name: "Which career fits me best, and why?" }).click();
+    await v.page.locator(".chat-starters button", { hasText: "Which career fits me best, and why?" }).click();
     await expect(v.page.locator(".assistant-message.from-assistant:not(.typing)")).toHaveCount(1, { timeout: 90000 });
     await v.page.waitForTimeout(1000);
     await noOverflow(v.page);

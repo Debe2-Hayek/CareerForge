@@ -50,7 +50,7 @@ export function ProfileCV({ profile, passedSkills = [], history = emptyHistory, 
         <strong>{item.title}</strong> — {item.detail}{reviewed.has(item.key) && <span className="cv-check-inline"> ✓ reviewed</span>}
       </li>)}</ul>
     </section>}
-    {skills.length > 0 && <section><h3>Skills</h3><p className="cv-history-note">Each skill passed a timed CareerForge check.</p><ul className="cv-skills">{skills.map(skill => <li key={skill}>{skill}</li>)}</ul></section>}
+    {skills.length > 0 && <section><h3>Skills</h3><p className="cv-history-note">Each skill passed a CareerForge skill check.</p><ul className="cv-skills">{skills.map(skill => <li key={skill}>{skill}</li>)}</ul></section>}
     {trustUrl && <footer className="cv-trust"><span aria-hidden="true">✓</span> Checked facts can be confirmed at <a href={trustUrl}>{trustUrl.replace(/^https:\/\//, "")}</a></footer>}
   </article>;
 }

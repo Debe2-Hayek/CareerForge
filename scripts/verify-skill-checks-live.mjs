@@ -1,6 +1,6 @@
 // Live check of the skill checks studio on DEVELOPMENT only. A temporary admin drafts a
 // check with the AI (or the development test AI: dev server started with AI_FAKE=1), edits
-// it, publishes it; a temporary student who lists that skill takes the timed check, passes,
+// it, publishes it; a temporary student who lists that skill takes the check (no clock, shuffled), passes,
 // and sees the skill Verified. A second publication must retire the first version.
 //   PLAYWRIGHT_BASE_URL=http://localhost:3100 EXPECTED_SUPABASE_PROJECT_REF=<dev ref> node --env-file=.env scripts/verify-skill-checks-live.mjs
 import assert from "node:assert/strict";
@@ -96,15 +96,19 @@ try {
   const checkCard = s.page.locator(".check-card", { hasText: skill });
   await expect(checkCard).toBeVisible();
   await checkCard.getByRole("button", { name: "Start check" }).click();
-  await expect(s.page.getByRole("heading", { name: `${skill} basics` })).toBeVisible({ timeout: 15000 });
+  await expect(s.page.locator(".check-step")).toContainText("Question 1 of 5", { timeout: 15000 });
   const html = await s.page.content();
   assert.equal(/"answer"\s*:/.test(html), false, "no answer key in the page");
-  for (const [index, question] of bank.rows[0].questions.entries()) {
-    await s.page.locator(`input[name="${question.id}"]`).nth(question.answer).check();
-    assert.ok(index < 5);
+  // Questions and options come in a new order each attempt: answer by the right option's text.
+  for (let n = 1; n <= 5; n++) {
+    const prompt = await s.page.locator(".check-question legend h2").innerText();
+    const question = bank.rows[0].questions.find(item => item.prompt === prompt);
+    assert.ok(question, "the shown question is from the published bank");
+    await s.page.locator(".check-option", { hasText: question.options[question.answer] }).first().click();
+    await s.page.getByRole("button", { name: n < 5 ? "Next" : "Review answers", exact: true }).click();
   }
-  await s.page.getByRole("button", { name: "Submit answers" }).click();
-  await expect(s.page.getByText(new RegExp(`${skill}: 5/5. Basics check passed`))).toBeVisible({ timeout: 15000 });
+  await s.page.getByRole("button", { name: "Send answers" }).click();
+  await expect(s.page.getByRole("heading", { name: `${skill} is now Verified` })).toBeVisible({ timeout: 15000 });
   await s.page.goto("/account/verification");
   await expect(s.page.locator(".claim-row", { hasText: skill }).locator(".claim-badge")).toHaveText("Verified");
   await expect(s.page.locator(".claim-row", { hasText: "Java" })).not.toContainText("Take the");
@@ -125,9 +129,8 @@ try {
   a.page.once("dialog", dialog => dialog.accept());
   await blank.getByRole("button", { name: "Publish check" }).click();
   await expect(a.page.getByText(new RegExp(`Published: ${skill} version 2`))).toBeVisible({ timeout: 15000 });
-  await s.page.waitForTimeout(61000); // the existing one-minute cooldown between attempts
   const old = await s.page.request.post("/api/v1/skill-checks/sessions", { headers: { Origin: baseURL }, data: { action: "start", skill, version: 1, timingMode: "standard" } });
-  assert.equal(old.status(), 400, "version 1 can no longer be started");
+  assert.equal(old.status(), 400, "a version or a clock can no longer be chosen; the latest version always starts");
   await s.page.goto("/account/verification");
   await expect(s.page.locator(".claim-row", { hasText: skill }).locator(".claim-badge")).toHaveText("Verified", { timeout: 15000 });
 

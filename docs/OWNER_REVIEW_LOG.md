@@ -10,6 +10,93 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Skill checks: no timer, part of verification, and connected everywhere
+- **What:** Skill checks are now clearly part of verification: passing one is the fastest way to make a
+  skill Verified ✓. There is **no time limit** any more: take your time, leave and come back, even reload;
+  your answers wait. To keep it fair without a clock, every attempt shows the questions and the answers in
+  a **new order**, the server does the grading, and after a failed attempt you can try that skill again
+  **24 hours later** (you see exactly when). The check itself is calmer: one question at a time with a
+  progress bar, keys A B C, a review screen before sending, and a clear result (pass: "React is now
+  Verified" with links to your CV and to jobs that ask for React; not yet: when you can retry, plus the free
+  roadmap).
+- **Connected where it belongs:** the Verification page (the check opens right there in a window), your
+  profile (skills that have a check get a direct link), job details (skills in the posting that have a check),
+  skill roadmaps ("Prove React when you are ready"), career analysis gaps ("Prove it"), CV analysis next steps,
+  and `/skill-checks?skill=React` opens a check directly. A skill that isn't on your profile can be added and
+  started in one click.
+- **Note:** your project report (requirement R1) mentions "a time limit"; this follows your request to remove it.
+- **Where:** `/skill-checks`, `/account/verification`, `/account`, `/jobs`, `/learning-roadmap/react`, `/career-analysis`.
+- **Status:** Ready. Development has the database step; production needs migration
+  `202611260002_untimed_skill_checks.sql` right before merging (one YES window).
+
+## My profile, CV & Portfolio and the homepage slider, redesigned
+- **My profile:** the form is now grouped like a settings page in a well-made app: The basics, Your story,
+  Education and Skills, each with a one-line explanation on the left and the fields on the right. Skills
+  are tags: type one and press Enter (or paste a list); suggestions are the skills employers ask for; proven
+  skills show a ✓. A small map at the top of the form shows each part with a ✓ once it is filled in, and
+  jumps to it; your sign-in email sits apart, in the shortcuts card. The save bar stays quietly at the end and only follows you down the page when there is
+  something to save, with a Discard button. Once all seven profile steps are done, the checklist steps aside.
+- **No CV or portfolio yet?** The profile shows one clear card, "You don't have a CV or portfolio yet",
+  with a picture of the result and a button to CV & Portfolio. After saving, the message points there too.
+  Once you have one, a side card shows "Your portfolio is live" with its link (or "Finish and publish").
+- **CV & Portfolio:** the top bar is one calm row: the name, "Saved" and "Live at /u/…" on the left; Notes,
+  a "More" menu (saved-profile CV, profile portfolio) and one main button (Publish website / Manage live
+  site) on the right. The notes panel opens with the three steps: write, generate, edit and publish.
+  The editing toolbar is one row: Web portfolio / CV, then only the controls that change what you see (CV
+  style; colour for the portfolio and the Modern CV; light or dark for the portfolio), and Download PDF as the
+  main button. One short line under it says what the chosen CV style is for.
+- **Homepage:** the 3D ring is replaced by a 2D slider. Tabs on top (Profile, Skill checks, Roadmaps,
+  Workshops, CV, Jobs, Applications, AI assistant, Portfolio); each slide explains the tool with three
+  points and a true number, next to a live-looking example of the tool itself (a profile with checked
+  facts, a skill-check question, a roadmap, a certificate, a CV, matched jobs, an application board, an AI
+  answer, and a portfolio website like the builder's). All examples use one fictional person and say
+  "Example". Swipe, drag, arrows, tabs or the keyboard; it moves on by itself only while you are not using it.
+- **References used:** Mobbin (edit-profile and settings screens from Base44, Buy Me a Coffee, Flodesk and Lindy;
+  feature-tab sections from Ada and Heron AI), SaaSFrame (user-profile and empty-state guides), Page Flows (profile
+  flows), Godly, Dribbble and Awwwards for overall polish. Principles only; nothing copied.
+- **Where:** `/account`, `/documents`, the homepage "Everything inside" section.
+- **Status:** Ready (no database change).
+
+## AI assistant: chats are saved to your account, and the page looks like ChatGPT or Claude
+- **What:** Every chat with the AI assistant is saved to your account, like ChatGPT or Claude. Come back to a
+  helpful chat any time: after a refresh, another page, signing out, or on your phone. A sidebar lists your
+  chats by day (Today, Yesterday, Previous 7 days...); click one to continue it, rename it, search them, start
+  a "New chat", or delete one or all. Each chat has its own link, so a refresh reopens the same chat. If the page
+  closes while an answer is being written, the answer is still saved. The page now looks like the chat apps
+  people know: one calm reading column, answers as clean text next to the globe with numbered and bulleted
+  lists, your messages in soft bubbles, and one message box with the "Share" choices inside it. A new chat shows
+  the greeting, the box and the suggestions together in the middle. On phones the chat list slides in from the
+  menu button.
+- **Privacy:** only you can see your chats (checked by the database itself, not just the page). Delete any chat,
+  or all of them, whenever you like; deleting your account deletes them too.
+- **Where:** `/career-assistant`.
+- **How to try:** ask a question, then refresh, sign out and in again, or open it on your phone: the chat is in
+  the sidebar. Rename it with the pencil, delete it with the bin.
+- **Status:** Ready. Development has the database step; production needs migration
+  `202611260001_assistant_chats.sql` before merging (one YES window).
+
+## A full showcase test case, and three builder fixes it found
+- **What:** A new script, `scripts/demo-showcase.mjs`, runs CareerForge end to end on the development copy with the
+  real AI, as one fictional student (Karim Nassar, a computer science graduate in Beirut), and writes a pass/fail
+  report with screenshots. 15 test cases: new account; AI reads his CV and fills the profile; languages with an
+  IELTS score; proof for the degree and the English score; a reviewer runs the AI check and approves; a React
+  skill check; a workshop certificate issued by a trainer and checked by a visitor; the best jobs saved and
+  tracked; CV vs job with an AI explanation; career analysis with the AI coach; the AI assistant; a CV and
+  portfolio written by AI from rough notes and published as a website; the public page of checked facts; and the
+  Overview in dark, white and phone views. Result: **15/15 passed**. The demo accounts stay on the development copy
+  so they can be shown; their passwords are only in the private `.deployment` folder. Each run starts clean.
+- **Bugs it found and fixed (CV & Portfolio builder):**
+  - After "Generate with AI", missing contact details were kept from the built-in sample, so a real person's
+    portfolio could show the sample's email, phone, LinkedIn and GitHub. Now only details the person typed are kept.
+  - If the AI found nothing usable in the notes, the builder wiped the preview and still said "Done". Now it keeps
+    the preview and explains what to write.
+  - Names, job titles, companies and projects that come back all in lowercase get capitals ("karim nassar" →
+    "Karim Nassar", "bs in computer science" → "BS in Computer Science"); sentences stay as written.
+  - The demo-mode note no longer mentions an old AI key.
+- **Where:** `/documents`, published portfolios; the script in `scripts/`.
+- **Status:** Ready (no database change).
+
+
 ## Faster, more private CV & Portfolio page
 - **What:** Measured every signed-in page on a real production build (signed in): all answer in 0.25–0.5 s
   with no heavy browser work. The learning roadmap and workshops were fine (their earlier slow numbers were
@@ -24,7 +111,7 @@ part needs OpenRouter credits before it gives real answers.
   - Result on the production build: the builder is fully drawn about 0.9 s after opening the page.
 - **Where:** `/documents` and published portfolios (`/u/<name>`).
 - **Tests:** the full account live test passes (it includes the builder, saving and publishing).
-- **Status:** Ready (no database change).
+- **Status:** Live since 25 Nov 2026 (no database change).
 
 
 ## Faster "Find opportunities": short descriptions first, full text when you open a job

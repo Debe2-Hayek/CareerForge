@@ -3,8 +3,8 @@ import type { CSSProperties } from "react";
 import { LandingNav } from "./landing-nav";
 import { Spotlight } from "./spotlight";
 import { ForgeShowcase } from "./forge-showcase";
-import { CapabilityRing, type Capability } from "./capability-ring";
-import { AiGlobe } from "./ai-globe";
+import { FeatureSlider, type Feature } from "./feature-slider";
+import { DemoAssistant, DemoChecks, DemoCv, DemoJobs, DemoLearning, DemoPortfolio, DemoProfile, DemoTracker, DemoWorkshops } from "./feature-demos";
 import { roadmaps, roleRoadmaps, skillRoadmaps, topicCount } from "@/lib/roadmaps/catalog";
 import { curatedWorkshops } from "@/data/workshops/curated";
 import { statuses } from "@/lib/demo-workspace";
@@ -71,67 +71,37 @@ function HeroMock() {
   </div>;
 }
 
-function VizProfile() {
-  return <div className="viz viz-profile" aria-hidden="true">
-    <div className="viz-row"><span className="lp-avatar sm">CF</span><div className="viz-lines"><i /><i className="short" /></div></div>
-    <div className="tag-row"><span className="tag skill-have">Education</span><span className="tag skill-have">Projects</span><span className="tag skill-have">Skills</span><span className="tag">Summary</span></div>
-  </div>;
-}
-function VizChecks() {
-  return <div className="viz viz-checks" aria-hidden="true">
-    <SkillRow label="Fundamentals" state="Checked" width="100%" delay="0s" />
-    <SkillRow label="Next check" state="In progress" width="55%" delay=".3s" pending />
-  </div>;
-}
-function VizCv() {
-  return <div className="viz viz-cv" aria-hidden="true"><div className="viz-paper"><b /><i /><i className="short" /><i /><i /><i className="short" /></div></div>;
-}
-function VizRoles() {
-  return <div className="viz viz-roles" aria-hidden="true">
-    <div className="viz-lines"><i /><i className="short" /></div>
-    <div className="tag-row"><span className="tag skill-have">#html</span><span className="tag skill-have">#css</span><span className="tag skill-missing">#sql</span></div>
-    <div className="skill-match-track"><span style={{ width: "72%" }} /></div>
-  </div>;
-}
-function VizTracker() {
-  return <div className="viz viz-tracker" aria-hidden="true">{["Saved", "Applied", "Interview", "Offer"].map((label, index) => <span key={label} style={vars({ "--i": String(index) })}>{label}</span>)}</div>;
-}
-function VizLearning() {
-  return <div className="viz viz-learning" aria-hidden="true">
-    {["Read the source", "Try the exercise", "Check what it shows"].map((label, index) => <div key={label} className="viz-step"><span>{index + 1}</span><b>{label}</b></div>)}
-  </div>;
-}
-function VizAssistant() {
-  return <div className="viz viz-assistant" aria-hidden="true">
-    <div className="viz-bubble user">What should I learn next?</div>
-    <div className="viz-bubble ai"><span className="viz-orb viz-orb-globe"><AiGlobe size={22} /></span>Docker: it is the gap in 3 of your saved jobs.</div>
-  </div>;
-}
-function VizWorkshops() {
-  return <div className="viz viz-workshops" aria-hidden="true">
-    <div className="viz-cert"><b>Certificate</b><i /><i className="short" /><span className="viz-qr" /></div>
-    <span className="viz-seal">✓ Checked</span>
-  </div>;
-}
-function VizPortfolio() {
-  return <div className="viz viz-portfolio" aria-hidden="true">
-    {[{ label: "Headline", on: true }, { label: "Projects", on: true }, { label: "Contact details", on: false }].map(({ label, on }) => <div key={label} className="viz-toggle"><b>{label}</b><span className={on ? "viz-switch on" : "viz-switch"} /></div>)}
-  </div>;
-}
-
-// The tools on the homepage ring, each with its own live picture and a way in.
+// The tools in the homepage slider, each with a live-looking example of the tool and a way in.
 // True numbers, read from the app's own data when the page is built.
 const topics = roadmaps.reduce((sum, roadmap) => sum + topicCount(roadmap), 0).toLocaleString("en");
-const tools: Capability[] = [
-  { id: "profile", accent: "#c6e49e", photo: "desk", stat: { value: "4", label: "kinds of fact you can prove" }, href: "/account", cta: "Build your profile", title: "A profile that stays yours", text: "Education, work, skills and languages in one private, owner-only account.", viz: <VizProfile /> },
-  { id: "checks", accent: "#7fd6c2", photo: "magnifier", stat: { value: "5", label: "questions per timed check" }, href: "/skill-checks", cta: "Take a skill check", title: "Skills with evidence", text: "Timed checks for any skill, prepared and approved by reviewers.", viz: <VizChecks /> },
-  { id: "learning", accent: "#a6e3a1", photo: "books", stat: { value: String(roadmaps.length), label: `free roadmaps · ${topics} topics` }, href: "/learning-roadmap", cta: "Start learning", title: "Free learning roadmaps", text: `${roleRoadmaps.length} careers and ${skillRoadmaps.length} skills, step by step, with free courses and projects.`, viz: <VizLearning /> },
-  { id: "workshops", accent: "#ffd27a", photo: "lecture-hall", stat: { value: String(curatedWorkshops.length), label: "free hands-on workshops" }, href: "/workshops", cta: "Browse workshops", title: "Workshops with certificates", text: "Live and self-paced sessions. Pass one and get a certificate anyone can check by QR code.", viz: <VizWorkshops /> },
-  { id: "cv", accent: "#f0d48a", photo: "typewriter", stat: { value: "A4", label: "print-ready CV and PDF" }, href: "/documents", cta: "Make your CV", title: "CV preview", text: "A clean, print-ready sheet generated from your profile.", viz: <VizCv /> },
-  { id: "roles", accent: "#8cc8ff", photo: "dev-desk", stat: { value: "3", label: "markets: Lebanon, region, remote" }, href: "/jobs", cta: "Find jobs", title: "Jobs that fit", text: "Live openings ranked by how your skills match, with the gaps spelled out.", viz: <VizRoles /> },
-  { id: "tracker", accent: "#ffad8f", photo: "sticky-notes", stat: { value: String(statuses.length), label: "stages, from saved to offer" }, href: "/applications", cta: "Track applications", title: "Application tracker", text: "Follow each application from saved through to an offer.", viz: <VizTracker /> },
-  { id: "assistant", accent: "#b8a6ff", photo: "neon-keyboard", stat: { value: "20", label: "free questions a day" }, href: "/career-assistant", cta: "Ask the assistant", title: "An AI that knows your profile", text: "Ask about careers, skills or your CV. It only sees what you choose to share.", viz: <VizAssistant /> },
-  { id: "portfolio", accent: "#f5a8c8", photo: "padlock", stat: { value: "0", label: "fields shared without your consent" }, href: "/documents", cta: "Share a portfolio", title: "Shared only by choice", text: "Publish a snapshot of the fields you select, and only after you consent.", viz: <VizPortfolio /> }
+const tools: Feature[] = [
+  { id: "profile", tab: "Profile", accent: "#c6e49e", photo: "desk", stat: { value: "4", label: "kinds of fact you can prove: degrees, jobs, skills, languages" }, href: "/account", cta: "Build your profile",
+    title: "A profile employers can trust", text: "Everything about you in one private place, and every claim can carry proof that a reviewer checks.",
+    points: ["Fill it in minutes: the AI reads your CV", "Badges show what is checked and what is not", "Only you can see it until you choose to share"], demo: <DemoProfile /> },
+  { id: "checks", tab: "Skill checks", accent: "#7fd6c2", photo: "magnifier", stat: { value: "5", label: "questions in each check, with no time limit" }, href: "/skill-checks", cta: "Take a skill check",
+    title: "Prove a skill, get a ✓", text: "Short checks written and approved by reviewers, with no time limit. Pass one and the skill is Verified everywhere it appears.",
+    points: ["A new question order on every attempt", "A pass shows on your CV and portfolio", "Not yet? Learn the gap and try again in 24 hours"], demo: <DemoChecks /> },
+  { id: "learning", tab: "Roadmaps", accent: "#a6e3a1", photo: "books", stat: { value: String(roadmaps.length), label: `free roadmaps with ${topics} topics` }, href: "/learning-roadmap", cta: "Start learning",
+    title: "Know exactly what to learn next", text: `${roleRoadmaps.length} career paths and ${skillRoadmaps.length} skills, step by step, each with free courses and a project to build.`,
+    points: ["Pick a career; see every step in order", "Free courses only, checked links", "Your progress saves to your account"], demo: <DemoLearning /> },
+  { id: "workshops", tab: "Workshops", accent: "#ffd27a", photo: "lecture-hall", stat: { value: String(curatedWorkshops.length), label: "free hands-on workshops" }, href: "/workshops", cta: "Browse workshops",
+    title: "Workshops that end in a certificate", text: "Live and self-paced sessions with trainers. Pass one and get a certificate anyone can check with a QR code.",
+    points: ["Scored by the trainer, not self-reported", "A public page proves it is genuine", "Adds a checked fact to your profile"], demo: <DemoWorkshops /> },
+  { id: "cv", tab: "CV", accent: "#f0d48a", photo: "typewriter", stat: { value: "3", label: "CV styles, including one for online forms (ATS)" }, href: "/documents", cta: "Make your CV",
+    title: "A clean CV from rough notes", text: "Write a few lines the way you would tell a friend. The AI turns them into a print-ready A4 CV you can edit word by word.",
+    points: ["Download as PDF in one click", "Proven skills keep their ✓", "Nothing invented: only what you wrote"], demo: <DemoCv /> },
+  { id: "jobs", tab: "Jobs", accent: "#8cc8ff", photo: "dev-desk", stat: { value: "3", label: "markets: Lebanon, the region and remote" }, href: "/jobs", cta: "Find jobs",
+    title: "Jobs ranked by how well you fit", text: "Live openings scored against your profile, with the missing skills spelled out so you know what to close.",
+    points: ["See your match before you apply", "Missing skills link straight to a roadmap", "Save a job to track it"], demo: <DemoJobs /> },
+  { id: "tracker", tab: "Applications", accent: "#ffad8f", photo: "sticky-notes", stat: { value: String(statuses.length), label: "stages, from saved to offer" }, href: "/applications", cta: "Track applications",
+    title: "Every application in one place", text: "Follow each application from saved to offer, with notes and dates, so nothing slips.",
+    points: ["Move a job along as it happens", "Notes and dates stay with each job", "Private to your account"], demo: <DemoTracker /> },
+  { id: "assistant", tab: "AI assistant", accent: "#b8a6ff", photo: "neon-keyboard", stat: { value: "20", label: "free questions a day" }, href: "/career-assistant", cta: "Ask the assistant",
+    title: "An AI that knows your profile", text: "Ask about careers, skills or your CV. It answers from what you choose to share, and your chats stay saved.",
+    points: ["Answers point to the right page", "You choose what it can see", "Chats are saved to your account"], demo: <DemoAssistant /> },
+  { id: "portfolio", tab: "Portfolio", accent: "#a99bff", photo: "padlock", stat: { value: "1", label: "link to your own portfolio website" }, href: "/documents", cta: "Publish a portfolio",
+    title: "Your own portfolio website", text: "The same notes become a one-page website at your own link. Publish when you are ready, take it offline any time.",
+    points: ["Pick colours and light or dark", "Contact buttons and CV download built in", "Only what you publish is public"], demo: <DemoPortfolio /> }
 ];
 
 export function PublicHome() {
@@ -169,7 +139,7 @@ export function PublicHome() {
           <h2 id="features-title">One workspace. Every next step.</h2>
           <p>Each part of CareerForge feeds the next, so your CV, your roles and your applications always agree with your profile.</p>
         </div>
-        <CapabilityRing items={tools} />
+        <FeatureSlider items={tools} />
         <p className="lp-more"><Link href="/features" className="text-button">Browse every feature <span aria-hidden="true">&#8599;</span></Link></p>
       </section>
 

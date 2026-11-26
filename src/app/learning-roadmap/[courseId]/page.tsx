@@ -9,6 +9,9 @@ import { slugSchema } from "@/lib/learning/schema";
 import { getRoadmap } from "@/lib/roadmaps/catalog";
 import { roadmapLookup } from "@/lib/roadmaps/lookup";
 import { marksFor, trackFor, trackShowing } from "@/lib/roadmaps/progress";
+import { readCheckableSkills } from "@/lib/skill-checks";
+import { checkForRoadmap } from "@/lib/skill-check-links";
+import { createClient } from "@/lib/supabase/server";
 
 type Params = Promise<{ courseId: string }>;
 type Search = Promise<Record<string, string | string[] | undefined>>;
@@ -45,7 +48,7 @@ export default async function RoadmapPage({ params, searchParams }: { params: Pa
       storageAvailable={account.snapshot !== null}
       initialOpen={topicId ? { kind: "topic", id: topicId } : projectId ? { kind: "project", id: projectId } : null}
     >
-      <RoadmapExtras roadmap={roadmap} />
+      <RoadmapExtras roadmap={roadmap} check={checkForRoadmap(roadmap, await createClient().then(readCheckableSkills, () => []))} />
     </RoadmapView>
   </AppShell>;
 }

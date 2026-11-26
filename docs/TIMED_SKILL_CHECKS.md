@@ -1,3 +1,5 @@
+> **Historical (28 Oct 2026).** Since 26 Nov 2026 checks have no time limit; see `SKILL_CHECKS.md`.
+
 # Timed assessment lifecycle contract
 
 R1 lifecycle slice delivered 28 October 2026. This extends the limited React/SQL fundamentals

@@ -29,7 +29,18 @@ internal links; a path inside another site's address is not linked.
 
 ## Privacy and limits
 
-Conversations are not saved as chat history; leaving the page clears them. Each answer is kept in
+Chats are saved to the person's account (table `assistant_chats`, migration
+`202611260001_assistant_chats.sql`), like ChatGPT or Claude: they stay after signing out and appear on every
+device. Only the owner can read them (row-level security); writes go through `append_assistant_chat`,
+`rename_assistant_chat` and `delete_assistant_chats`, which check every message (role, text up to 8,000
+characters, no other fields). The server saves each question with its answer after the reply, so an answer
+that finishes after the page closed is still there. Up to 200 chats per person (the oldest fall off) and 80
+messages per chat. Each chat has its own address (`/career-assistant?chat=<id>`); the page opens a fresh chat
+otherwise. The sidebar groups chats by day, searches titles (from 4 chats), renames and deletes; returning to
+the tab refreshes the list. API: `GET/DELETE /api/v1/assistant/chats`, `GET/PATCH/DELETE
+/api/v1/assistant/chats/:id`. If the table is missing or unreachable, the assistant still answers and says the
+chat is not saved. Answers are laid out as paragraphs, lists and headings by `toBlocks` (React elements only,
+never HTML). Each answer is kept in
 the private AI ledger for 30 days so an identical question costs nothing. 20 messages per user per
 day (migration `202611240009_assistant_chat.sql`, which keeps every earlier AI limit).
 

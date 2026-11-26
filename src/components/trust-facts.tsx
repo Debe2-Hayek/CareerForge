@@ -43,7 +43,7 @@ export function TrustFacts({ facts, headingLevel = 2 }: { facts: ConfirmedFacts;
 export function TrustMeaning() {
   return <dl className="trust-meaning">
     <div><dt>Proof reviewed</dt><dd>A CareerForge reviewer checked the person&apos;s document (diploma, work letter, score report or certificate) against the fact and compared it with proof sent from other accounts. It is not a confirmation from the issuer.</dd></div>
-    <div><dt>Timed skill check</dt><dd>The person passed a timed CareerForge test on this skill. It shows working knowledge, not mastery.</dd></div>
+    <div><dt>Skill check</dt><dd>The person passed a CareerForge check on this skill, with questions in a new order on every attempt. It shows working knowledge, not mastery.</dd></div>
     <div><dt>CareerForge certificate</dt><dd>Issued by CareerForge after a workshop run by an approved trainer, from the recorded attendance (and assessment, when stated). Not an accredited qualification.</dd></div>
     <div><dt>Project interview</dt><dd>The person answered timed questions about the code in their own repository, reviewed by CareerForge.</dd></div>
     <div><dt>Not shown</dt><dd>Anything the person only stated, and anything edited after it was checked.</dd></div>

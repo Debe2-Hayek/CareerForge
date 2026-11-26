@@ -2,11 +2,23 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { claimStatusInfo, trustSummary, type ClaimItem, type ClaimKind } from "@/lib/claims/model";
 import { issuerForLink, ISSUER_NAMES } from "@/lib/claims/issuers";
 import { ClaimBadge } from "./claim-badge";
 import { AppIcon } from "./app-icons";
+import { SkillCheckRunner } from "./skill-check-runner";
+
+/** A skill check opened right here, over the Verification page. */
+function CheckDialog({ skill, learnHref, onClose }: { skill: string; learnHref: string | null; onClose: (passed: boolean) => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const passed = useRef(false);
+  useEffect(() => { dialog.current?.showModal(); }, []);
+  return <dialog ref={dialog} className="check-dialog" aria-label={`${skill} check`} onClose={() => onClose(passed.current)} onCancel={event => { event.preventDefault(); dialog.current?.close(); }}>
+    <button type="button" className="check-dialog-x" aria-label="Close" onClick={() => dialog.current?.close()}><AppIcon name="close" /></button>
+    <SkillCheckRunner skill={skill} onProfile learnHref={learnHref} onClose={() => dialog.current?.close()} onFinished={outcome => { passed.current = outcome.passed; }} />
+  </dialog>;
+}
 
 const GROUPS: { kind: ClaimKind; title: string; proof: string; empty: string; add: { href: string; label: string } }[] = [
   { kind: "degree", title: "Education", proof: "Diploma, transcript or graduation certificate", empty: "No education records yet.", add: { href: "/account/history", label: "Add education" } },
@@ -92,8 +104,9 @@ function LinkButton({ item, onDone }: { item: ClaimItem; onDone: (message: strin
   </form>;
 }
 
-export function ClaimsBoard({ items }: { items: ClaimItem[] }) {
+export function ClaimsBoard({ items, learnHrefs = {} }: { items: ClaimItem[]; learnHrefs?: Record<string, string | null> }) {
   const router = useRouter();
+  const [checking, setChecking] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const summary = trustSummary(items);
   const percent = summary.total ? Math.round((summary.confirmed / summary.total) * 100) : 0;
@@ -156,7 +169,7 @@ export function ClaimsBoard({ items }: { items: ClaimItem[] }) {
             </div>
             <ClaimBadge status={item.status} />
             <div className="claim-actions">
-              {item.checkAvailable && <Link href="/skill-checks" className="text-button"><AppIcon name="checks" />Take the {item.title} check</Link>}
+              {item.checkAvailable && <button type="button" className="claim-check-button" onClick={() => setChecking(item.title)}><AppIcon name="checks" /><span>Take the check<small>instant ✓</small></span></button>}
               <ProofButton item={item} onDone={done} />
               <LinkButton item={item} onDone={done} />
             </div>
@@ -164,5 +177,6 @@ export function ClaimsBoard({ items }: { items: ClaimItem[] }) {
         </ul>}
       </section>;
     })}
+    {checking && <CheckDialog skill={checking} learnHref={learnHrefs[checking.toLowerCase()] ?? null} onClose={passed => { setChecking(null); if (passed) done(`${checking} is now Verified.`); else router.refresh(); }} />}
   </div>;
 }

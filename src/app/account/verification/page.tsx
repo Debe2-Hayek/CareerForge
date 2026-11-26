@@ -12,6 +12,7 @@ import { TrustFacts } from "@/components/trust-facts";
 import { readOwnTrustPage } from "@/lib/trust-page-server";
 import { factCount } from "@/lib/trust-page";
 import { siteOrigin } from "@/lib/site-url";
+import { learnHrefFor } from "@/lib/skill-check-links";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Verify your profile - CareerForge", robots: { index: false, follow: false } };
@@ -39,7 +40,7 @@ export default async function Page() {
   return <AppShell pageTitle="Verify your profile" privateAccount>
     <div className="account-content">
       <div className="page-heading"><div><p className="eyebrow">PROVE WHAT YOU CLAIM</p><h1>Verify your profile<span>.</span></h1><p>Add proof for your education, work and skills. Confirmed facts earn a badge employers can trust.</p></div><Link href="/account" className="text-button">← Back to profile</Link></div>
-      <ClaimsBoard items={items} />
+      <ClaimsBoard items={items} learnHrefs={Object.fromEntries(items.filter(item => item.kind === "skill" && item.checkAvailable).map(item => [item.title.toLowerCase(), learnHrefFor(item.title)]))} />
       {trust && <TrustShare initialSlug={trust.state.slug} origin={siteOrigin} count={factCount(trust.facts)} preview={<TrustFacts facts={trust.facts} headingLevel={3} />} />}
     </div>
   </AppShell>;

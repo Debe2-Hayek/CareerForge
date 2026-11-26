@@ -56,7 +56,7 @@ try {
     const page = await context.newPage();
     currentPage = page;
     page.on("response", response => { if (response.url().endsWith("/api/v1/auth/login")) console.log("Login API status:", response.status()); });
-    page.on("pageerror", error => errors.push(error.name));
+    page.on("pageerror", error => errors.push(`${error.name}: ${String(error.message).slice(0, 200)} @ ${page.url()}`));
     await page.goto("/login");
     await page.getByLabel("Email address").fill(user.email);
     await page.getByLabel("Password", { exact: true }).fill(user.password);
@@ -84,11 +84,12 @@ try {
   await a.page.getByLabel("Your skills", { exact: true }).fill("React, SQL");
   await a.page.getByRole("button", { name: "Save profile", exact: true }).click();
   await expect(a.page.getByRole("status")).toContainText("saved to your account");
-  await expect(a.page.getByRole("link", { name: "See updated matches", exact: true })).toBeVisible();
+  // A new account has no CV or portfolio yet, so the next step points there.
+  await expect(a.page.getByRole("link", { name: /Next: make your CV & portfolio/ })).toHaveAttribute("href", "/documents");
   await expect(a.page.locator(".profile-save-state")).toHaveText("All changes saved");
   await a.page.reload();
   await expect(a.page.getByLabel("Full name")).toHaveValue("Live Test Owner A");
-  await expect(a.page.getByLabel("Your skills", { exact: true })).toHaveValue("React, SQL");
+  await expect(a.page.locator(".skill-tags li")).toHaveText([/React/, /SQL/]);
   const aProfile = await (await a.context.request.get("/api/v1/profile")).json();
   assert.equal(aProfile.profile.name, "Live Test Owner A");
   if (themeOnly) {
@@ -157,7 +158,7 @@ try {
   await expect(a.page.locator(".tracker-row")).toHaveCount(1);
   await a.page.goto("/profile");
   await expect(a.page).toHaveURL(`${baseURL}/account`);
-  await expect(a.page.getByLabel("Your skills", { exact: true })).toHaveValue("React, SQL");
+  await expect(a.page.locator(".skill-tags li")).toHaveText([/React/, /SQL/]);
 
   stage = "owner B isolation and phone layout";
   const phone = { ...devices["iPhone 13"] };

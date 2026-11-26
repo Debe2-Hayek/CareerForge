@@ -10,6 +10,27 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## My profile, CV & Portfolio and the homepage slider, redesigned
+- **My profile:** the form is now grouped like a settings page in a well-made app: The basics, Your story,
+  Education and Skills, each with a one-line explanation on the left and the fields on the right. Skills
+  are tags: type one and press Enter (or paste a list); suggestions are the skills employers ask for; proven
+  skills show a ✓. The save bar stays quietly at the end and only follows you down the page when there is
+  something to save, with a Discard button. Once all seven profile steps are done, the checklist steps aside.
+- **No CV or portfolio yet?** The profile shows one clear card, "You don't have a CV or portfolio yet",
+  with a picture of the result and a button to CV & Portfolio. After saving, the message points there too.
+  Once you have one, a side card shows "Your portfolio is live" with its link (or "Finish and publish").
+- **CV & Portfolio:** the top bar is one calm row: the name, "Saved" and "Live at /u/…" on the left; Notes,
+  a "More" menu (saved-profile CV, profile portfolio) and one main button (Publish website / Manage live
+  site) on the right. The notes panel opens with the three steps: write, generate, edit and publish.
+- **Homepage:** the 3D ring is replaced by a 2D slider. Tabs on top (Profile, Skill checks, Roadmaps,
+  Workshops, CV, Jobs, Applications, AI assistant, Portfolio); each slide explains the tool with three
+  points and a true number, next to a live-looking example of the tool itself (a profile with checked
+  facts, a skill-check question, a roadmap, a certificate, a CV, matched jobs, an application board, an AI
+  answer, and a portfolio website like the builder's). All examples use one fictional person and say
+  "Example". Swipe, drag, arrows, tabs or the keyboard; it moves on by itself only while you are not using it.
+- **Where:** `/account`, `/documents`, the homepage "Everything inside" section.
+- **Status:** Ready (no database change).
+
 ## AI assistant: chats are saved to your account, and the page looks like ChatGPT or Claude
 - **What:** Every chat with the AI assistant is saved to your account, like ChatGPT or Claude. Come back to a
   helpful chat any time: after a refresh, another page, signing out, or on your phone. A sidebar lists your

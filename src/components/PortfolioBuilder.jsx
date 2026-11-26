@@ -187,6 +187,12 @@ export default function PortfolioBuilder({ initialState, onStateChange, notesCol
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
         <aside id="builder-notes-panel" className="panel no-print" aria-hidden={notesCollapsed || undefined} inert={notesCollapsed || undefined}>
+          {/* CareerForge: the three steps, so a first visit knows exactly what to do. */}
+          <ol className="pb-steps" aria-label="How it works">
+            <li><span><strong>Write</strong> rough notes about yourself</span></li>
+            <li><span><strong>Generate</strong> a CV and portfolio with AI</span></li>
+            <li><span><strong>Click any text</strong> to edit, then publish</span></li>
+          </ol>
           <h1>Turn rough notes into a portfolio and CV</h1>
           <p className="sub">Write it the way you'd tell a friend. The AI handles the polish.</p>
           <label htmlFor="raw">Your notes</label>

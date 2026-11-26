@@ -25,6 +25,9 @@ const vocabulary: [string, RegExp][] = ([
   ["Cybersecurity", /\bcyber ?security\b|\binformation security\b/i], ["Arabic", /\barabic\b/i], ["French", /\bfrench\b/i]
 ] as [string, RegExp][]);
 
+/** The skills job listings ask for, in a stable order (used for suggestions while typing skills). */
+export const JOB_SKILLS: readonly string[] = vocabulary.map(([name]) => name);
+
 export function detectSkills(...texts: string[]): string[] {
   const text = texts.join(" \n ").slice(0, 50_000);
   return vocabulary.filter(([, pattern]) => pattern.test(text)).map(([name]) => name).slice(0, 25);

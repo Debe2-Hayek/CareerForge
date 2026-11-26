@@ -15,7 +15,7 @@ export async function verifyProfileLayout(context) {
       await expect(page.locator(".toolkit-list li")).toHaveCount(40);
       const overflow = await page.evaluate(() => ({
         width: innerWidth, scroll: document.documentElement.scrollWidth,
-        clipped: [...document.querySelectorAll(".identity-copy h2,.identity-copy > p,.identity-meta > span,.toolkit-list li span")]
+        clipped: [...document.querySelectorAll(".identity-copy h2,.identity-copy > p,.identity-meta > span,.toolkit-list li > span:not(.sr-only):not(.tag-proof)")]
           .filter(node => node.checkVisibility() && node.scrollWidth > node.clientWidth + 1)
           .map(node => `${node.tagName}.${node.className}`)
       }));

@@ -9,6 +9,8 @@ import "./profile-start.css";
 import "./trust.css";
 import "./forms.css";
 import "./assistant.css";
+import "./profile.css";
+import "./slider.css";
 import { AmbientBackground } from "@/components/ambient-background";
 import { SelfDiagnoseProvider } from "@/components/self-diagnose-provider";
 import { siteOrigin } from "@/lib/site-url";

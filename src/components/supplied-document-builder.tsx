@@ -144,45 +144,38 @@ export function SuppliedDocumentBuilder({ initial, origin }: { initial: SiteStat
   const status = !storageAvailable ? "Saving unavailable" : savedLabel(saveState, savedAt);
 
   return <section className={`supplied-builder-page ${builderFonts}`} aria-label="CV and portfolio builder" data-notes-collapsed={notesCollapsed}>
-    <header className="supplied-builder-bar">
-      <div className="builder-bar-summary">
-        <span className="builder-bar-kicker"><AppIcon name="portfolio" /> Document studio</span>
-        <div className="builder-bar-title">
+    {/* One calm bar: what this is and whether it is saved and live on the left; the few actions on the right. */}
+    <header className="supplied-builder-bar docbar">
+      <div className="docbar-title">
+        <span className="docbar-icon" aria-hidden="true"><AppIcon name="portfolio" /></span>
+        <div className="docbar-heading">
           <strong>{storageAvailable ? "Your CV & portfolio" : "Sample builder"}</strong>
-          <span className="builder-save-state" data-state={saveState} role="status" aria-live="polite">
-            <span className="builder-status-dot" aria-hidden="true" />{status}
+          <span className="docbar-meta">
+            <span className="builder-save-state" data-state={saveState} role="status" aria-live="polite"><span className="builder-status-dot" aria-hidden="true" />{status}</span>
+            {liveUrl
+              ? <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="docbar-live"><span className="docbar-live-dot" aria-hidden="true" />Live at /u/{site?.slug}<span className="sr-only"> (opens in a new tab)</span></a>
+              : storageAvailable && <span className="docbar-draft">Not published yet</span>}
+            {site?.hasUnpublishedChanges && <span className="builder-unpublished">Edits not live yet</span>}
           </span>
-          {liveUrl && <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="builder-live-link">Live at /u/{site?.slug}<span className="sr-only"> (opens in a new tab)</span></a>}
-          {site?.hasUnpublishedChanges && <span className="builder-unpublished">Unpublished changes</span>}
         </div>
       </div>
-      <div className="supplied-builder-tools">
-        <div className="builder-primary-tools">
-          <button
-            type="button"
-            className="builder-notes-toggle"
-            aria-label={notesCollapsed ? "Show notes" : "Hide notes"}
-            aria-expanded={!notesCollapsed}
-            aria-controls="builder-notes-panel"
-            onClick={() => setNotesCollapsed(collapsed => !collapsed)}
-          >
-            <span className="builder-toggle-icon" aria-hidden="true"><AppIcon name="panel" /></span>
-            <span className="builder-toggle-copy" aria-hidden="true">
-              <strong>Notes editor</strong>
-              <small>{notesCollapsed ? "Show writing panel" : "Hide for a wider preview"}</small>
-            </span>
-            <span className="builder-toggle-chevron" aria-hidden="true"><AppIcon name="chevron" /></span>
-          </button>
-          {storageAvailable && <button type="button" className="builder-publish-toggle" aria-expanded={panelOpen} aria-controls="builder-publish" onClick={() => {
-            setPanelOpen(open => !open);
-            if (!slug) setSlug(suggestSlug(latestName.current));
-          }}><AppIcon name="portfolio" /><span>{site?.isPublic ? "Manage live site" : "Publish website"}</span><span className="builder-publish-chevron" aria-hidden="true"><AppIcon name="chevron" /></span></button>}
-        </div>
-        <nav className="builder-account-tools" aria-label="Saved document tools">
-          <span className="builder-tools-label">Account tools</span>
-          <Link href="/cv/saved"><AppIcon name="cv" /><span>Saved-profile CV</span></Link>
-          <Link href="/portfolio/publication"><AppIcon name="portfolio" /><span>Profile portfolio</span></Link>
-        </nav>
+      <div className="docbar-actions">
+        <button type="button" className="docbar-button docbar-notes" aria-label={notesCollapsed ? "Show notes" : "Hide notes"} aria-expanded={!notesCollapsed} aria-controls="builder-notes-panel"
+          title={notesCollapsed ? "Show the notes panel" : "Hide the notes panel for a wider preview"} onClick={() => setNotesCollapsed(collapsed => !collapsed)}>
+          <AppIcon name="panel" /><span aria-hidden="true">Notes</span>
+        </button>
+        <details className="docbar-more">
+          <summary className="docbar-button" aria-label="More document tools" title="More document tools"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" /></svg></summary>
+          <nav className="docbar-menu" aria-label="Saved document tools">
+            <p>Built from your saved profile</p>
+            <Link href="/cv/saved"><AppIcon name="cv" /><span>Saved-profile CV</span></Link>
+            <Link href="/portfolio/publication"><AppIcon name="portfolio" /><span>Profile portfolio</span></Link>
+          </nav>
+        </details>
+        {storageAvailable && <button type="button" className="docbar-button docbar-publish" aria-expanded={panelOpen} aria-controls="builder-publish" onClick={() => {
+          setPanelOpen(open => !open);
+          if (!slug) setSlug(suggestSlug(latestName.current));
+        }}><AppIcon name="share" /><span>{site?.isPublic ? "Manage live site" : "Publish website"}</span>{site?.hasUnpublishedChanges && <i className="docbar-badge" aria-hidden="true" />}</button>}
       </div>
       {panelOpen && <div id="builder-publish" className="builder-publish" role="region" aria-label="Publish your portfolio website">
         <div>

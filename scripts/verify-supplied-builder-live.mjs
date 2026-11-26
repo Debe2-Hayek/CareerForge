@@ -133,8 +133,11 @@ export async function verifySuppliedBuilderLive(context) {
     assert.ok(avatar.width > 150 && Math.abs(avatar.height / avatar.width - 1.25) < 0.02, "Portfolio photo frame must retain the supplied 4:5 layout");
     await expect(builder.locator(".socials a")).toHaveCount(5);
     await expect(builder.locator('.socials a[aria-label="Email"]')).toHaveAttribute("href", "mailto:sara.khoury@email.com");
+    // The saved-profile tools sit in the bar's "More" menu.
+    await page.getByLabel("More document tools").click();
     await expect(page.getByRole("link", { name: "Saved-profile CV", exact: true })).toHaveAttribute("href", "/cv/saved");
     await expect(page.getByRole("link", { name: "Profile portfolio", exact: true })).toHaveAttribute("href", "/portfolio/publication");
+    await page.getByLabel("More document tools").click();
 
     const initialChrome = await readWorkspaceChrome();
     assert.ok(initialChrome.panels.every(color => initialChrome.palette.includes(color)), "Builder chrome must use the website surface colors");

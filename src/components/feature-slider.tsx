@@ -3,13 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { AppIcon } from "./app-icons";
-import { Picture } from "./workshops/picture";
 import { setRingPlaying, useRingMode } from "./workshops/hooks";
-import type { PictureKey } from "@/data/workshops/pictures";
 
 export type Feature = {
   id: string; tab: string; title: string; text: string; points: string[]; href: string; cta: string; accent: string;
-  /** A CC0 photo from /public/media/workshops, softly behind the demo. */ photo: PictureKey;
   /** A true fact about the tool, such as "90 / free roadmaps". */ stat: { value: string; label: string };
   demo: ReactNode;
 };
@@ -151,6 +148,18 @@ export function FeatureSlider({ items }: { items: readonly Feature[] }) {
     setTimeout(() => { justDragged.current = false; }, 0);
   }
 
+  /** A gentle 3D lean towards the mouse (a few degrees); touch and reduced motion stay flat. */
+  function lean(event: PointerEvent<HTMLDivElement>) {
+    if (event.pointerType !== "mouse" || calm()) return;
+    const box = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.style.setProperty("--ry", `${(((event.clientX - box.left) / box.width) - .5) * 10}deg`);
+    event.currentTarget.style.setProperty("--rx", `${(.5 - (event.clientY - box.top) / box.height) * 8}deg`);
+  }
+  function straighten(event: PointerEvent<HTMLDivElement>) {
+    event.currentTarget.style.removeProperty("--rx");
+    event.currentTarget.style.removeProperty("--ry");
+  }
+
   const current = items[active];
   const canPlay = mode !== "still";
   return <div className="fs" ref={root} aria-roledescription="carousel" aria-label="CareerForge tools" style={{ "--tool": current.accent } as CSSProperties}
@@ -179,8 +188,8 @@ export function FeatureSlider({ items }: { items: readonly Feature[] }) {
             <p className="fs-stat"><strong>{item.stat.value}</strong><span>{item.stat.label}</span></p>
             <Link href={item.href} className="fs-link">{item.cta} <span aria-hidden="true">→</span></Link>
           </div>
-          <div className="fs-stage">
-            <Picture name={item.photo} sizes="(max-width: 900px) 92vw, 640px" eager={index === 0} />
+          {/* The result floats on a quiet stage and leans a little towards the mouse. */}
+          <div className="fs-stage" onPointerMove={lean} onPointerLeave={straighten}>
             <div className="fs-demo">{item.demo}</div>
           </div>
         </li>)}

@@ -691,7 +691,7 @@ export function AmbientBackground() {
     </div>
     {!reduced && <button type="button" className="motion-toggle" onClick={toggle} aria-label={paused ? "Resume background animation" : "Pause background animation"} title={paused ? "Resume background animation" : "Pause background animation"}>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">{paused ? <path d="M7 4l13 8-13 8z" /> : <path d="M6 4h4v16H6z M14 4h4v16h-4z" />}</svg>
-      <span>{paused ? "Motion off" : "Motion on"}</span>
+      <span>{paused ? "Background off" : "Background on"}</span>
     </button>}
   </>;
 }

@@ -72,7 +72,7 @@ production needs migration 202611250001. Details: [CLAIMS.md](CLAIMS.md).
 `/career-assistant` answers career questions with only the parts of the profile the user ticks
 (profile and skills with trust badges, work and education, career matches). OpenAI (`gpt-6-luna`)
 when an OpenAI key is set, otherwise the existing DeepSeek/OpenRouter provider; plain-text replies
-with allow-listed internal links; 20 messages per day; chats saved only in the user's browser (26 Nov: sidebar of past chats, deleted on sign-out). Moves from Stretch to Pilot.
+with allow-listed internal links; 20 messages per day; chats saved to the account (26 Nov, migration 202611260001: sidebar of past chats, rename, search, delete). Moves from Stretch to Pilot.
 Built on PR #23. Production needs 0004 to 0009. Details: [ASSISTANT.md](ASSISTANT.md).
 
 ## R1: Project interviews - verified on development with the test AI and test GitHub, 23 November 2026

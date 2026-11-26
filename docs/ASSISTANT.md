@@ -29,14 +29,18 @@ internal links; a path inside another site's address is not linked.
 
 ## Privacy and limits
 
-Chats are saved only in the person's own browser (localStorage, one key per account:
-`careerforge-chats:<user id>`), never on CareerForge's servers, so they survive a refresh or a visit to
-another page. Up to 40 chats of 80 messages each; the newest opens again. The sidebar lists them by day
-(Today, Yesterday, Previous 7 days...); each can be deleted, or all at once. Signing out deletes them all
-(`forgetAllChats` in `src/lib/assistant/chat-store.ts`). Saved data is re-checked when read: unknown
-roles, empty messages and duplicate chats are dropped and titles are rebuilt from the first question. If
-the page closes before an answer arrives, the question stays with an "Ask again" button. Answers are laid
-out as paragraphs, lists and headings by `toBlocks` (React elements only, never HTML). Each answer is kept in
+Chats are saved to the person's account (table `assistant_chats`, migration
+`202611260001_assistant_chats.sql`), like ChatGPT or Claude: they stay after signing out and appear on every
+device. Only the owner can read them (row-level security); writes go through `append_assistant_chat`,
+`rename_assistant_chat` and `delete_assistant_chats`, which check every message (role, text up to 8,000
+characters, no other fields). The server saves each question with its answer after the reply, so an answer
+that finishes after the page closed is still there. Up to 200 chats per person (the oldest fall off) and 80
+messages per chat. Each chat has its own address (`/career-assistant?chat=<id>`); the page opens a fresh chat
+otherwise. The sidebar groups chats by day, searches titles (from 4 chats), renames and deletes; returning to
+the tab refreshes the list. API: `GET/DELETE /api/v1/assistant/chats`, `GET/PATCH/DELETE
+/api/v1/assistant/chats/:id`. If the table is missing or unreachable, the assistant still answers and says the
+chat is not saved. Answers are laid out as paragraphs, lists and headings by `toBlocks` (React elements only,
+never HTML). Each answer is kept in
 the private AI ledger for 30 days so an identical question costs nothing. 20 messages per user per
 day (migration `202611240009_assistant_chat.sql`, which keeps every earlier AI limit).
 

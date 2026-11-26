@@ -80,7 +80,7 @@ const tools: Feature[] = [
     points: ["Fill it in minutes: the AI reads your CV", "Badges show what is checked and what is not", "Only you can see it until you choose to share"], demo: <DemoProfile /> },
   { id: "checks", tab: "Skill checks", accent: "#7fd6c2", photo: "magnifier", stat: { value: "5", label: "questions in each timed check" }, href: "/skill-checks", cta: "Take a skill check",
     title: "Prove a skill in five minutes", text: "Short, timed checks written and approved by reviewers. Pass one and the skill gets a ✓ everywhere it appears.",
-    points: ["Questions change on every attempt", "A pass shows on your CV and portfolio", "Fail? Learn the gap and try again later"], demo: <DemoChecks /> },
+    points: ["Graded on our server, never in your browser", "A pass shows on your CV and portfolio", "Fail? Learn the gap and try again later"], demo: <DemoChecks /> },
   { id: "learning", tab: "Roadmaps", accent: "#a6e3a1", photo: "books", stat: { value: String(roadmaps.length), label: `free roadmaps with ${topics} topics` }, href: "/learning-roadmap", cta: "Start learning",
     title: "Know exactly what to learn next", text: `${roleRoadmaps.length} career paths and ${skillRoadmaps.length} skills, step by step, each with free courses and a project to build.`,
     points: ["Pick a career; see every step in order", "Free courses only, checked links", "Your progress saves to your account"], demo: <DemoLearning /> },

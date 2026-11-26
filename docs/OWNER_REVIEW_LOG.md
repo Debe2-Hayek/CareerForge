@@ -10,6 +10,20 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Homepage results that float, a fifth Forge step, and a background-only switch
+- **Slider:** no more photos. Each slide now shows only what CareerForge gives you, as floating documents on a
+  quiet dotted stage that lean towards the mouse and drift gently: a checked-profile page, "SQL is now Verified",
+  a roadmap in progress, a certificate with a phone scanning it ("Valid"), an A4 CV ("PDF ready"), matched jobs
+  with fit rings, an application board with "Interview booked", a saved AI answer, and the published portfolio
+  website in the builder’s own design, with its phone version and "Live at /u/karim-nassar".
+- **The Forge:** a fifth step, "Your portfolio goes live", shows the same portfolio design for the sample person;
+  the profile card reaches 100% with "Portfolio published".
+- **Motion switch:** now controls the **background only** (its label says "Background on/off"). The slider, the
+  Forge walkthrough, the workshops ring and the AI globe keep moving; they still stop for a device set to reduce
+  motion, and the slider, ring and Forge keep their own pause buttons.
+- **Where:** the homepage; the switch is site-wide.
+- **Status:** Ready (no database change).
+
 ## The Forge becomes a working bench, and the slider works with motion off
 - **What:** The homepage "Bring your documents. Leave with proof." section is rebuilt. The four steps are
   buttons; each plays a short, true-to-life scene on a bench next to a sample profile card: the CV is scanned

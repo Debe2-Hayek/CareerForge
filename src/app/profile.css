@@ -124,7 +124,6 @@
 @media (prefers-reduced-motion: reduce) {
   .art-cv, .art-site, .skill-tags li, .skill-tags li[data-flash] { animation: none; }
 }
-body:has(.ambient[data-paused]) :is(.art-cv, .art-site) { animation-play-state: paused; }
 
 /* A map of the form (as in well-made settings pages): each part, with a tick once it holds something. */
 .profile-section-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }

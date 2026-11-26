@@ -848,7 +848,6 @@ body:has(.trust-page) .motion-toggle { display: none; }
   .journey-go { width: 100%; justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) { .journey::after, .journey-step, .journey-mark, .journey-go { animation: none !important; } }
-body:has(.ambient[data-paused]) .journey::after, body:has(.ambient[data-paused]) .journey-go, body:has(.ambient[data-paused]) .journey-step[data-state="now"] .journey-mark { animation-play-state: paused; }
 @media (max-width: 520px) { .journey-count { display: none; } }
 
 /* ---------- Overview: "Your career constellation" (src/components/career-constellation.tsx) ---------- */
@@ -903,11 +902,6 @@ body:has(.ambient[data-paused]) .journey::after, body:has(.ambient[data-paused])
   .cs-star { opacity: 1; }
   .cs-line { stroke-dashoffset: 0; }
 }
-body:has(.ambient[data-paused]) .constellation::before,
-body:has(.ambient[data-paused]) .constellation::after,
-body:has(.ambient[data-paused]) .cs-dust,
-body:has(.ambient[data-paused]) .cs-line-empty,
-body:has(.ambient[data-paused]) .cs-halo { animation-play-state: paused; }
 .cs-label { fill: #a9b59c; font-size: 12px; font-family: var(--mono); letter-spacing: .3px; paint-order: stroke; stroke: #0d140a; stroke-width: 4px; stroke-linejoin: round; }
 .cs-checked .cs-label { fill: #e2f5c4; }
 .cs-pending .cs-label { fill: #f0d48a; }
@@ -915,4 +909,3 @@ body:has(.ambient[data-paused]) .cs-halo { animation-play-state: paused; }
 @keyframes cs-twinkle-soft { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
 @media (max-width: 520px) { .cs-label { font-size: 19px; stroke-width: 5px; } }
 @media (prefers-reduced-motion: reduce) { .cs-stated .cs-core { animation: none; } }
-body:has(.ambient[data-paused]) .cs-stated .cs-core { animation-play-state: paused; }

@@ -1,117 +1,156 @@
-// Small, true-to-life previews of each CareerForge tool for the homepage slider. They are pictures made
-// of HTML (no screenshots to go stale), filled with one fictional example person, Karim Nassar, and
-// labelled "Example" so nobody mistakes them for real data. Decorative: hidden from screen readers,
-// because each slide's text already says what the tool does.
+// What CareerForge actually gives you, as floating documents for the homepage slider: a checked profile
+// page, a Verified skill, a roadmap in progress, a certificate, an A4 CV, matched jobs, an application
+// board, a saved AI answer, and a published portfolio website (in the builder's own design). Each scene
+// is one main document and a few small pieces floating around it. One fictional person (Karim Nassar),
+// labelled "Example". Decorative: hidden from screen readers, since each slide's text says what it is.
 import type { CSSProperties, ReactNode } from "react";
 import { AiGlobe } from "./ai-globe";
 
-function Frame({ label, children, tone }: { label: string; children: ReactNode; tone?: "site" }) {
-  return <div className={`demo-window${tone === "site" ? " demo-window-site" : ""}`} aria-hidden="true">
-    <div className="demo-chrome"><span /><span /><span /><b>{label}</b><em>Example</em></div>
-    <div className="demo-body">{children}</div>
-  </div>;
+const at = (seconds: number) => ({ "--d": `${seconds}s` }) as CSSProperties;
+const QR = "M0 0h7v7H0zM2 2v3h3V2zM14 0h7v7h-7zM16 2v3h3V2zM0 14h7v7H0zM2 16v3h3v-3zM9 0h2v2H9zM9 4h3v2H9zM8 8h2v2H8zM12 8h3v2h-3zM9 11h2v3H9zM13 12h2v2h-2zM16 9h3v2h-3zM17 13h2v3h-2zM12 16h3v2h-3zM9 17h2v4H9zM14 19h3v2h-3zM19 18h2v3h-2z";
+
+function Scene({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
+  return <div className={`r-scene${wide ? " r-wide" : ""}`} aria-hidden="true">{children}</div>;
+}
+function Chrome({ address, site = false }: { address: string; site?: boolean }) {
+  return <div className={`r-chrome${site ? " r-chrome-site" : ""}`}><span /><span /><span /><b>{address}</b><em>Example</em></div>;
 }
 
 export function DemoProfile() {
-  return <Frame label="careerforge · My profile">
-    <div className="d-profile">
-      <div className="d-id"><span className="d-avatar">KN</span><div><strong>Karim Nassar</strong><small>Junior Full-Stack Developer · Beirut</small></div>
-        <span className="d-ring" style={{ "--p": 86 } as CSSProperties}><b>86%</b></span></div>
-      <ul className="d-facts">
-        <li data-state="ok"><i>✓</i><span><b>BS Computer Science</b><small>Diploma checked by a reviewer</small></span></li>
-        <li data-state="ok"><i>✓</i><span><b>English · C1</b><small>IELTS 7.5, report checked</small></span></li>
-        <li data-state="ok"><i>✓</i><span><b>React</b><small>Passed a CareerForge skill check</small></span></li>
-        <li data-state="wait"><i>…</i><span><b>Intern, Cedar Apps</b><small>Letter waiting for review</small></span></li>
-      </ul>
+  return <Scene>
+    <div className="r-main r-sheet">
+      <Chrome address="careerforge.app/v/karim-nassar" />
+      <div className="r-pad">
+        <div className="r-person"><span className="r-avatar">KN</span><div><b>Karim Nassar</b><small>Junior Full-Stack Developer · Beirut</small></div></div>
+        <p className="r-kicker">Facts CareerForge checked</p>
+        <ul className="r-facts">
+          {[["BS Computer Science", "Diploma reviewed · Jun 2025"], ["English · C1", "IELTS 7.5 report checked"], ["React", "Passed a skill check"], ["Containers in practice", "Certificate · 88 / 100"]].map(([what, how], i) =>
+            <li key={what} style={at(0.25 + i * 0.12)}><i>✓</i><span><b>{what}</b><small>{how}</small></span></li>)}
+        </ul>
+      </div>
     </div>
-  </Frame>;
+    <span className="r-sat r-pill r-sat-a" style={at(0.8)}><i className="r-live" />4 facts checked</span>
+  </Scene>;
 }
 
 export function DemoChecks() {
-  return <Frame label="careerforge · Skill check · React">
-    <div className="d-quiz">
-      <div className="d-quiz-top"><span>Question 3 of 5</span><span className="d-timer">0:42</span></div>
-      <div className="d-progress"><i style={{ width: "60%" }} /></div>
-      <p className="d-question">Which hook runs code after the component renders?</p>
-      <ul className="d-options">
-        <li>useMemo</li><li data-picked>useEffect<i>✓</i></li><li>useRef</li><li>useContext</li>
-      </ul>
+  return <Scene>
+    <div className="r-back r-quiz-ghost"><p>Which join keeps every row from the left table?</p><span>LEFT JOIN</span><span>INNER JOIN</span><span>CROSS JOIN</span></div>
+    <div className="r-main r-card r-verified">
+      <svg className="r-medal" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" /><path d="M15 27l7 7 15-16" /></svg>
+      <b>SQL is now Verified</b>
+      <small>5 of 5 correct · no time limit</small>
+      <div className="r-dots">{[0, 1, 2, 3, 4].map(i => <i key={i} style={at(0.5 + i * 0.1)} />)}</div>
     </div>
-  </Frame>;
+    <span className="r-sat r-chip r-sat-a" style={at(0.9)}><i>✓</i>SQL</span>
+    <span className="r-sat r-pill r-sat-b" style={at(1.1)}>Shows on your CV and portfolio</span>
+  </Scene>;
 }
 
 export function DemoLearning() {
-  const steps: [string, "done" | "now" | "next", string][] = [["HTML & CSS", "done", "Free course · 6 h"], ["JavaScript", "done", "Free course · 12 h"], ["React", "now", "Project: a job board"], ["Testing", "next", "Free course · 4 h"], ["Deploy", "next", "Project: ship it"]];
-  return <Frame label="careerforge · Roadmap · Frontend Developer">
-    <ol className="d-road">{steps.map(([name, state, hint]) => <li key={name} data-state={state}><i>{state === "done" ? "✓" : ""}</i><span><b>{name}</b><small>{hint}</small></span>{state === "now" && <em>In progress</em>}</li>)}</ol>
-  </Frame>;
+  const steps: [string, "done" | "now" | "next"][] = [["HTML & CSS", "done"], ["JavaScript", "done"], ["React", "now"], ["Testing", "next"], ["Deploy", "next"]];
+  return <Scene>
+    <div className="r-main r-card r-road">
+      <p className="r-kicker">Roadmap · Frontend Developer</p>
+      <div className="r-meter"><span style={{ width: "48%" }} /></div>
+      <ol>{steps.map(([name, state], i) => <li key={name} data-state={state} style={at(0.2 + i * 0.1)}><i>{state === "done" ? "✓" : ""}</i><b>{name}</b>{state === "now" && <em>In progress</em>}</li>)}</ol>
+    </div>
+    <div className="r-sat r-note r-sat-a" style={at(0.9)}><small>Up next</small><b>React · free course, 6 h</b><span>Then build: a job board</span></div>
+  </Scene>;
 }
 
 export function DemoWorkshops() {
-  return <Frame label="careerforge · Certificate">
-    <div className="d-cert">
-      <p className="d-cert-kind">Certificate of completion</p>
-      <p className="d-cert-name">Karim Nassar</p>
-      <p className="d-cert-for">completed <b>Containers in practice</b> with a score of <b>88 / 100</b></p>
-      <div className="d-cert-foot"><span className="d-qr" /><span><b>Anyone can check it</b><small>Scan the code or open the link</small></span><span className="d-seal">✓ Valid</span></div>
+  return <Scene>
+    <div className="r-main r-paper r-cert">
+      <p className="r-cert-kind">Certificate of completion</p>
+      <p className="r-cert-name">Karim Nassar</p>
+      <p className="r-cert-for">completed <b>Containers in practice</b> with a score of <b>88 / 100</b></p>
+      <div className="r-cert-foot"><svg viewBox="0 0 21 21" shapeRendering="crispEdges"><path d={QR} /></svg><span><b>Anyone can check it</b><small>Scan the code or open the link</small></span></div>
     </div>
-  </Frame>;
+    <div className="r-sat r-phone r-sat-a" style={at(0.8)}><span className="r-phone-box" /><span className="r-phone-ok">✓ Valid</span></div>
+  </Scene>;
 }
 
 export function DemoCv() {
-  return <Frame label="careerforge · CV · A4">
-    <div className="d-cv">
-      <div className="d-cv-head"><b>Karim Nassar</b><small>Junior Full-Stack Developer · Beirut · karim@example.com</small></div>
-      <p className="d-cv-h">Experience</p>
-      <div className="d-cv-row"><b>Frontend Intern, Cedar Apps</b><small>2024 – 2025</small></div>
+  return <Scene>
+    <div className="r-main r-paper r-cv">
+      <div className="r-cv-head"><b>Karim Nassar</b><small>Junior Full-Stack Developer · Beirut · karim@example.com</small></div>
+      <p className="r-cv-h">Experience</p>
+      <div className="r-cv-row"><b>Frontend Intern, Cedar Apps</b><small>2024 – 2025</small></div>
       <ul><li>Built React screens used by 3,000 shoppers</li><li>Wrote Node.js APIs with PostgreSQL</li></ul>
-      <p className="d-cv-h">Skills</p>
-      <p className="d-cv-skills">React ✓ · TypeScript · Node.js · SQL · Git · Docker</p>
+      <p className="r-cv-h">Education</p>
+      <div className="r-cv-row"><b>BS Computer Science</b><small>2025</small></div>
+      <p className="r-cv-h">Skills</p>
+      <p className="r-cv-skills">React ✓ · SQL ✓ · TypeScript · Node.js · Git · Docker</p>
     </div>
-  </Frame>;
+    <span className="r-sat r-pill r-sat-a" style={at(0.8)}>⤓ PDF ready</span>
+    <span className="r-sat r-chip r-sat-b" style={at(1)}>ATS-safe style</span>
+  </Scene>;
 }
 
 export function DemoJobs() {
   const jobs: [string, string, number, string][] = [["Junior React Developer", "Beirut · on site", 86, "Docker"], ["Frontend Engineer", "Remote · MENA", 74, "Testing"], ["Full-Stack Intern", "Beirut · hybrid", 68, "AWS"]];
-  return <Frame label="careerforge · Jobs that fit">
-    <ul className="d-jobs">{jobs.map(([title, where, fit, gap]) => <li key={title}>
-      <span className="d-job-main"><b>{title}</b><small>{where}</small></span>
-      <span className="d-fit"><b>{fit}%</b><span className="d-bar"><i style={{ width: `${fit}%` }} /></span><small>Missing: {gap}</small></span>
-    </li>)}</ul>
-  </Frame>;
+  return <Scene>
+    <div className="r-main r-stack">{jobs.map(([title, where, fit, gap], i) => <div key={title} className="r-job" style={at(0.2 + i * 0.14)}>
+      <span className="r-fit" style={{ "--p": fit } as CSSProperties}><b>{fit}%</b></span>
+      <span className="r-job-main"><b>{title}</b><small>{where}</small><em>Missing: {gap}</em></span>
+    </div>)}</div>
+    <span className="r-sat r-pill r-sat-a" style={at(0.9)}>Ranked by how you fit</span>
+  </Scene>;
 }
 
 export function DemoTracker() {
   const columns: [string, string[]][] = [["Saved", ["Frontend Engineer"]], ["Applied", ["Junior React Dev", "UI Developer"]], ["Interview", ["Full-Stack Intern"]], ["Offer", []]];
-  return <Frame label="careerforge · Applications">
-    <div className="d-board">{columns.map(([name, cards], index) => <div key={name} className="d-col" style={{ "--i": index } as CSSProperties}>
+  return <Scene>
+    <div className="r-main r-card r-board">{columns.map(([name, cards], i) => <div key={name} className="r-col" style={at(0.15 + i * 0.1)}>
       <p>{name}<span>{cards.length}</span></p>
-      {cards.map(card => <span key={card} className="d-card">{card}</span>)}
-      {!cards.length && <span className="d-card d-card-empty">Next one</span>}
+      {cards.map(card => <span key={card} className="r-task">{card}</span>)}
+      {!cards.length && <span className="r-task r-task-empty">Next one</span>}
     </div>)}</div>
-  </Frame>;
+    <div className="r-sat r-toast r-sat-a" style={at(0.9)}><i>●</i><span><b>Interview booked</b><small>Full-Stack Intern · Thu 10:00</small></span></div>
+  </Scene>;
 }
 
 export function DemoAssistant() {
-  return <Frame label="careerforge · AI assistant">
-    <div className="d-chat">
-      <p className="d-msg d-msg-user">What should I learn next?</p>
-      <div className="d-msg d-msg-ai"><span className="d-globe"><AiGlobe size={26} /></span>
+  return <Scene>
+    <div className="r-main r-card r-chat">
+      <p className="r-msg-user" style={at(0.2)}>What should I learn next?</p>
+      <div className="r-msg-ai" style={at(0.55)}><span className="r-globe"><AiGlobe size={26} /></span>
         <div><p>Docker. It is missing in <b>3 of your saved jobs</b>.</p><ol><li>Take the free Docker course</li><li>Containerise Souk Finder</li><li>Prove it with a skill check</li></ol></div>
       </div>
     </div>
-  </Frame>;
+    <span className="r-sat r-pill r-sat-a" style={at(1)}>Saved to your account</span>
+  </Scene>;
+}
+
+/** A published portfolio website in the builder's own design (dark indigo, the same in both themes). */
+export function PortfolioSite({ first, last, initials, kicker, lede, skills, slug, className = "" }: { first: string; last: string; initials: string; kicker: string; lede: string; skills: string[]; slug: string; className?: string }) {
+  return <div className={`r-site ${className}`}>
+    <Chrome address={`careerforge.app/u/${slug}`} site />
+    <div className="r-site-body">
+      <nav><span className="on">About</span><span>Experience</span><span>Skills</span><span>Projects</span><span>Contact</span></nav>
+      <div className="r-site-hero">
+        <div>
+          <p className="r-site-kicker">{kicker}</p>
+          <p className="r-site-name">{first}<br />{last}</p>
+          <p className="r-site-lede">{lede}</p>
+          <div className="r-site-actions"><span>Get in touch</span><span>Download CV</span></div>
+        </div>
+        <span className="r-site-photo">{initials}</span>
+      </div>
+      <div className="r-site-skills">{skills.map(skill => <span key={skill}>{skill}</span>)}</div>
+    </div>
+  </div>;
 }
 
 export function DemoPortfolio() {
-  return <Frame label="careerforge.app/u/karim-nassar" tone="site">
-    <div className="d-site">
-      <nav><span className="on">About</span><span>Experience</span><span>Projects</span><span>Contact</span></nav>
-      <p className="d-site-kicker">CS Graduate</p>
-      <p className="d-site-name">Karim<br />Nassar</p>
-      <p className="d-site-lede">I build web apps with React and Node.js, and I like clean APIs.</p>
-      <div className="d-site-actions"><span>Get in touch</span><span>Download CV</span></div>
-      <span className="d-site-photo">KN</span>
+  return <Scene wide>
+    <PortfolioSite className="r-main" first="Karim" last="Nassar" initials="KN" kicker="CS Graduate" slug="karim-nassar"
+      lede="I build web apps with React and Node.js, and I like clean APIs and fast pages." skills={["React", "Node", "TypeScript", "Postgres"]} />
+    <div className="r-sat r-site-phone r-sat-b" style={at(0.7)}>
+      <span className="r-site-phone-notch" />
+      <p className="r-site-kicker">CS Graduate</p><p className="r-site-name small">Karim<br />Nassar</p><span className="r-site-phone-btn">Get in touch</span>
     </div>
-  </Frame>;
+    <span className="r-sat r-pill r-sat-a" style={at(1)}><i className="r-live" />Live at /u/karim-nassar</span>
+  </Scene>;
 }

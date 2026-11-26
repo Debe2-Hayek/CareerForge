@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { setRingPlaying, useRingMode } from "./workshops/hooks";
+import { PortfolioSite } from "./feature-demos";
 
 /**
  * "The Forge": how CareerForge turns documents into proof, as a small working bench. The four steps on
@@ -15,7 +16,8 @@ const STEPS = [
   { title: "Your CV fills your profile", text: "Upload it; the AI suggests each line and you approve it.", badge: "Profile built from CV", says: "A CV is read and its details are added to the sample profile." },
   { title: "Diplomas get reviewed", text: "Checked by a reviewer and the AI; copies from other accounts are caught.", badge: "Degree reviewed", says: "A diploma is checked against the profile and stamped reviewed." },
   { title: "Skills get verified", text: "Pass a short skill check and the skill earns a ✓.", badge: "SQL verified", says: "An SQL skill check is passed with 5 out of 5." },
-  { title: "Workshops end with certificates", text: "Each one has a QR code anyone can scan to check it.", badge: "Certificate issued", says: "A workshop certificate is scanned and shows as valid." }
+  { title: "Workshops end with certificates", text: "Each one has a QR code anyone can scan to check it.", badge: "Certificate issued", says: "A workshop certificate is scanned and shows as valid." },
+  { title: "Your portfolio goes live", text: "Everything checked becomes a one-page website at your own link.", badge: "Portfolio published", says: "The checked profile is published as a portfolio website." }
 ] as const;
 const DWELL = 5600;
 const QR = "M0 0h7v7H0zM2 2v3h3V2zM14 0h7v7h-7zM16 2v3h3V2zM0 14h7v7H0zM2 16v3h3v-3zM9 0h2v2H9zM9 4h3v2H9zM8 8h2v2H8zM12 8h3v2h-3zM9 11h2v3H9zM13 12h2v2h-2zM16 9h3v2h-3zM17 13h2v3h-2zM12 16h3v2h-3zM9 17h2v4H9zM14 19h3v2h-3zM19 18h2v3h-2z";
@@ -72,7 +74,14 @@ function SceneCert() {
     <div className="fw-phone" style={delay(0.5)}><span className="fw-phone-scan" /><span className="fw-phone-ok" style={delay(1.7)}>✓ Valid</span></div>
   </div>;
 }
-const SCENES = [SceneCV, SceneDegree, SceneSkill, SceneCert];
+function SceneSite() {
+  return <div className="fw-scene fw-site">
+    <PortfolioSite className="fw-site-window" first="Rana" last="Haddad" initials="RH" kicker="Computer Engineer" slug="rana-haddad"
+      lede="I design and build reliable back-end systems, from databases to deployment." skills={["SQL ✓", "Docker", "Java", "Linux"]} />
+    <span className="fw-live" style={delay(0.9)}><i />Live · shared only by your choice</span>
+  </div>;
+}
+const SCENES = [SceneCV, SceneDegree, SceneSkill, SceneCert, SceneSite];
 
 export function ForgeShowcase() {
   const [step, setStep] = useState(0);
@@ -104,7 +113,7 @@ export function ForgeShowcase() {
     resume.current = setTimeout(() => setTouched(false), 15000);
   }
   const Scene = SCENES[step];
-  const strength = (step + 1) * 25;
+  const strength = Math.round(((step + 1) / STEPS.length) * 100);
 
   return <section ref={root} className="lp-section lp-forge" id="forge" aria-labelledby="forge-title"
     onPointerEnter={event => { if (event.pointerType === "mouse") setHeld(true); }} onPointerLeave={() => setHeld(false)}>

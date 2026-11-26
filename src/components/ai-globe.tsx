@@ -53,10 +53,8 @@ function shapeFor(count: number): Shape {
 }
 
 const light = () => document.documentElement.dataset.theme === "light";
-const motionOff = () => {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return true;
-  try { return localStorage.getItem("careerforge-motion") === "off"; } catch { return false; }
-};
+// The globe follows the device's reduced-motion setting only; the site's switch is for the background.
+const motionOff = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function AiGlobe({ size, live = false, thinking = false, className }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -144,7 +142,7 @@ export function AiGlobe({ size, live = false, thinking = false, className }: Pro
     observer.observe(element);
     const theme = new MutationObserver(() => { if (!frame) draw(performance.now()); });
     theme.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    const events = ["careerforge-motion", "storage", "visibilitychange"];
+    const events = ["visibilitychange"];
     events.forEach(name => (name === "visibilitychange" ? document : window).addEventListener(name, refresh));
     return () => {
       stop(); observer.disconnect(); theme.disconnect();

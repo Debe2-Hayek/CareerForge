@@ -217,5 +217,3 @@
   .chat::before, .ai-orb, .ai-orb-large, .ai-orb-large::before, .chat-welcome, .chat-starters button, .assistant-message, .chat-dots span, .chat-history-live, .chat-privacy p, .chat-loading span { animation: none !important; }
   .chat-side, .chat-scrim { transition: none; }
 }
-/* The site-wide "Motion off" switch pauses the aurora and the orb too. */
-body:has(.ambient[data-paused]) .chat::before, body:has(.ambient[data-paused]) .ai-orb, body:has(.ambient[data-paused]) .ai-orb-large::before, body:has(.ambient[data-paused]) .chat-history-live { animation-play-state: paused; }

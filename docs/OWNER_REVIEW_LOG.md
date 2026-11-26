@@ -40,8 +40,7 @@ part needs OpenRouter credits before it gives real answers.
   started in one click.
 - **Note:** your project report (requirement R1) mentions "a time limit"; this follows your request to remove it.
 - **Where:** `/skill-checks`, `/account/verification`, `/account`, `/jobs`, `/learning-roadmap/react`, `/career-analysis`.
-- **Status:** Ready. Development has the database step; production needs migration
-  `202611260002_untimed_skill_checks.sql` right before merging (one YES window).
+- **Status:** Live since 26 Nov 2026 (migration 202611260002 applied to production, PR #49).
 
 ## My profile, CV & Portfolio and the homepage slider, redesigned
 - **My profile:** the form is now grouped like a settings page in a well-made app: The basics, Your story,
@@ -69,7 +68,7 @@ part needs OpenRouter credits before it gives real answers.
   feature-tab sections from Ada and Heron AI), SaaSFrame (user-profile and empty-state guides), Page Flows (profile
   flows), Godly, Dribbble and Awwwards for overall polish. Principles only; nothing copied.
 - **Where:** `/account`, `/documents`, the homepage "Everything inside" section.
-- **Status:** Ready (no database change).
+- **Status:** Live since 26 Nov 2026 (PR #48, no database change).
 
 ## AI assistant: chats are saved to your account, and the page looks like ChatGPT or Claude
 - **What:** Every chat with the AI assistant is saved to your account, like ChatGPT or Claude. Come back to a
@@ -86,8 +85,7 @@ part needs OpenRouter credits before it gives real answers.
 - **Where:** `/career-assistant`.
 - **How to try:** ask a question, then refresh, sign out and in again, or open it on your phone: the chat is in
   the sidebar. Rename it with the pencil, delete it with the bin.
-- **Status:** Ready. Development has the database step; production needs migration
-  `202611260001_assistant_chats.sql` before merging (one YES window).
+- **Status:** Live since 26 Nov 2026 (migration 202611260001 applied to production, PR #47).
 
 ## A full showcase test case, and three builder fixes it found
 - **What:** A new script, `scripts/demo-showcase.mjs`, runs CareerForge end to end on the development copy with the
@@ -108,7 +106,7 @@ part needs OpenRouter credits before it gives real answers.
     "Karim Nassar", "bs in computer science" → "BS in Computer Science"); sentences stay as written.
   - The demo-mode note no longer mentions an old AI key.
 - **Where:** `/documents`, published portfolios; the script in `scripts/`.
-- **Status:** Ready (no database change).
+- **Status:** Live since 26 Nov 2026 (PR #46, no database change).
 
 
 ## Faster, more private CV & Portfolio page

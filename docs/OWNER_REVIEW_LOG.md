@@ -10,6 +10,28 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## A full showcase test case, and three builder fixes it found
+- **What:** A new script, `scripts/demo-showcase.mjs`, runs CareerForge end to end on the development copy with the
+  real AI, as one fictional student (Karim Nassar, a computer science graduate in Beirut), and writes a pass/fail
+  report with screenshots. 15 test cases: new account; AI reads his CV and fills the profile; languages with an
+  IELTS score; proof for the degree and the English score; a reviewer runs the AI check and approves; a React
+  skill check; a workshop certificate issued by a trainer and checked by a visitor; the best jobs saved and
+  tracked; CV vs job with an AI explanation; career analysis with the AI coach; the AI assistant; a CV and
+  portfolio written by AI from rough notes and published as a website; the public page of checked facts; and the
+  Overview in dark, white and phone views. Result: **15/15 passed**. The demo accounts stay on the development copy
+  so they can be shown; their passwords are only in the private `.deployment` folder. Each run starts clean.
+- **Bugs it found and fixed (CV & Portfolio builder):**
+  - After "Generate with AI", missing contact details were kept from the built-in sample, so a real person's
+    portfolio could show the sample's email, phone, LinkedIn and GitHub. Now only details the person typed are kept.
+  - If the AI found nothing usable in the notes, the builder wiped the preview and still said "Done". Now it keeps
+    the preview and explains what to write.
+  - Names, job titles, companies and projects that come back all in lowercase get capitals ("karim nassar" →
+    "Karim Nassar", "bs in computer science" → "BS in Computer Science"); sentences stay as written.
+  - The demo-mode note no longer mentions an old AI key.
+- **Where:** `/documents`, published portfolios; the script in `scripts/`.
+- **Status:** Ready (no database change).
+
+
 ## Faster, more private CV & Portfolio page
 - **What:** Measured every signed-in page on a real production build (signed in): all answer in 0.25–0.5 s
   with no heavy browser work. The learning roadmap and workshops were fine (their earlier slow numbers were
@@ -24,7 +46,7 @@ part needs OpenRouter credits before it gives real answers.
   - Result on the production build: the builder is fully drawn about 0.9 s after opening the page.
 - **Where:** `/documents` and published portfolios (`/u/<name>`).
 - **Tests:** the full account live test passes (it includes the builder, saving and publishing).
-- **Status:** Ready (no database change).
+- **Status:** Live since 25 Nov 2026 (no database change).
 
 
 ## Faster "Find opportunities": short descriptions first, full text when you open a job

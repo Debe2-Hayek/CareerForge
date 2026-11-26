@@ -59,6 +59,21 @@ function mockStructure(text) {
   };
 }
 
+// CareerForge: the AI keeps only words found in the notes, so "karim nassar" stays lowercase. Short
+// labels written entirely in lowercase get capitals (names, job titles, companies, schools, projects);
+// anything the person capitalised themselves, and full sentences, are left exactly as written.
+const ACRONYMS = { ba: "BA", bs: "BS", bsc: "BSc", be: "BE", ma: "MA", ms: "MS", msc: "MSc", mba: "MBA", phd: "PhD", ai: "AI", ml: "ML", ui: "UI", ux: "UX", api: "API", apis: "APIs", qa: "QA", hr: "HR", cs: "CS" };
+const SMALL_WORDS = new Set(["a", "an", "and", "at", "for", "in", "of", "on", "the", "to", "with"]);
+function titleCase(value) {
+  if (typeof value !== "string" || !/[a-z]/.test(value) || value !== value.toLowerCase() || value.length > 80) return value;
+  return value.replace(/[a-z][a-z'’.-]*/g, (word, index) => ACRONYMS[word] ?? (index > 0 && SMALL_WORDS.has(word) ? word : word[0].toUpperCase() + word.slice(1)));
+}
+function tidyCase(data) {
+  if (!data || typeof data !== "object") return data;
+  const each = (list, keys) => (Array.isArray(list) ? list.map((item) => (item && typeof item === "object" ? { ...item, ...Object.fromEntries(keys.filter((k) => k in item).map((k) => [k, titleCase(item[k])])) } : item)) : list);
+  return { ...data, name: titleCase(data.name), role: titleCase(data.role), experience: each(data.experience, ["company", "title"]), projects: each(data.projects, ["name"]), education: each(data.education, ["school", "institution", "degree"]) };
+}
+
 async function structureWithAI(text) {
   const res = await fetch("/api/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
   if (res.status === 501) return { data: mockStructure(text), demo: true };
@@ -145,9 +160,18 @@ export default function PortfolioBuilder({ initialState, onStateChange, notesCol
   async function generate() {
     setBusy(true); setNote("");
     try {
-      const { data, demo } = await structureWithAI(input);
-      setData((prev) => ({ ...data, ...Object.fromEntries(["email", "phone", "linkedin", "github", "website", "location"].map((k) => [k, data[k] || prev[k] || ""])) }));
-      setNote(demo ? "Demo mode: add ANTHROPIC_API_KEY to .env.local for real AI writing." : "Done. Click any text in the preview to fine-tune it.");
+      const result = await structureWithAI(input);
+      const demo = result.demo;
+      const data = demo ? result.data : tidyCase(result.data);
+      // CareerForge: if the AI found nothing it could trust (no name, no work, no projects, no skills),
+      // keep the current preview and say what to add, instead of wiping it and saying "Done".
+      const found = (data?.name || "").trim() || data?.experience?.length || data?.projects?.length || data?.skills?.length;
+      if (!demo && !found) { setNote("The AI couldn't find enough about you in these notes. Write about one person: your name, what you studied or worked on, and your skills. Then try again."); return; }
+      // Contact details missing from the notes keep what the person typed, but never the built-in
+      // sample's (a real portfolio must not show Sara Khoury's email or phone). Demo mode is sample text anyway.
+      const kept = (prev, k) => (prev[k] && (demo || prev[k] !== DEMO_CONTACT[k]) ? prev[k] : "");
+      setData((prev) => ({ ...data, ...Object.fromEntries(["email", "phone", "linkedin", "github", "website", "location"].map((k) => [k, data[k] || kept(prev, k)])) }));
+      setNote(demo ? "Demo mode: AI writing isn't connected here, so this is sample text built from your notes." : "Done. Click any text in the preview to fine-tune it.");
     } catch (e) { setNote("Couldn't generate: " + e.message); }
     finally { setBusy(false); }
   }

@@ -228,3 +228,20 @@
 }
 @media (prefers-reduced-motion: reduce) { .docbar-live-dot { animation: none; } }
 @media print { .docbar { display: none !important; } }
+
+/* ---------- Builder toolbar (26 Nov): one row ----------
+   View switch, then only the controls that change this view, then the one main action at the end. */
+.document-workspace .supplied-builder-page .pb .toolbar { gap: 10px 16px; padding: 10px 12px; }
+.document-workspace .supplied-builder-page .pb .toolbar .seg + .seg { position: relative; margin-left: 4px; }
+.document-workspace .supplied-builder-page .pb .toolbar .seg + .seg::before { content: ""; position: absolute; left: -11px; top: 8px; bottom: 8px; width: 1px; background: var(--workspace-line); }
+.document-workspace .supplied-builder-page .pb .toolbar .swatches { gap: 7px; }
+.document-workspace .supplied-builder-page .pb .toolbar .chk { color: var(--workspace-muted); font-size: 12.5px; }
+.document-workspace .supplied-builder-page .pb .toolbar .btn.sm.tb-main { margin-left: auto; min-height: 40px; padding: 0 18px; border: 0; border-radius: 12px; background: var(--workspace-accent); color: var(--workspace-accent-ink); font-weight: 650; box-shadow: none; }
+.document-workspace .supplied-builder-page .pb .toolbar .btn.sm.tb-main:hover { background: color-mix(in srgb, var(--workspace-accent) 88%, white); }
+.document-workspace .supplied-builder-page .pb .hint { font-size: 12.5px; line-height: 1.5; }
+.document-workspace .supplied-builder-page .pb .hint b { color: var(--workspace-ink); font-weight: 600; }
+@media screen and (max-width: 560px) {
+  .document-workspace .supplied-builder-page .pb .toolbar .seg + .seg { margin-left: 0; }
+  .document-workspace .supplied-builder-page .pb .toolbar .seg + .seg::before { display: none; }
+  .document-workspace .supplied-builder-page .pb .toolbar .btn.sm.tb-main { width: 100%; margin-left: 0; }
+}

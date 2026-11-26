@@ -23,6 +23,9 @@ part needs OpenRouter credits before it gives real answers.
 - **CV & Portfolio:** the top bar is one calm row: the name, "Saved" and "Live at /u/…" on the left; Notes,
   a "More" menu (saved-profile CV, profile portfolio) and one main button (Publish website / Manage live
   site) on the right. The notes panel opens with the three steps: write, generate, edit and publish.
+  The editing toolbar is one row: Web portfolio / CV, then only the controls that change what you see (CV
+  style; colour for the portfolio and the Modern CV; light or dark for the portfolio), and Download PDF as the
+  main button. One short line under it says what the chosen CV style is for.
 - **Homepage:** the 3D ring is replaced by a 2D slider. Tabs on top (Profile, Skill checks, Roadmaps,
   Workshops, CV, Jobs, Applications, AI assistant, Portfolio); each slide explains the tool with three
   points and a true number, next to a live-looking example of the tool itself (a profile with checked

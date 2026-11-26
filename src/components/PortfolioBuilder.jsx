@@ -74,6 +74,13 @@ function tidyCase(data) {
   return { ...data, name: titleCase(data.name), role: titleCase(data.role), experience: each(data.experience, ["company", "title"]), projects: each(data.projects, ["name"]), education: each(data.education, ["school", "institution", "degree"]) };
 }
 
+// CareerForge: one short line about each CV style, shown under the toolbar instead of a paragraph beside it.
+const CV_NOTES = {
+  bullet: "Professional bullet: one column, no photo, based on the Word template.",
+  modern: "Modern: two columns with your colour and an optional photo.",
+  ats: "ATS-safe: plain and single-column, best for online application forms.",
+};
+
 async function structureWithAI(text) {
   const res = await fetch("/api/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
   if (res.status === 501) return { data: mockStructure(text), demo: true };
@@ -208,38 +215,41 @@ export default function PortfolioBuilder({ initialState, onStateChange, notesCol
         </aside>
 
         <section className="stage">
+          {/* CareerForge: one toolbar row. Only controls that change the current view are shown (colour for the
+              portfolio and the Modern CV; light or dark for the portfolio), and the one main action sits at the end. */}
           <div className="toolbar no-print">
             <div className="seg" role="tablist">
               <button role="tab" aria-selected={view === "portfolio"} className={view === "portfolio" ? "on" : ""} onClick={() => setView("portfolio")}>Web portfolio</button>
               <button role="tab" aria-selected={view === "cv"} className={view === "cv" ? "on" : ""} onClick={() => setView("cv")}>CV</button>
             </div>
-            <div className="swatches" aria-label="Accent color">
-              {Object.entries(THEMES).map(([k, v]) => (
-                <button key={k} title={k} aria-label={k} aria-pressed={!custom && theme === k}
-                  className={!custom && theme === k ? "sw on" : "sw"} style={{ background: `linear-gradient(135deg, ${v.a}, ${v.b})` }}
-                  onClick={() => { setTheme(k); setCustom(null); }} />
-              ))}
-              <label className={custom ? "sw custom on" : "sw custom"} title="Custom color">
-                <input type="color" aria-label="Custom color" value={custom || t.a} onChange={(e) => setCustom(e.target.value)} />
-              </label>
-            </div>
-            <button className="modebtn" aria-label={`Switch to ${light ? "dark" : "light"} mode`} title={light ? "Dark mode" : "Light mode"} onClick={() => setMode(light ? "dark" : "light")}>
-              <Icon n={light ? "moon" : "sun"} />
-            </button>
             {view === "cv" && (
-              <div className="dl">
-                <div className="seg" role="tablist" aria-label="CV style">
-                  <button role="tab" aria-selected={cvStyle === "bullet"} className={cvStyle === "bullet" ? "on" : ""} onClick={() => setCvStyle("bullet")}>Professional bullet</button>
-                  <button role="tab" aria-selected={cvStyle === "modern"} className={cvStyle === "modern" ? "on" : ""} onClick={() => setCvStyle("modern")}>Modern</button>
-                  <button role="tab" aria-selected={cvStyle === "ats"} className={cvStyle === "ats" ? "on" : ""} onClick={() => setCvStyle("ats")}>ATS-safe</button>
-                </div>
-                {cvStyle === "modern" && <label className="chk"><input type="checkbox" checked={cvPhoto} disabled={!photo} onChange={(e) => setCvPhoto(e.target.checked)} /> Photo on CV</label>}
-                <button className="btn sm" onClick={() => window.print()}>Download PDF</button>
-                <small>{cvStyle === "bullet" ? "Based on your Word template. Single column, no photo. Save as PDF in the print dialog." : "Save as PDF in the print dialog. Single-column styles suit online application forms."}</small>
+              <div className="seg" role="tablist" aria-label="CV style">
+                <button role="tab" aria-selected={cvStyle === "bullet"} className={cvStyle === "bullet" ? "on" : ""} onClick={() => setCvStyle("bullet")} title={CV_NOTES.bullet}>Professional bullet</button>
+                <button role="tab" aria-selected={cvStyle === "modern"} className={cvStyle === "modern" ? "on" : ""} onClick={() => setCvStyle("modern")} title={CV_NOTES.modern}>Modern</button>
+                <button role="tab" aria-selected={cvStyle === "ats"} className={cvStyle === "ats" ? "on" : ""} onClick={() => setCvStyle("ats")} title={CV_NOTES.ats}>ATS-safe</button>
               </div>
             )}
+            {(view === "portfolio" || cvStyle === "modern") && (
+              <div className="swatches" aria-label="Accent color">
+                {Object.entries(THEMES).map(([k, v]) => (
+                  <button key={k} title={k} aria-label={k} aria-pressed={!custom && theme === k}
+                    className={!custom && theme === k ? "sw on" : "sw"} style={{ background: `linear-gradient(135deg, ${v.a}, ${v.b})` }}
+                    onClick={() => { setTheme(k); setCustom(null); }} />
+                ))}
+                <label className={custom ? "sw custom on" : "sw custom"} title="Custom color">
+                  <input type="color" aria-label="Custom color" value={custom || t.a} onChange={(e) => setCustom(e.target.value)} />
+                </label>
+              </div>
+            )}
+            {view === "portfolio" && (
+              <button className="modebtn" aria-label={`Switch to ${light ? "dark" : "light"} mode`} title={light ? "Dark mode" : "Light mode"} onClick={() => setMode(light ? "dark" : "light")}>
+                <Icon n={light ? "moon" : "sun"} />
+              </button>
+            )}
+            {view === "cv" && cvStyle === "modern" && <label className="chk"><input type="checkbox" checked={cvPhoto} disabled={!photo} onChange={(e) => setCvPhoto(e.target.checked)} /> Photo on CV</label>}
+            {view === "cv" && <button className="btn sm tb-main" onClick={() => window.print()}>Download PDF</button>}
           </div>
-          <p className="hint no-print">Click any text in the preview to edit it.</p>
+          <p className="hint no-print">{view === "cv" ? <><b>{CV_NOTES[cvStyle]}</b> Click any text to edit it; the PDF is saved from the print dialog.</> : "Click any text in the preview to edit it."}</p>
 
           <div className={"preview" + (busy ? " busy" : "")}>
             {view === "portfolio" ? <Portfolio d={data} photo={photo} setPhoto={setPhoto} onCV={() => { setView("cv"); setTimeout(() => window.print(), 450); }} /> : <CV d={data} photo={cvPhoto ? photo : null} variant={cvStyle} />}

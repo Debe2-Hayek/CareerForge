@@ -6,7 +6,7 @@ import { linkify, type ContextChoice } from "@/lib/assistant/context";
 import { boldSpans, groupChats, titleFor, toBlocks, type ChatMessage } from "@/lib/assistant/chat-store";
 import type { ChatDetail, ChatSummary } from "@/lib/assistant/chats";
 import { AppIcon, type IconName } from "./app-icons";
-import { AiGlobe } from "./ai-globe";
+import { AiClover } from "./ai-clover";
 
 const STARTERS: { text: string; hint: string; icon: IconName }[] = [
   { text: "Which career fits me best, and why?", hint: "Compares your profile with the career paths", icon: "compass" },
@@ -41,10 +41,10 @@ function Reply({ text }: { text: string }) {
   })}</div>;
 }
 
-/** The assistant's mark: a turning wireframe globe. Message avatars stay still to keep long chats light. */
+/** The assistant's mark: the clover (it turns slowly when live and breathes while thinking). */
 function Orb({ size = "small", thinking = false, live = false }: { size?: "small" | "large"; thinking?: boolean; live?: boolean }) {
   return <span className={`ai-orb ai-orb-${size}${thinking ? " is-thinking" : ""}`} aria-hidden="true">
-    <AiGlobe size={size === "large" ? 150 : 34} live={size === "large" || live || thinking} thinking={thinking} />
+    <AiClover size={size === "large" ? 120 : 26} live={size === "large" || live || thinking} thinking={thinking} />
   </span>;
 }
 

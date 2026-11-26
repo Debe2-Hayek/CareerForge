@@ -4,7 +4,7 @@
 // is one main document and a few small pieces floating around it. One fictional person (Karim Nassar),
 // labelled "Example". Decorative: hidden from screen readers, since each slide's text says what it is.
 import type { CSSProperties, ReactNode } from "react";
-import { AiGlobe } from "./ai-globe";
+import { AiClover } from "./ai-clover";
 
 const at = (seconds: number) => ({ "--d": `${seconds}s` }) as CSSProperties;
 const QR = "M0 0h7v7H0zM2 2v3h3V2zM14 0h7v7h-7zM16 2v3h3V2zM0 14h7v7H0zM2 16v3h3v-3zM9 0h2v2H9zM9 4h3v2H9zM8 8h2v2H8zM12 8h3v2h-3zM9 11h2v3H9zM13 12h2v2h-2zM16 9h3v2h-3zM17 13h2v3h-2zM12 16h3v2h-3zM9 17h2v4H9zM14 19h3v2h-3zM19 18h2v3h-2z";
@@ -115,7 +115,7 @@ export function DemoAssistant() {
   return <Scene>
     <div className="r-main r-card r-chat">
       <p className="r-msg-user" style={at(0.2)}>What should I learn next?</p>
-      <div className="r-msg-ai" style={at(0.55)}><span className="r-globe"><AiGlobe size={26} /></span>
+      <div className="r-msg-ai" style={at(0.55)}><span className="r-globe"><AiClover size={20} live /></span>
         <div><p>Docker. It is missing in <b>3 of your saved jobs</b>.</p><ol><li>Take the free Docker course</li><li>Containerise Souk Finder</li><li>Prove it with a skill check</li></ol></div>
       </div>
     </div>

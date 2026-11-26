@@ -12,7 +12,7 @@ export type Feature = {
 };
 
 /** How long a slide stays before the next one, while nobody is using the slider. */
-const DWELL = 6500;
+const DWELL = 4500;
 const calm = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
@@ -188,8 +188,11 @@ export function FeatureSlider({ items }: { items: readonly Feature[] }) {
             <p className="fs-stat"><strong>{item.stat.value}</strong><span>{item.stat.label}</span></p>
             <Link href={item.href} className="fs-link">{item.cta} <span aria-hidden="true">→</span></Link>
           </div>
-          {/* The result floats on a quiet stage and leans a little towards the mouse. */}
+          {/* A light rises from the pad below and builds the result, which then floats and leans towards the mouse. */}
           <div className="fs-stage" onPointerMove={lean} onPointerLeave={straighten}>
+            <span className="fs-beam" aria-hidden="true" />
+            <span className="fs-pad" aria-hidden="true">{[0, 1, 2, 3, 4, 5, 6].map(i => <i key={i} style={{ "--i": i } as CSSProperties} />)}</span>
+            <span className="fs-scan" aria-hidden="true" />
             <div className="fs-demo">{item.demo}</div>
           </div>
         </li>)}

@@ -39,7 +39,7 @@ export function formatPeriod(item: { startDate: string | null; endDate: string |
 /** One plain line saying how a fact was checked. */
 export function methodText(method: "reviewed" | "check" | "interview" | "issued", checkedAt: string | null, extra?: string): string {
   const when = formatMonth(checkedAt);
-  const how = method === "check" ? "Passed a timed CareerForge skill check"
+  const how = method === "check" ? "Passed a CareerForge skill check"
     : method === "interview" ? "Passed a timed CareerForge interview about this code"
     : method === "issued" ? `Certificate issued by CareerForge${extra ? ` (${extra})` : ""}`
     : `Proof reviewed by CareerForge${extra ? ` (${extra})` : ""}`;

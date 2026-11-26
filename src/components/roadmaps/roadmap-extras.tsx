@@ -4,16 +4,25 @@ import { getRoadmap } from "@/lib/roadmaps/catalog";
 import { coursesFor, hostOf } from "@/lib/roadmaps/open-catalog";
 import type { Roadmap } from "@/lib/roadmaps/schema";
 import { AreaIcon } from "./area-icon";
+import { checkHref } from "@/lib/skill-checks";
 import { LearnFooter } from "./learn-header";
 import styles from "./roadmaps.module.css";
 
 /** Below the map: a few full courses, related roadmaps and attribution. */
-export function RoadmapExtras({ roadmap }: { roadmap: Roadmap }) {
+export function RoadmapExtras({ roadmap, check = null }: { roadmap: Roadmap; check?: string | null }) {
   const courses = coursesFor(roadmap);
   // Matched by stable roadmap id, never by text. Self-paced only, so nothing here can expire.
   const practice = curatedWorkshops.filter(workshop => workshop.format === "Self-Paced / Recorded" && workshop.relatedRoadmaps?.includes(roadmap.id)).sort((a, b) => (a.priority ?? 500) - (b.priority ?? 500)).slice(0, 3);
   const related = roadmap.related.flatMap(id => getRoadmap(id) ?? []);
   return <>
+    {check && <section className={`${styles.block} ${styles.proveBlock}`} aria-labelledby="prove-heading">
+      <span className={styles.proveMark} aria-hidden="true">✓</span>
+      <div>
+        <h2 id="prove-heading" className={styles.blockTitle}>Prove {check} when you are ready</h2>
+        <p>Five questions on the fundamentals, no time limit. Get four right and {check} is Verified on your profile, CV and portfolio.</p>
+      </div>
+      <Link className={styles.proveLink} href={checkHref(check)}>Take the {check} check <span aria-hidden="true">→</span></Link>
+    </section>}
     {practice.length > 0 && <section className={styles.block} aria-labelledby="practice-heading">
       <div className={styles.blockHead}><h2 id="practice-heading" className={styles.blockTitle}>Practice this skill</h2><Link href="/workshops">All workshops</Link></div>
       <ul className={styles.suggestRow}>

@@ -21,7 +21,7 @@ test("trust page data: counted, formatted, and each method described plainly", (
   assert.equal(formatPeriod(facts.education[0]), "Sep 2016 – Jun 2020");
   assert.equal(formatPeriod({ startDate: "2024-01-01", endDate: null, isCurrent: true }), "Jan 2024 – present");
   assert.equal(languageLine(facts.languages[0]), "B2 · DELF B2");
-  assert.equal(methodText("check", "2026-10-01T00:00:00Z"), "Passed a timed CareerForge skill check · Oct 2026");
+  assert.equal(methodText("check", "2026-10-01T00:00:00Z"), "Passed a CareerForge skill check · Oct 2026");
   assert.equal(methodText("reviewed", null, "score report"), "Proof reviewed by CareerForge (score report)");
   assert.equal(confirmedFactsSchema.parse({ name: "X", headline: null }).skills.length, 0, "missing groups are empty");
 });

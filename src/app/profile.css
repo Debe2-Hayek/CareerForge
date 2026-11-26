@@ -137,3 +137,8 @@ body:has(.ambient[data-paused]) :is(.art-cv, .art-site) { animation-play-state: 
 .profile-section { scroll-margin-top: 96px; }
 .profile-signin { margin: 2px 12px 8px; padding-bottom: 10px; border-bottom: 1px solid #2b3a22; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
 .profile-signin strong { color: var(--ink); font-weight: 500; }
+
+/* Skills with a check get a direct way to prove them. */
+.tag-prove { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0 0; padding: 10px 12px; border: 1px dashed #4a6531; border-radius: 12px; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+.tag-prove a { color: var(--ink); font-weight: 600; text-decoration: underline; text-decoration-color: #6f9a40; text-underline-offset: 3px; }
+.tag-prove a:hover { text-decoration-color: currentColor; }

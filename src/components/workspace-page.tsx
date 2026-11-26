@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { profileFromRow } from "@/lib/account/schemas";
+import { readCheckableSkills } from "@/lib/skill-checks";
 import { CareerWorkspace } from "./career-workspace";
 import { trackerAccess } from "@/lib/tracker/server";
 import { readClaimsOverview } from "@/lib/claims/server";
@@ -56,12 +57,12 @@ export async function WorkspacePage({ view }: { view: "overview" | "profile" | "
     const listing = tracker.jobs();
     const applications = await tracker.list();
     // The journey needs the applications; it loads while the job catalog is still arriving.
-    const [catalog, guide] = await Promise.all([listing, view === "overview" ? readJourney(client, user.id, profile, applications) : null]);
+    const [catalog, guide, checks] = await Promise.all([listing, view === "overview" ? readJourney(client, user.id, profile, applications) : null, view === "jobs" ? readCheckableSkills(client) : []]);
     // The Overview shows only the best matches (tracked roles arrive with the applications), so it
     // sends a few jobs instead of the whole catalog. A refresh on focus loads the full list.
     // Jobs: every listing, but with short descriptions; the dialog fetches the full one when opened.
     const jobs = view === "overview" ? rankJobs(catalog, profile.skills).slice(0, 6) : view === "jobs" ? catalog.map(job => withExcerpt(job)) : catalog;
-    account = { id: user.id, profile, tracker: { jobs, applications }, journey: guide?.path ?? null, sky: guide?.sky ?? null };
+    account = { id: user.id, profile, tracker: { jobs, applications }, journey: guide?.path ?? null, sky: guide?.sky ?? null, checks };
   } catch {
     if (anonymous) {
       redirect("/login");

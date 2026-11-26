@@ -49,7 +49,7 @@ export function journey(input: JourneyInput): Journey {
       : { eyebrow: "NEXT STEP", title: "Open your profile", text: "Your profile could not be checked just now. Open it to continue.", href: "/account", label: "Open profile" };
   } else if (!flags.prove) {
     action = input.proofSent > 0
-      ? { eyebrow: "WHILE A REVIEWER CHECKS YOUR PROOF", title: "Prove a skill in a few minutes", text: "A passed timed check gives a skill a Verified badge straight away.", href: "/skill-checks", label: "Take a skill check" }
+      ? { eyebrow: "WHILE A REVIEWER CHECKS YOUR PROOF", title: "Prove a skill in a few minutes", text: "A passed skill check gives a skill a Verified badge straight away. No time limit.", href: "/skill-checks", label: "Take a skill check" }
       : { eyebrow: "NEXT STEP · ABOUT 2 MINUTES", title: "Send your first proof", text: "A photo of a diploma or certificate is enough. A reviewer checks it and the fact gets a ✓ employers can trust.", href: "/account/verification", label: "Add proof" };
   } else if (!flags.direction) {
     action = { eyebrow: "NEXT STEP", title: "See which careers fit you", text: "Compare your profile with every career path, then start the free roadmap for the one you choose.", href: "/career-analysis", label: "Find my direction" };

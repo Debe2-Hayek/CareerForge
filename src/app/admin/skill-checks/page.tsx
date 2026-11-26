@@ -24,7 +24,7 @@ export default async function Page() {
   if (!access) notFound();
   return <AppShell pageTitle="Skill checks studio" privateAccount>
     <div className="account-content">
-      <div className="page-heading"><div><p className="eyebrow">ADMIN · SKILL CHECKS</p><h1>Skill checks studio<span>.</span></h1><p>Prepare timed checks for any skill. The AI drafts, you decide what students see.</p></div></div>
+      <div className="page-heading"><div><p className="eyebrow">ADMIN · SKILL CHECKS</p><h1>Skill checks studio<span>.</span></h1><p>Prepare checks for any skill. The AI drafts, you decide what students see.</p></div></div>
       <AdminTabs current="skill-checks" />
       <SkillDraftStudio drafts={data.drafts} live={data.live} />
     </div>

@@ -11,6 +11,7 @@ import { profileSchema, type AccountProfile } from "@/lib/account/schemas";
 import { profileStrength, type StrengthCounts } from "@/lib/profile-strength";
 import type { ClaimStatus } from "@/lib/claims/model";
 import { JOB_SKILLS } from "@/lib/jobs/text-signals";
+import { checkHref } from "@/lib/skill-checks";
 import { FieldCounter, SkillTags } from "./field-helpers";
 
 const subscribeReady = () => () => {};
@@ -28,7 +29,7 @@ const sameDraft = (draft: ReturnType<typeof readDraft>, saved: AccountProfile) =
   draft.name === saved.name && draft.headline === saved.headline && draft.location === saved.location && draft.bio === saved.bio
   && draft.education === saved.education && draft.project === saved.project && draft.skills.join("|") === saved.skills.join("|");
 
-export type ProfileTrust = { counts: StrengthCounts; skillStatus: Record<string, ClaimStatus>; total: number; confirmed: number; pending: number } | null;
+export type ProfileTrust = { counts: StrengthCounts; skillStatus: Record<string, ClaimStatus>; total: number; confirmed: number; pending: number; provable?: string[] } | null;
 /** The CV & Portfolio builder's state, or null when it could not be read. */
 export type DocumentsStatus = { hasDraft: boolean; isPublic: boolean; slug: string | null; hasUnpublishedChanges: boolean } | null;
 
@@ -178,6 +179,7 @@ export function AccountProfileEditor({ profile: initialProfile, email, trust = n
                 <span className="field-label-row"><label htmlFor="account-skills">Your skills</label><small className="field-counter">{profile.skills.length} saved · up to 40</small></span>
                 <SkillTags id="account-skills" name="skills" initial={profile.skills} statusOf={trust?.skillStatus} suggestions={JOB_SKILLS} describedBy="account-skills-help" />
                 <small id="account-skills-help">Press Enter or a comma after each skill. Paste a list to add many at once. Suggestions are skills employers ask for.</small>
+                {trust?.provable?.length ? <p className="tag-prove"><span className="tag-proof" aria-hidden="true">✓</span>Prove {trust.provable.length === 1 ? "it" : "them"} with a short check, no time limit: {trust.provable.map((skill, i) => <span key={skill}>{i ? " · " : ""}<Link href={checkHref(skill)}>{skill} check</Link></span>)}</p> : null}
               </div>
             </Section>
           </fieldset>

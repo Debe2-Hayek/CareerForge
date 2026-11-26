@@ -9,7 +9,7 @@ const badges = ["Profile built from CV", "Degree reviewed", "SQL verified", "Cer
 const points = [
   { title: "Your CV fills your profile", text: "Upload it and review every line before it is saved." },
   { title: "Diplomas get reviewed", text: "Copied or edited proof from another account is caught." },
-  { title: "Skills get verified", text: "Short timed checks turn a claim into a badge." },
+  { title: "Skills get verified", text: "Short skill checks turn a claim into a badge." },
   { title: "Workshops end with certificates", text: "Each one has a QR code anyone can check." }
 ];
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { checkHref, findCheck } from "@/lib/skill-checks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { careerLabel, type CareerDetail, type CareerSummary, type EvidenceLevel, type Priority } from "@/lib/career-analysis/score";
@@ -52,7 +53,7 @@ function Explain({ careerId }: { careerId: string }) {
   </section>;
 }
 
-export function CareerAnalysis({ ranked, detail, empty }: { ranked: CareerSummary[]; detail: CareerDetail; empty: boolean }) {
+export function CareerAnalysis({ ranked, detail, empty, checks = [] }: { ranked: CareerSummary[]; detail: CareerDetail; empty: boolean; checks?: string[] }) {
   const router = useRouter();
   const [view, setView] = useState<View>("gaps");
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
@@ -119,6 +120,7 @@ export function CareerAnalysis({ ranked, detail, empty }: { ranked: CareerSummar
           <ul>{list.map(topic => <li key={topic.id} className={`career-topic evidence-${topic.evidence}`}>
             <span className="career-topic-main"><strong>{topic.title}</strong><small>{topic.evidence === "none" ? topic.section : `${topic.section} · ${topic.detail}`}</small></span>
             {topic.evidence !== "none" ? <span className={`evidence-chip evidence-${topic.evidence}`}>{evidenceLabel[topic.evidence]}</span> : null}
+            {(() => { const check = topic.evidence !== "proven" ? findCheck(checks, topic.title) : null; return check ? <Link href={checkHref(check)} className="text-button career-prove">Prove it ✓<span className="sr-only"> with the {check} check</span></Link> : null; })()}
             <Link href={topic.href} className="text-button">{isGap(topic.evidence) ? "Learn" : "Review"}<span className="sr-only"> {topic.title}</span> <span aria-hidden="true">→</span></Link>
           </li>)}</ul>
           {group.topics.length > PREVIEW && <button type="button" className="text-button career-more" aria-expanded={open} onClick={() => setExpanded(current => { const next = new Set(current); if (open) next.delete(key); else next.add(key); return next; })}>{open ? "Show fewer" : `Show all ${group.topics.length}`}</button>}

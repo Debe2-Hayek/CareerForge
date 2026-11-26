@@ -41,7 +41,9 @@ export default async function AccountPage() {
               experience: items.filter(item => item.kind === "employment").length,
               claims: { proofSent: items.filter(item => item.evidenceCount > 0).length, confirmed: summary.confirmed }
             },
-            skillStatus: Object.fromEntries(items.filter(item => item.kind === "skill").map(item => [item.title.toLowerCase(), item.status]))
+            skillStatus: Object.fromEntries(items.filter(item => item.kind === "skill").map(item => [item.title.toLowerCase(), item.status])),
+            // Skills on the profile that have a check not passed yet: each links straight to its check.
+            provable: items.filter(item => item.kind === "skill" && item.checkAvailable).map(item => item.title)
           };
         } catch { trust = null; }
         result = { profile, email: user.email ?? "your account", trust, documents: await documents };

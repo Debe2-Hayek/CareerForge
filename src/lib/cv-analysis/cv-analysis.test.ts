@@ -40,7 +40,7 @@ test("the score is deterministic and every factor is explained", () => {
 
 test("next steps point to real actions: checks where they exist, learning otherwise, and proof", () => {
   const { steps } = analyseFit(job, candidate, now);
-  assert.ok(steps.some(step => step.kind === "check" && /Docker/.test(step.text) && step.href === "/skill-checks"));
+  assert.ok(steps.some(step => step.kind === "check" && /Docker/.test(step.text) && step.href === "/skill-checks?skill=Docker"));
   assert.ok(steps.some(step => step.kind === "learn" && /PostgreSQL/.test(step.text)));
   assert.ok(steps.some(step => step.kind === "prove" && /Spring Boot/i.test(step.text)));
   assert.equal(steps.some(step => step.kind === "prove" && /Java/.test(step.text)), false, "Java is already verified");

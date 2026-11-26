@@ -1,157 +1,96 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { sessionReplySchema, submissionResultSchema, type CheckResult, type CheckSession, type SkillBank } from "@/lib/skill-checks";
-import { useUnsavedProfileGuard } from "./unsaved-profile-guard";
+import { PASS_MARK, QUESTION_COUNT, type CheckSession } from "@/lib/skill-checks";
+import { SkillCheckRunner } from "./skill-check-runner";
 
-function AssessmentClock({ session, onExpired }: { session: CheckSession; onExpired: () => void }) {
-  const initialSeconds = Math.max(0, Math.ceil((Date.parse(session.deadlineAt) - Date.parse(session.serverNow)) / 1000));
-  const [seconds, setSeconds] = useState(initialSeconds);
-  useEffect(() => {
-    const receivedAt = performance.now();
-    const update = () => {
-      const remaining = Math.max(0, Math.ceil(initialSeconds - (performance.now() - receivedAt) / 1000));
-      setSeconds(remaining);
-      if (remaining === 0) onExpired();
-    };
-    const interval = window.setInterval(update, 1000);
-    return () => window.clearInterval(interval);
-  }, [initialSeconds, onExpired]);
-  return <div className="check-clock">
-    <p><span role="timer" aria-live="off" aria-label="Time remaining">{Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}</span> remaining · {session.timingMode === "extended" ? "Extended time" : "Standard time"}</p>
-    <p role="status">{seconds === 0 ? "Time expired. The server will not grade late answers." : seconds <= 60 ? "Less than one minute remaining." : ""}</p>
-  </div>;
+export type CheckCard = {
+  skill: string; onProfile: boolean; passedAt: string | null; lastScore: number | null; retryAt: string | null; learnHref: string | null;
+};
+
+const day = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric" });
+function waitText(iso: string, now: number) {
+  const hours = Math.max(1, Math.ceil((Date.parse(iso) - now) / 3600000));
+  return hours >= 2 ? `Try again in ${hours} hours` : "Try again within the hour";
 }
 
-function errorMessage(data: unknown, fallback: string) {
-  if (data && typeof data === "object" && "error" in data && data.error && typeof data.error === "object" && "message" in data.error && typeof data.error.message === "string") return data.error.message;
-  return fallback;
-}
-
-export function SkillChecks({ banks, selected, results, initialSession = null }: {
-  banks: SkillBank[]; selected: string[]; results: CheckResult[]; initialSession?: CheckSession | null;
-}) {
+/**
+ * Skill checks, as part of verification: every skill with a check, where you stand on it, and one clear
+ * action. A check opens in place (one question at a time), and ?skill=React opens that one directly.
+ */
+export function SkillChecks({ cards, initialSession, focus }: { cards: CheckCard[]; initialSession: CheckSession | null; focus: string | null }) {
   const router = useRouter();
-  const [session, setSession] = useState(initialSession);
-  const [active, setActive] = useState<SkillBank | null>(() => banks.find(bank => bank.skill === initialSession?.skill && bank.version === initialSession.version) ?? null);
-  const [timingMode, setTimingMode] = useState<"standard" | "extended">("standard");
-  const [dirty, setDirty] = useState(false);
-  const [pending, setPending] = useState(false);
-  const [expired, setExpired] = useState(initialSession?.state === "expired");
-  const [message, setMessage] = useState(initialSession ? "Your existing attempt has resumed. Its deadline has not restarted. Answers from a previous page load are not stored." : "");
-  const [error, setError] = useState("");
-  const formHeading = useRef<HTMLHeadingElement>(null);
-  const checkList = useRef<HTMLDivElement>(null);
-  const returnSkill = useRef<string | null>(null);
-  const requestInFlight = useRef(false);
-  const markExpired = useCallback(() => setExpired(true), []);
-  useUnsavedProfileGuard(dirty, "Leave without submitting your skill-check answers? The deadline continues while you are away.");
+  const [open, setOpen] = useState<{ skill: string; intro: boolean } | null>(() => {
+    if (initialSession) return { skill: initialSession.skill, intro: false };
+    const wanted = focus ? cards.find(card => card.skill.toLowerCase() === focus.toLowerCase()) : null;
+    return wanted && !wanted.passedAt && !wanted.retryAt ? { skill: wanted.skill, intro: true } : null;
+  });
+  const [now] = useState(() => Date.now());
+  const grid = useRef<HTMLDivElement>(null);
+  const opener = useRef<string | null>(null);
+  const card = open ? cards.find(item => item.skill.toLowerCase() === open.skill.toLowerCase()) : null;
+  const sorted = useMemo(() => [...cards].sort((a, b) => Number(Boolean(b.onProfile && !b.passedAt)) - Number(Boolean(a.onProfile && !a.passedAt)) || a.skill.localeCompare(b.skill)), [cards]);
+  const verified = cards.filter(item => item.passedAt).length;
 
+  // Coming back from a check puts the focus back on its card.
   useEffect(() => {
-    if (active) {
-      returnSkill.current = active.skill;
-      formHeading.current?.focus();
-    } else if (returnSkill.current) {
-      const index = banks.findIndex(bank => bank.skill === returnSkill.current);
-      checkList.current?.querySelectorAll("section")[index]?.querySelector("button")?.focus();
-      returnSkill.current = null;
-    }
-  }, [active, banks]);
+    if (open || !opener.current) return;
+    grid.current?.querySelector<HTMLElement>(`[data-skill="${CSS.escape(opener.current)}"] button, [data-skill="${CSS.escape(opener.current)}"] a`)?.focus();
+    opener.current = null;
+  }, [open]);
+  // A deep link to a skill that is already passed or waiting scrolls to its card instead.
+  useEffect(() => {
+    if (!focus || open) return;
+    grid.current?.querySelector<HTMLElement>(`[data-skill="${CSS.escape(cards.find(item => item.skill.toLowerCase() === focus.toLowerCase())?.skill ?? "")}"]`)?.scrollIntoView({ block: "center" });
+  }, [focus, open, cards]);
 
-  async function start(bank: SkillBank) {
-    if (requestInFlight.current) return;
-    requestInFlight.current = true;
-    setPending(true); setError(""); setMessage("");
-    try {
-      const response = await fetch("/api/v1/skill-checks/sessions", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "start", skill: bank.skill, version: bank.version, timingMode }), signal: AbortSignal.timeout(15000)
-      });
-      const data: unknown = await response.json();
-      if (!response.ok) { setError(errorMessage(data, "This attempt could not be started. Reload to check your current attempt.")); return; }
-      const result = sessionReplySchema.safeParse(data);
-      if (!result.success || !result.data.session || result.data.session.skill !== bank.skill) { setError("The attempt could not be verified. Reload before continuing."); return; }
-      if (session && result.data.session.id !== session.id) setMessage("The previous attempt expired. A new attempt has started with a new deadline.");
-      setSession(result.data.session); setExpired(result.data.session.state === "expired"); setActive(bank);
-    } catch { setError("Could not confirm the start. Reload to resume any attempt created by the server; the deadline will not restart."); }
-    finally { requestInFlight.current = false; setPending(false); }
-  }
+  function close() { opener.current = open?.skill ?? null; setOpen(null); router.refresh(); }
 
-  async function endAttempt() {
-    if (!session || requestInFlight.current || !window.confirm("End this attempt? Its answers will be discarded and no new grade will be recorded.")) return;
-    requestInFlight.current = true;
-    setPending(true); setError("");
-    try {
-      const response = await fetch("/api/v1/skill-checks/sessions", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "cancel", sessionId: session.id }), signal: AbortSignal.timeout(15000)
-      });
-      const data: unknown = await response.json();
-      if (!response.ok) { setError(errorMessage(data, "The attempt could not be ended. Reload to check its state.")); return; }
-      if (!data || typeof data !== "object" || !("cancelled" in data) || data.cancelled !== true) { setError("The attempt state could not be verified. Reload before continuing."); return; }
-      setDirty(false); setSession(null); setActive(null); setMessage("Attempt ended. Previous recorded results are unchanged. Wait one minute between new attempts.");
-      router.refresh();
-    } catch { setError("Could not confirm the attempt ended. Reload before starting another."); }
-    finally { requestInFlight.current = false; setPending(false); }
-  }
+  return <div className="account-content checks-page">
+    <div className="page-heading checks-heading">
+      <div>
+        <p className="eyebrow">VERIFICATION · SKILL CHECKS</p>
+        <h1>Prove a skill, get a ✓<span>.</span></h1>
+        <p>{QUESTION_COUNT} questions on the fundamentals. No time limit. Get {PASS_MARK} right and the skill is Verified on your profile, CV and portfolio.</p>
+      </div>
+      <Link href="/account/verification" className="button ghost">All verification <span aria-hidden="true">→</span></Link>
+    </div>
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!active || !session || expired || requestInFlight.current) return;
-    const fields = new FormData(event.currentTarget);
-    const answers = Object.fromEntries(active.questions.map(question => [question.id, Number(fields.get(question.id))]));
-    requestInFlight.current = true;
-    setPending(true); setError(""); setMessage("");
-    try {
-      const response = await fetch("/api/v1/skill-checks", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: session.id, answers }), signal: AbortSignal.timeout(15000)
-      });
-      const data: unknown = await response.json();
-      if (!response.ok) {
-        if (response.status === 410) setExpired(true);
-        setError(errorMessage(data, "The result could not be confirmed. Your answers are still here.")); return;
-      }
-      const result = submissionResultSchema.safeParse(data && typeof data === "object" && "result" in data ? data.result : null);
-      if (!result.success || result.data.skill !== active.skill || result.data.version !== active.version) { setError("The saved result could not be verified. Reload to check your recorded result before retrying."); return; }
-      setMessage(`${result.data.skill}: ${result.data.score}/5. ${result.data.passed ? "Basics check passed. This skill is now eligible for your CV." : "Not passed yet. Review the fundamentals before another attempt."}`);
-      setDirty(false); setSession(null); setActive(null); router.refresh();
-    } catch { setError("Could not confirm the result. Your answers are still here. Retry this attempt while time remains, or reload to check the recorded result. Retrying cannot create a duplicate grade."); }
-    finally { requestInFlight.current = false; setPending(false); }
-  }
+    <ol className="trust-ladder" aria-label="How a skill earns trust">
+      <li><span className="ladder-dot" aria-hidden="true" /><b>Self-declared</b><small>You list the skill</small></li>
+      <li><span className="ladder-dot" aria-hidden="true" /><b>Reviewed</b><small>A reviewer checks your proof</small></li>
+      <li data-here><span className="ladder-dot" aria-hidden="true">✓</span><b>Verified</b><small>You pass its check here</small></li>
+    </ol>
 
-  function backToChecks() {
-    if (dirty && !window.confirm("Discard these answers and return to the checks? The attempt deadline will continue.")) return;
-    setDirty(false); setActive(null); setError("");
-    setMessage("The attempt is still running. Resume it to continue; its deadline has not restarted.");
-  }
-
-  return <div className="account-content">
-    <div className="page-heading"><div><p className="eyebrow">EVIDENCE BEFORE CLAIMS</p><h1>Put your skills to work.</h1><p>Pass a basics check before a selected skill can appear on your CV.</p></div><Link className="button" href="/cv/saved">View my CV</Link></div>
-    <p className="muted-note">Each check has five questions prepared and approved by CareerForge reviewers and assesses fundamentals, not identity, professional proficiency or mastery. Pass mark: 4/5. Add a skill to your profile to take its check; skills without a check stay self-reported.</p>
-    {message && <p className="notice" role="status">{message}</p>}
-    {error && <p className="form-error" role="alert">{error}</p>}
-    {(error || expired) && <button type="button" className="text-button" onClick={() => window.location.reload()}>Reload recorded results (clears local answers)</button>}
-    {session && <AssessmentClock key={`${session.id}:${session.serverNow}`} session={session} onExpired={markExpired} />}
-    {!active ? <>
-      <div className="check-timing"><label htmlFor="check-timing-mode">Time allowance for a new attempt</label><select id="check-timing-mode" value={timingMode} disabled={pending || (!!session && !expired)} onChange={event => setTimingMode(event.target.value as "standard" | "extended")}><option value="standard">Standard · 10 minutes</option><option value="extended">Extended · 100 minutes</option></select><p className="muted-note">Choose extended time if you need more time to read or use assistive tools. Timing does not prove identity or detect dishonesty. Existing attempts keep their original allowance.</p></div>
-      <div ref={checkList} className="check-grid">{banks.map(bank => {
-        const included = selected.some(skill => skill.toLowerCase().trim() === bank.skill.toLowerCase());
-        const passed = results.some(result => result.skill.toLowerCase() === bank.skill.toLowerCase() && result.passed);
-        const resumable = session?.skill === bank.skill;
-        return <section className="panel check-card" key={bank.skill}>
-          <p className="eyebrow">{passed ? "BASICS CHECK PASSED" : "NOT YET ASSESSED"}</p><h2>{bank.skill}</h2><p>Five questions · 4/5 to pass</p>
-          <button className="button primary" disabled={pending || (!resumable && (!included || (!!session && !expired)))} onClick={() => start(bank)}>{resumable ? expired ? "Start new attempt" : "Resume check" : passed ? "Retake check" : "Start check"}</button>
-          {!included && <p><Link className="text-button" href="/account">Add this skill to your profile first</Link></p>}
-        </section>;
+    {open && card ? <section className="panel check-panel" aria-label={`${card.skill} check`}>
+      <button type="button" className="check-back text-button" onClick={close}><span aria-hidden="true">←</span> All checks</button>
+      <SkillCheckRunner skill={card.skill} onProfile={card.onProfile} initialSession={initialSession && initialSession.skill.toLowerCase() === card.skill.toLowerCase() ? initialSession : null}
+        withIntro={open.intro} learnHref={card.learnHref} onClose={close} />
+    </section> : <>
+      <p className="checks-count">{verified ? `${verified} of ${cards.length} skills verified` : `${cards.length} skills have a check`}</p>
+      <div ref={grid} className="checks-grid">{sorted.map(item => {
+        const resumable = initialSession?.skill.toLowerCase() === item.skill.toLowerCase();
+        const state = resumable ? "open" : item.passedAt ? "passed" : item.retryAt ? "wait" : item.onProfile ? "ready" : "add";
+        return <article key={item.skill} className="panel check-card" data-state={state} data-skill={item.skill} data-focus={focus?.toLowerCase() === item.skill.toLowerCase() || undefined}>
+          <div className="check-card-top">
+            <span className="check-mono" aria-hidden="true">{item.skill.slice(0, 2)}</span>
+            <span className="check-state">{state === "passed" ? <><i aria-hidden="true">✓</i>Verified</> : state === "wait" ? "Not yet" : state === "open" ? "In progress" : state === "ready" ? "On your profile" : "Not on your profile"}</span>
+          </div>
+          <h2>{item.skill}</h2>
+          <p className="check-card-meta">{state === "passed" ? `Passed ${day.format(new Date(item.passedAt!))}` : state === "wait" ? `${item.lastScore ?? 0}/${QUESTION_COUNT} last time · ${waitText(item.retryAt!, now)}` : `${QUESTION_COUNT} questions · ${PASS_MARK} to pass · no time limit`}</p>
+          <div className="check-card-actions">
+            {state === "wait"
+              ? item.learnHref ? <Link href={item.learnHref} className="button ghost">Learn {item.skill} <span aria-hidden="true">→</span></Link> : <span className="check-card-wait">Come back later</span>
+              : <button type="button" className={state === "passed" ? "button ghost" : "button primary"} onClick={() => setOpen({ skill: item.skill, intro: state === "add" })}>
+                {state === "open" ? "Continue" : state === "passed" ? "Take again" : state === "ready" ? "Start check" : "Add & start"}
+              </button>}
+            {state !== "wait" && item.learnHref && state !== "passed" && <Link href={item.learnHref} className="text-button">Free roadmap</Link>}
+          </div>
+        </article>;
       })}</div>
-    </> : <form className="panel check-form" onSubmit={submit} onChange={() => setDirty(true)} aria-busy={pending}>
-      <h2 ref={formHeading} tabIndex={-1}>{active.skill} basics</h2>
-      <p className="muted-note">The server enforces the deadline, including time away. Answers stay only on this page and are lost on reload. Nothing is submitted automatically.</p>
-      <fieldset disabled={pending || expired}>{active.questions.map((question, index) => <fieldset className="check-question" key={question.id}><legend>{index + 1}. {question.prompt}</legend>{question.options.map((option, optionIndex) => <label key={option}><input type="radio" name={question.id} value={optionIndex} required />{option}</label>)}</fieldset>)}</fieldset>
-      <div className="check-actions"><button className="button primary" disabled={pending || expired}>{pending ? "Saving…" : "Submit answers"}</button><button className="text-button" type="button" disabled={pending} onClick={backToChecks}>Back to checks</button><button className="text-button" type="button" disabled={pending} onClick={endAttempt}>End attempt</button></div>
-    </form>}
+      <p className="muted-note checks-foot">Checks cover the fundamentals only; they are not proof of mastery or professional experience. Each attempt shows the questions in a new order and is graded on our server. For a skill without a check, <Link href="/account/verification">send proof from Verification</Link> and a reviewer will look at it.</p>
+    </>}
   </div>;
 }

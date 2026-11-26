@@ -10,6 +10,25 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Skill checks: no timer, part of verification, and connected everywhere
+- **What:** Skill checks are now clearly part of verification: passing one is the fastest way to make a
+  skill Verified ✓. There is **no time limit** any more: take your time, leave and come back, even reload;
+  your answers wait. To keep it fair without a clock, every attempt shows the questions and the answers in
+  a **new order**, the server does the grading, and after a failed attempt you can try that skill again
+  **24 hours later** (you see exactly when). The check itself is calmer: one question at a time with a
+  progress bar, keys A B C, a review screen before sending, and a clear result (pass: "React is now
+  Verified" with links to your CV and to jobs that ask for React; not yet: when you can retry, plus the free
+  roadmap).
+- **Connected where it belongs:** the Verification page (the check opens right there in a window), your
+  profile (skills that have a check get a direct link), job details (skills in the posting that have a check),
+  skill roadmaps ("Prove React when you are ready"), career analysis gaps ("Prove it"), CV analysis next steps,
+  and `/skill-checks?skill=React` opens a check directly. A skill that isn't on your profile can be added and
+  started in one click.
+- **Note:** your project report (requirement R1) mentions "a time limit"; this follows your request to remove it.
+- **Where:** `/skill-checks`, `/account/verification`, `/account`, `/jobs`, `/learning-roadmap/react`, `/career-analysis`.
+- **Status:** Ready. Development has the database step; production needs migration
+  `202611260002_untimed_skill_checks.sql` right before merging (one YES window).
+
 ## My profile, CV & Portfolio and the homepage slider, redesigned
 - **My profile:** the form is now grouped like a settings page in a well-made app: The basics, Your story,
   Education and Skills, each with a one-line explanation on the left and the fields on the right. Skills

@@ -16,9 +16,10 @@ export async function authorizeSkillChecks(): Promise<SkillCheckAccess | null> {
     if (error) throw new Error("Assessment operation unavailable");
     return data as unknown;
   }
+  // Untimed checks (migration 202611260002): the server shuffles each attempt and maps answers back.
   return {
-    start: input => rpc("start_skill_check", { p_skill: input.skill, p_version: input.version, p_timing_mode: input.timingMode }),
+    start: input => rpc("start_untimed_skill_check", { p_skill: input.skill, p_add_to_profile: input.addToProfile ?? false }),
     cancel: sessionId => rpc("cancel_skill_check", { p_session_id: sessionId }),
-    submit: input => rpc("submit_timed_skill_check", { p_session_id: input.sessionId, p_answers: input.answers })
+    submit: input => rpc("submit_untimed_skill_check", { p_session_id: input.sessionId, p_answers: input.answers })
   };
 }

@@ -1,4 +1,5 @@
 import { detectSkills, requiredYears } from "../jobs/text-signals";
+import { checkHref } from "../skill-checks";
 import type { ClaimStatus } from "../claims/model";
 import { linkSkill, sameSkill, type SkillLink } from "../skill-match";
 
@@ -98,10 +99,10 @@ export function analyseFit(job: JobInput, candidate: CandidateInput, now = new D
   for (const skill of skills.filter(item => !item.matched).slice(0, 4)) {
     const check = candidate.checkable.find(name => sameSkill(name, skill.name));
     const head = skill.link?.relation === "related" ? ` (your ${skill.link.via} is a head start)` : "";
-    steps.push(check ? { kind: "check", text: `Add ${skill.name} to your profile and pass the ${check} check${head}`, href: "/skill-checks" } : { kind: "learn", text: `Learn ${skill.name}${head}: find a free path`, href: "/learning-roadmap" });
+    steps.push(check ? { kind: "check", text: `Pass the ${check} check${head}: five questions, no time limit (it adds ${check} to your profile)`, href: checkHref(check) } : { kind: "learn", text: `Learn ${skill.name}${head}: find a free path`, href: "/learning-roadmap" });
   }
   for (const skill of skills.filter(item => item.matched && !confirmed(item.status)).slice(0, 2)) {
-    steps.push({ kind: "prove", text: `Prove ${skill.link?.relation === "shows" ? skill.link.via : skill.name}: a passed check or reviewed certificate counts fully`, href: candidate.checkable.some(name => sameSkill(name, skill.name)) ? "/skill-checks" : "/account/verification" });
+    steps.push({ kind: "prove", text: `Prove ${skill.link?.relation === "shows" ? skill.link.via : skill.name}: a passed check or reviewed certificate counts fully`, href: candidate.checkable.some(name => sameSkill(name, skill.name)) ? checkHref(candidate.checkable.find(name => sameSkill(name, skill.name))!) : "/account/verification" });
   }
   if (experienceScore !== null && experienceScore < 1 && yearsRequired) steps.push({ kind: "experience", text: candidate.experience.length ? "Add every job, internship and dated project to your work history" : "Add your work history, including internships", href: "/account/history" });
   if (degreeAsked && !candidate.education.length) steps.push({ kind: "education", text: "Add your education record", href: "/account/history" });

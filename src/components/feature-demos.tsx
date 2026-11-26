@@ -20,7 +20,7 @@ export function DemoProfile() {
       <ul className="d-facts">
         <li data-state="ok"><i>✓</i><span><b>BS Computer Science</b><small>Diploma checked by a reviewer</small></span></li>
         <li data-state="ok"><i>✓</i><span><b>English · C1</b><small>IELTS 7.5, report checked</small></span></li>
-        <li data-state="ok"><i>✓</i><span><b>React</b><small>Passed a timed skill check</small></span></li>
+        <li data-state="ok"><i>✓</i><span><b>React</b><small>Passed a CareerForge skill check</small></span></li>
         <li data-state="wait"><i>…</i><span><b>Intern, Cedar Apps</b><small>Letter waiting for review</small></span></li>
       </ul>
     </div>

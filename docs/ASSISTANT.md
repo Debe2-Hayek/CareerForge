@@ -29,7 +29,14 @@ internal links; a path inside another site's address is not linked.
 
 ## Privacy and limits
 
-Conversations are not saved as chat history; leaving the page clears them. Each answer is kept in
+Chats are saved only in the person's own browser (localStorage, one key per account:
+`careerforge-chats:<user id>`), never on CareerForge's servers, so they survive a refresh or a visit to
+another page. Up to 40 chats of 80 messages each; the newest opens again. The sidebar lists them by day
+(Today, Yesterday, Previous 7 days...); each can be deleted, or all at once. Signing out deletes them all
+(`forgetAllChats` in `src/lib/assistant/chat-store.ts`). Saved data is re-checked when read: unknown
+roles, empty messages and duplicate chats are dropped and titles are rebuilt from the first question. If
+the page closes before an answer arrives, the question stays with an "Ask again" button. Answers are laid
+out as paragraphs, lists and headings by `toBlocks` (React elements only, never HTML). Each answer is kept in
 the private AI ledger for 30 days so an identical question costs nothing. 20 messages per user per
 day (migration `202611240009_assistant_chat.sql`, which keeps every earlier AI limit).
 

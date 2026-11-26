@@ -19,7 +19,7 @@ export default async function Page() {
   const firstName = String(data?.full_name ?? "").trim().split(/\s+/)[0] ?? "";
   return <AppShell pageTitle="AI assistant" privateAccount displayName={String(data?.full_name ?? "") || undefined}>
     <div className="account-content chat-page">
-      <CareerAssistant service={info ? serviceLabel[info.service] : null} firstName={firstName} />
+      <CareerAssistant service={info ? serviceLabel[info.service] : null} firstName={firstName} userId={session.userId} />
     </div>
   </AppShell>;
 }

@@ -1,6 +1,7 @@
 // Live check of the career assistant on DEVELOPMENT only. A temporary student with a profile
 // asks a starter question and a follow-up (test AI with AI_FAKE=1, or the real AI: 2 calls),
-// with only some context shared; links to CareerForge pages work; then the account is deleted.
+// with only some context shared; links to CareerForge pages work; the chat is kept after a refresh and
+// deleted on sign-out; then the account is deleted.
 //   PLAYWRIGHT_BASE_URL=http://localhost:3100 EXPECTED_SUPABASE_PROJECT_REF=<dev ref> node --env-file=.env scripts/verify-assistant-live.mjs
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -73,9 +74,31 @@ try {
   await noOverflow(s.page);
   await s.page.screenshot({ path: `${shots}/1-chat-dark.png`, fullPage: true });
 
+  stage = "the chat is kept after a refresh and a visit to another page";
+  await s.page.reload();
+  await expect(replies).toHaveCount(2, { timeout: 15000 });
+  await s.page.goto("/account");
+  await s.page.goto("/career-assistant");
+  await expect(replies).toHaveCount(2, { timeout: 15000 });
+  await expect(s.page.locator(".chat-history-item")).toHaveCount(1);
+  await expect(s.page.locator(".chat-history-item")).toContainText("What should I learn next?");
+
+  stage = "a new chat starts empty and the saved one stays in the list";
+  await s.page.locator(".chat-new").click();
+  await expect(s.page.locator(".chat-welcome")).toBeVisible();
+  await s.page.locator(".chat-history-item").first().click();
+  await expect(replies).toHaveCount(2);
+
   stage = "a link opens the page inside CareerForge";
   const link = replies.first().getByRole("link").first();
   if (await link.count()) { await link.click(); await expect(s.page).toHaveURL(/\/skill-checks$/); }
+
+  stage = "signing out deletes the saved chats in this browser";
+  await s.page.goto("/account");
+  await s.page.getByRole("button", { name: "Sign out" }).click();
+  await expect(s.page).toHaveURL(/\/login/, { timeout: 30000 });
+  assert.equal(await s.page.evaluate(() => Object.keys(localStorage).some(key => key.startsWith("careerforge-chats:"))), false, "saved chats are deleted on sign-out");
+  await s.context.close();
 
   stage = "signed out is refused";
   const anonymous = await browser.newContext({ baseURL });

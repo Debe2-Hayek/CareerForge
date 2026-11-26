@@ -10,6 +10,24 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## AI assistant: chats are kept, and the page looks like ChatGPT or Claude
+- **What:** Your chats with the AI assistant no longer disappear when you refresh or open another page.
+  A sidebar lists your past chats by day (Today, Yesterday, Previous 7 days...); click one to continue it,
+  start a "New chat", or delete one or all. The page now looks like the chat apps people know: one calm
+  reading column, answers as clean text next to the globe with numbered and bulleted lists, your messages in
+  soft bubbles, and one composer with the "Share" choices inside it. A new chat shows the greeting, the box
+  and the suggestions together in the middle. On phones the chat list slides in from the menu button.
+  If the page closes before an answer arrives, the question stays with an "Ask again" button.
+- **Privacy:** chats are saved only in your own browser on that device, never on CareerForge's servers;
+  signing out deletes them. Another person signing in on the same computer never sees them.
+- **Where:** `/career-assistant`.
+- **How to try:** ask a question, refresh the page or open another page and come back; the chat is still
+  there. Start a new chat; both appear in the sidebar. Sign out and in again; the list is empty.
+- **Status:** Ready (no database change).
+- **Remember:** chats don't follow you to another device or browser yet. That would need saving them in the
+  database (a small migration), if you want it later.
+
+
 ## A full showcase test case, and three builder fixes it found
 - **What:** A new script, `scripts/demo-showcase.mjs`, runs CareerForge end to end on the development copy with the
   real AI, as one fictional student (Karim Nassar, a computer science graduate in Beirut), and writes a pass/fail

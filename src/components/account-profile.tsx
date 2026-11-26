@@ -12,6 +12,7 @@ import { profileSchema, type AccountProfile } from "@/lib/account/schemas";
 import { profileStrength, type StrengthCounts } from "@/lib/profile-strength";
 import type { ClaimStatus } from "@/lib/claims/model";
 import { FieldCounter, SkillChips } from "./field-helpers";
+import { forgetAllChats } from "@/lib/assistant/chat-store";
 
 const subscribeReady = () => () => {};
 function readDraft(form: HTMLFormElement) {
@@ -64,6 +65,7 @@ export function AccountProfileEditor({ profile: initialProfile, email, trust = n
       const response = await fetch("/api/v1/auth/logout", { method: "POST" });
       if (!response.ok) { setError("Sign out failed. Please try again."); return; }
       setDirty(false);
+      forgetAllChats();
       router.replace("/login");
       router.refresh();
     } catch { setError("Unable to sign out. Check your connection and try again."); }

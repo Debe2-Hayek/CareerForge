@@ -194,11 +194,10 @@ export function FeatureSlider({ items }: { items: readonly Feature[] }) {
             <p className="fs-stat"><strong>{item.stat.value}</strong><span>{item.stat.label}</span></p>
             <Link href={item.href} className="fs-link">{item.cta} <span aria-hidden="true">→</span></Link>
           </div>
-          {/* A light rises from the pad below and builds the result, which then floats and leans towards the mouse. */}
+          {/* One beam of light rises from a thin light source; the result emerges from it and floats. */}
           <div className="fs-stage" onPointerMove={lean} onPointerLeave={straighten}>
             <span className="fs-beam" aria-hidden="true" />
-            <span className="fs-pad" aria-hidden="true">{[0, 1, 2, 3, 4, 5, 6].map(i => <i key={i} style={{ "--i": i } as CSSProperties} />)}</span>
-            <span className="fs-scan" aria-hidden="true" />
+            <span className="fs-source" aria-hidden="true" />
             <div className="fs-demo">{item.demo}</div>
           </div>
         </li>)}

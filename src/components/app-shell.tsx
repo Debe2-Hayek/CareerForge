@@ -125,7 +125,7 @@ function SidebarNav({ mobile, pathname, items, privateAccount, applicationCount,
       {!privateAccount && <><p className="app-nav-heading account-group-label">ACCOUNT</p>
       <Link href="/account" aria-label="My account" aria-current={isActivePath(pathname, "/account") ? "page" : undefined} title={nativeTitle("My account")} className={`app-nav-item ${isActivePath(pathname, "/account") ? "selected" : ""}`} onClick={onNavigate} {...tipProps("My account")}><NavIcon name="account" /><span className="app-nav-label">My account</span><span className="private-indicator" aria-hidden="true" /></Link></>}
     </nav>
-    <Link className="app-sidebar-account" href="/account" title={nativeTitle("Open your private account")} onClick={onNavigate} {...tipProps(privateAccount ? displayName : "Your private account")}><span className="avatar">{privateAccount ? initials : "CF"}</span><span className="app-account-label"><strong>{privateAccount ? displayName : "Your private account"}</strong><small>{privateAccount ? "Signed in · Owner-only profile" : "Open your private profile"}</small></span><AppIcon name="arrow" /></Link>
+    <Link className="app-sidebar-account" href="/account" title={nativeTitle("Open your private account")} onClick={onNavigate} {...tipProps(privateAccount ? displayName : "Your private account")}><span className="avatar">{privateAccount && initials ? initials : <AppIcon name="account" />}</span><span className="app-account-label"><strong>{privateAccount ? displayName : "Your private account"}</strong><small>{privateAccount ? "Signed in · Owner-only profile" : "Open your private profile"}</small></span><AppIcon name="arrow" /></Link>
   </>;
 }
 
@@ -143,7 +143,9 @@ export function AppShell({ children, pageTitle, displayName = "Your workspace", 
   const drawer = useRef<HTMLDialogElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
   const sidebar = useRef<HTMLElement>(null);
-  const initials = displayName.split(" ").filter(Boolean).map(word => word[0]).slice(0, 2).join("") || "CF";
+  // Initials come only from a real name; until one is saved the badge shows a person icon, never letters from a placeholder.
+  const named = displayName.trim() !== "" && !["Your workspace", "Your account"].includes(displayName.trim());
+  const initials = named ? displayName.split(" ").filter(Boolean).map(word => word[0]).slice(0, 2).join("").toUpperCase() : "";
   const toggleSidebar = useCallback(() => {
     setTip(null);
     try { localStorage.setItem(preferenceKey, String(!collapsed)); setTemporaryPreference(null); window.dispatchEvent(new Event("careerforge-sidebar")); } catch { setTemporaryPreference(!collapsed); }

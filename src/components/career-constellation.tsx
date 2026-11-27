@@ -6,6 +6,11 @@ import type { JourneyAction } from "@/lib/journey";
 const DUST = [[40, 40], [96, 120], [150, 60], [212, 300], [268, 30], [318, 250], [364, 340], [420, 160], [452, 320], [520, 220], [566, 300], [586, 36], [30, 210], [204, 110], [352, 182], [560, 10], [12, 350], [470, 18]];
 const R = 52;
 const CIRCUMFERENCE = 2 * Math.PI * R;
+/** A four-point sparkle centred on (x, y): long points of length `long`, a pinched waist of `waist`. */
+function sparkle(x: number, y: number, long: number, waist: number) {
+  const f = (n: number) => Number(n.toFixed(2));
+  return `M${f(x)} ${f(y - long)} Q${f(x + waist)} ${f(y - waist)} ${f(x + long)} ${f(y)} Q${f(x + waist)} ${f(y + waist)} ${f(x)} ${f(y + long)} Q${f(x - waist)} ${f(y + waist)} ${f(x - long)} ${f(y)} Q${f(x - waist)} ${f(y - waist)} ${f(x)} ${f(y - long)}Z`;
+}
 
 /** "Your career constellation": the profile's facts as stars, with one clear next action. */
 export function CareerConstellation({ sky, action }: { sky: Sky; action: JourneyAction }) {
@@ -42,7 +47,11 @@ export function CareerConstellation({ sky, action }: { sky: Sky; action: Journey
           <title>{star.label}</title>
           {star.state === "checked" && <circle className="cs-halo" cx={star.x} cy={star.y} r={22} fill="url(#cs-glow)" style={{ animationDelay: `${index * 0.4}s` }} />}
           {star.state === "pending" && <circle className="cs-halo" cx={star.x} cy={star.y} r={18} fill="url(#cs-amber)" style={{ animationDelay: `${index * 0.4}s` }} />}
-          <circle className="cs-core" cx={star.x} cy={star.y} r={star.state === "checked" ? 6 : star.state === "pending" ? 5 : 4} />
+          {star.state === "checked" && <circle className="cs-ignite" cx={star.x} cy={star.y} r={14} style={{ animationDelay: `${0.45 + index * 0.12}s` }} />}
+          {star.state === "checked" && <path className="cs-glint" d={`M${star.x - 13} ${star.y - 13}L${star.x + 13} ${star.y + 13}M${star.x + 13} ${star.y - 13}L${star.x - 13} ${star.y + 13}`} style={{ animationDelay: `${index * 0.6}s` }} />}
+          {star.state === "checked" ? <path className="cs-core cs-sparkle" d={sparkle(star.x, star.y, 11, 2.2)} />
+            : star.state === "pending" ? <path className="cs-core cs-sparkle" d={sparkle(star.x, star.y, 8, 1.8)} />
+            : <circle className="cs-core" cx={star.x} cy={star.y} r={4} />}
           {star.state === "empty" && <path className="cs-plus" d={`M${star.x - 3} ${star.y}h6M${star.x} ${star.y - 3}v6`} />}
           {star.short && <text className="cs-label" x={star.x + (star.x > 470 ? -12 : 12)} y={star.y + 4} textAnchor={star.x > 470 ? "end" : "start"}>{star.short}</text>}
         </g>)}

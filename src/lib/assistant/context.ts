@@ -5,13 +5,15 @@ import { claimStatusInfo, type ClaimStatus } from "../claims/model";
  * their own data are sent. Nothing else from the account reaches the AI.
  */
 export const ASSISTANT_PROMPT = "assistant.v1";
-export type ContextChoice = { profile: boolean; history: boolean; careers: boolean };
+export type ContextChoice = { profile: boolean; history: boolean; careers: boolean; jobs?: boolean };
 export type AssistantData = {
   headline: string; location: string; bio: string;
   skills: { name: string; status: ClaimStatus }[];
   experience: { role: string; company: string; years: string }[];
   education: { degree: string; institution: string; years: string }[];
   careers: { title: string; score: number; criticalDone: number; criticalTotal: number }[];
+  /** The jobs the person saved in their tracker, with the skills each posting asks for. */
+  jobs?: { title: string; company: string; status: string; skills: string[] }[];
 };
 
 /** CareerForge pages the assistant may point to; only these become links. */
@@ -33,6 +35,10 @@ export function contextBlock(data: AssistantData, choice: ContextChoice): string
     "## Work and education",
     ...(data.experience.length ? data.experience.map(item => `Work: ${item.role} at ${item.company}${item.years ? `, ${item.years}` : ""}`) : ["Work: none listed"]),
     ...(data.education.length ? data.education.map(item => `Education: ${item.degree}, ${item.institution}${item.years ? `, ${item.years}` : ""}`) : ["Education: none listed"])
+  ].join("\n"));
+  if (choice.jobs) parts.push([
+    "## Saved jobs (from the person's application tracker)",
+    ...((data.jobs ?? []).length ? (data.jobs ?? []).slice(0, 8).map(job => `${job.title} at ${job.company} (status: ${job.status})${job.skills.length ? `; asks for: ${job.skills.slice(0, 12).join(", ")}` : ""}`) : ["No saved jobs yet"])
   ].join("\n"));
   if (choice.careers) parts.push([
     "## Career matches (computed by CareerForge)",

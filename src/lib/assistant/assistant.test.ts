@@ -82,3 +82,12 @@ test("assistant endpoint: session, origin, message rules, and the shared context
   assert.equal(body.remaining, 19);
   assert.equal((await assistantHandlers(async () => access, () => null).POST(req({ messages: [{ role: "user", content: "Hi" }], context: choice }))).status, 501);
 });
+
+test("saved jobs are shared only when chosen, with status and asked-for skills", () => {
+  const withJobs = { ...data, jobs: [{ title: "Junior React Developer", company: "Cedar Apps", status: "Applied", skills: ["React", "Docker"] }] };
+  assert.equal(contextBlock(withJobs, { profile: false, history: false, careers: false }).includes("Junior React Developer"), false);
+  const shared = contextBlock(withJobs, { profile: false, history: false, careers: false, jobs: true });
+  assert.match(shared, /Saved jobs/);
+  assert.match(shared, /Junior React Developer at Cedar Apps \(status: Applied\); asks for: React, Docker/);
+  assert.match(contextBlock({ ...data, jobs: [] }, { profile: false, history: false, careers: false, jobs: true }), /No saved jobs yet/);
+});

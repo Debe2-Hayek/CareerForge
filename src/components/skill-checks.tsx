@@ -10,7 +10,7 @@ export type CheckCard = {
   skill: string; onProfile: boolean; passedAt: string | null; lastScore: number | null; retryAt: string | null; learnHref: string | null;
 };
 
-const day = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric" });
+const day = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 function waitText(iso: string, now: number) {
   const hours = Math.max(1, Math.ceil((Date.parse(iso) - now) / 3600000));
   return hours >= 2 ? `Try again in ${hours} hours` : "Try again within the hour";

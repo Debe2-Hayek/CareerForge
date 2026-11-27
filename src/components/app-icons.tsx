@@ -33,7 +33,7 @@ const glyphs: Record<IconName, { line: string; soft?: string }> = {
   agent: { line: "M7 8h10a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3z M12 8V4.5 M12 3.5h.01 M9 13h.01 M15 13h.01 M9.5 16.5h5 M2 12.5v2 M22 12.5v2", soft: "M7 8h10a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3z" },
   outcomes: { line: "M4 4v16h16 M7.5 15.5l3.5-4.5 3 2.5 4.5-6", soft: "M7.5 15.5l3.5-4.5 3 2.5 4.5-6V20H7.5z" },
   // The assistant's clover (src/components/ai-clover.tsx), as an outline.
-  assistant: { line: [0, 1, 2, 3].map(quarter => cloverLeaf(quarter, 12, 10.5, 1.05)).join(" ") + " M13.6 12.3 Q15.8 16.4 18.6 20.6" },
+  assistant: { line: [0, 1, 2, 3].map(quarter => cloverLeaf(quarter, 12, 12, 1.42)).join(" ") },
   simulator: { line: "M2.5 9L12 4l9.5 5L12 14z M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5 M21.5 9v5.5", soft: "M2.5 9L12 4l9.5 5L12 14z" },
   cv: { line: "M6 3h8l4 4v14H6z M14 3v4h4 M9 11h6 M9 14.5h6 M9 18h3.5", soft: "M6 3h8l4 4v14H6z" },
   checks: { line: "M12 3l8 3v5.5c0 4.5-3.2 8-8 9.5-4.8-1.5-8-5-8-9.5V6z M8.5 12l2.5 2.5 4.5-5", soft: "M12 3l8 3v5.5c0 4.5-3.2 8-8 9.5-4.8-1.5-8-5-8-9.5V6z" },

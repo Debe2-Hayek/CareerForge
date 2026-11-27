@@ -10,6 +10,21 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Polish: one clean beam, a leaves-only clover, real stars, and the assistant sees saved jobs
+- **Slider light:** simplified to one beam: a thin bright light line at the bottom and one soft cone of light.
+  When a slide opens the beam opens upwards and the result emerges from it (rising, sharpening, growing to full
+  size), then floats. The rings, sparks and scan line are gone. The beam is stronger in the white theme, and the
+  3D emblems are larger with a stronger glow.
+- **AI assistant mark:** the clover is now leaves only (no stem, no centre dot), also as the menu icon.
+- **Assistant:** a fourth sharing choice, **Saved jobs**: the jobs in your tracker, their status and the skills
+  they ask for, so it can answer "what should I learn for the jobs I saved?" (found by the live test).
+- **Overview stars:** proven facts are now real stars (a four-point sparkle with a soft halo and a slow glint),
+  and each one lights with a ring of light when it appears; facts in review are smaller amber sparkles.
+- **Fixes:** the sidebar badge no longer shows letters from placeholder text ("Ya", "Yw", "CF") when no name is
+  saved (a person icon instead); the "Passed on" date on Skill checks is formatted the same on the server and in
+  the browser (a React warning on the live site).
+- **Status:** Ready (no database change).
+
 ## Results built by light, a clover for the AI, a quicker slider
 - **Slider:** under each result a pad glows in the slide’s colour. When a slide opens a beam of light rises,
   a line sweeps up while the result is built from the bottom up, sparks drift through the light, and the

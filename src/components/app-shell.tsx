@@ -10,6 +10,29 @@ import { CommandPalette, type PaletteItem } from "./command-palette";
 import { ThemeToggle } from "./theme-toggle";
 import { toggleTheme } from "@/lib/theme";
 
+/** The admin pages, shown in the menu only to admins (the pages themselves check the role on the server). */
+const ADMIN_LINKS: { href: string; label: string; icon: IconName }[] = [
+  { href: "/admin/claims", label: "Review proof", icon: "checks" },
+  { href: "/admin/skill-checks", label: "Skill checks studio", icon: "spark" },
+  { href: "/admin/interviews", label: "Project interviews", icon: "projects" },
+  { href: "/admin/workshops", label: "Workshops & certificates", icon: "workshops" }
+];
+/** Asks the database whether the signed-in person is an admin (only signed-in pages ask). */
+function useIsAdmin(signedIn: boolean) {
+  const [admin, setAdmin] = useState(false);
+  useEffect(() => {
+    if (!signedIn) return;
+    let cancelled = false;
+    // Sign-in cookies are HttpOnly, so the server answers (and the admin pages check the role again themselves).
+    fetch("/api/v1/admin/me", { cache: "no-store" }).then(response => response.ok ? response.json() : null).then(body => {
+      if (cancelled || !body) return;
+      setAdmin(body.admin === true);
+    }, () => {});
+    return () => { cancelled = true; };
+  }, [signedIn]);
+  return admin;
+}
+
 // The icon set lives in app-icons.tsx; re-exported so existing imports from "./app-shell" keep working.
 export { AppIcon, type IconName } from "./app-icons";
 
@@ -52,8 +75,8 @@ function isActivePath(pathname: string, href: string) {
  * The sidebar contents. One instance renders in the desktop sidebar and one in the mobile drawer.
  * A glowing indicator (.nav-lens) glides to whichever tab is current when the route changes.
  */
-function SidebarNav({ mobile, pathname, items, privateAccount, applicationCount, displayName, initials, collapsed, onNavigate, onTip }: {
-  mobile: boolean; pathname: string; items: NavItem[]; privateAccount: boolean; applicationCount: number; displayName: string; initials: string;
+function SidebarNav({ mobile, pathname, items, privateAccount, applicationCount, displayName, initials, collapsed, onNavigate, onTip, admin = false }: {
+  mobile: boolean; pathname: string; items: NavItem[]; privateAccount: boolean; applicationCount: number; displayName: string; initials: string; admin?: boolean;
   collapsed: boolean; onNavigate: () => void; onTip?: (tip: Tip | null) => void;
 }) {
   const nav = useRef<HTMLElement>(null);
@@ -114,6 +137,9 @@ function SidebarNav({ mobile, pathname, items, privateAccount, applicationCount,
         if (!ready.length) return null;
         return <div className="app-nav-group" key={group}><p className="app-nav-heading">{group}</p>{ready.map(item => <Link key={item.href} href={item.href} aria-label={item.label} aria-current={isActivePath(pathname, item.href) ? "page" : undefined} title={nativeTitle(item.label)} className={`app-nav-item ${isActivePath(pathname, item.href) ? "selected" : ""}`} onClick={onNavigate} {...tipProps(item.label)}><NavIcon name={item.icon} /><span className="app-nav-label">{item.label}</span>{item.href === "/applications" && applicationCount > 0 && <span className="app-nav-count">{applicationCount}</span>}</Link>)}</div>;
       })}
+      {admin && <div className="app-nav-group app-nav-admin"><p className="app-nav-heading">Admin</p>{ADMIN_LINKS.map(item => <Link key={item.href} href={item.href} aria-label={item.label}
+        aria-current={isActivePath(pathname, item.href) ? "page" : undefined} title={nativeTitle(item.label)} className={`app-nav-item ${isActivePath(pathname, item.href) ? "selected" : ""}`} onClick={onNavigate}>
+        <NavIcon name={item.icon} /><span className="app-nav-label">{item.label}</span></Link>)}</div>}
       {soon.length > 0 && <div className={`app-nav-soon ${soonOpen ? "is-open" : ""}`}>
         <button type="button" className={`app-nav-item app-nav-soon-toggle ${soonActive ? "selected" : ""}`} aria-expanded={soonOpen} aria-controls={`${mobile ? "m" : "d"}-coming-soon`} onClick={toggleSoon} title={nativeTitle(`Coming soon (${soon.length})`)} {...tipProps(`Coming soon · ${soon.length}`)}>
           <NavIcon name="grid" /><span className="app-nav-label">Coming soon</span><span className="app-nav-soon-count" aria-hidden="true">{soon.length}</span><span className="app-nav-soon-chevron" aria-hidden="true"><AppIcon name="chevron" /></span>
@@ -164,6 +190,7 @@ export function AppShell({ children, pageTitle, displayName = "Your workspace", 
     return () => window.removeEventListener("keydown", onKey);
   }, [toggleSidebar]);
 
+  const admin = useIsAdmin(privateAccount);
   const navigationItems: NavItem[] = features.map(item => item.id === "profile" && !privateAccount ? { ...item, href: "/profile" } : item);
   const handleLabel = collapsed ? "Expand sidebar" : "Collapse sidebar";
   const closeDrawer = () => drawer.current?.close();
@@ -199,11 +226,11 @@ export function AppShell({ children, pageTitle, displayName = "Your workspace", 
         event.currentTarget.style.setProperty("--sx", `${event.clientX - box.left}px`);
         event.currentTarget.style.setProperty("--sy", `${event.clientY - box.top}px`);
       }}
-    ><span className="sidebar-glow" aria-hidden="true" /><SidebarNav mobile={false} pathname={pathname} items={navigationItems} privateAccount={privateAccount} applicationCount={applicationCount} displayName={displayName} initials={initials} collapsed={collapsed} onNavigate={closeDrawer} onTip={setTip} /></aside>
+    ><span className="sidebar-glow" aria-hidden="true" /><SidebarNav admin={admin} mobile={false} pathname={pathname} items={navigationItems} privateAccount={privateAccount} applicationCount={applicationCount} displayName={displayName} initials={initials} collapsed={collapsed} onNavigate={closeDrawer} onTip={setTip} /></aside>
     {collapsed && tip && <div className="nav-tip" role="presentation" style={{ top: tip.y }}>{tip.label}</div>}
     <dialog className="navigation-drawer" ref={drawer} aria-label="Navigation" onClose={() => menuButton.current?.focus()} onClick={event => {
       if (event.target === event.currentTarget) { const bounds = event.currentTarget.getBoundingClientRect(); if (event.clientX > bounds.right || event.clientY > bounds.bottom) drawer.current?.close(); }
-    }}><SidebarNav mobile pathname={pathname} items={navigationItems} privateAccount={privateAccount} applicationCount={applicationCount} displayName={displayName} initials={initials} collapsed={false} onNavigate={closeDrawer} /></dialog>
+    }}><SidebarNav admin={admin} mobile pathname={pathname} items={navigationItems} privateAccount={privateAccount} applicationCount={applicationCount} displayName={displayName} initials={initials} collapsed={false} onNavigate={closeDrawer} /></dialog>
     <div className="app-main"><header className="app-topbar"><button ref={menuButton} className="shell-icon-button mobile-menu-button" aria-label="Open navigation" aria-haspopup="dialog" onClick={() => { drawer.current?.showModal(); drawer.current?.querySelector<HTMLButtonElement>("button")?.focus(); }}><AppIcon name="menu" /></button><div className="app-breadcrumb"><span>CareerForge</span><span aria-hidden="true">/</span><strong>{pageTitle}</strong></div><div className="app-topbar-actions"><button type="button" className="cmdk-trigger" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" aria-label="Search pages and actions" onClick={() => setPaletteOpen(true)}><AppIcon name="search" /><span className="cmdk-trigger-text">Search or jump to…</span><kbd>{mac ? "⌘" : "Ctrl"} K</kbd></button><ThemeToggle /><span className={`workspace-mode ${privateAccount ? "private-mode" : ""}`}><span />{privateAccount ? "Private account" : "Demo workspace"}</span>{accountActions ?? <Link className="shell-account-link" href="/account" aria-label="Open my account"><AppIcon name="account" /><span>My account</span></Link>}</div></header><main id="main-content" tabIndex={-1} className={`app-content ${contentClassName}`}>{children}</main></div>
     <CommandPalette open={paletteOpen} items={paletteItems} onClose={() => setPaletteOpen(false)} onPick={pick} />
   </div>;

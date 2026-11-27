@@ -10,6 +10,13 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## An Admin section in the menu
+- **What:** admins now see an **Admin** section at the bottom of the side menu: Review proof, Skill checks studio,
+  Project interviews, Workshops & certificates. Before, admin pages could only be opened by typing their address.
+  Students never see it, and every admin page still checks the role on the server.
+- **Where:** the side menu on every signed-in page.
+- **Status:** Ready (no database change).
+
 ## Polish: one clean beam, a leaves-only clover, real stars, and the assistant sees saved jobs
 - **Slider light:** simplified to one beam: a thin bright light line at the bottom and one soft cone of light.
   When a slide opens the beam opens upwards and the result emerges from it (rising, sharpening, growing to full

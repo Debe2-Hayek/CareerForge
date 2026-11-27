@@ -40,7 +40,7 @@ async function signIn(user, options = {}) {
   await page.getByLabel("Email address").fill(user.email);
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page).toHaveURL(`${baseURL}/account`, { timeout: 30000 });
+  await expect(page).toHaveURL(new RegExp(`^${baseURL}/(account|admin)$`), { timeout: 30000 });
   return { context, page };
 }
 const settle = page => page.waitForTimeout(1300);
@@ -79,7 +79,7 @@ try {
   const bad = { name: "evil.pdf", mimeType: "application/pdf", buffer: Buffer.from("MZ not a pdf") };
   await a.page.locator(".claim-row", { hasText: "Backend Developer" }).locator('input[type="file"]').setInputFiles(bad);
   await expect(a.page.locator(".claim-row", { hasText: "Backend Developer" }).getByRole("alert")).toContainText("Only PDF, PNG and JPG");
-  await expect(a.page.locator(".claim-row", { hasText: "React" })).toContainText("Take the React check");
+  await expect(a.page.locator(".claim-row", { hasText: "React" })).toContainText("Take the check");
   await settle(a.page); await noOverflow(a.page);
   await a.page.screenshot({ path: `${shots}/2-verification-dark.png`, fullPage: true });
 

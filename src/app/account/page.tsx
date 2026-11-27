@@ -13,10 +13,14 @@ export const dynamic = "force-dynamic";
 export default async function AccountPage() {
   if (!(await cookies()).getAll().some(cookie => cookie.name.startsWith("sb-"))) redirect("/login");
   let result;
+  let adminHome = false;
   try {
     const client = await createClient();
     const { data: { user }, error } = await client.auth.getUser();
     if (!error && user) {
+      // Admin accounts have no student profile: they land on the admin dashboard.
+      const { data: isAdmin } = await client.rpc("careerforge_is_admin");
+      if (isAdmin === true) adminHome = true;
       const { data, error: profileError } = await client.from("profiles").select("full_name,headline,location,bio,education_summary,project_summary,self_reported_skills").eq("id", user.id).maybeSingle();
       if (profileError || !data) result = { unavailable: true as const };
       else {
@@ -50,6 +54,7 @@ export default async function AccountPage() {
       }
     }
   } catch { result = { unavailable: true as const }; }
+  if (adminHome) redirect("/admin");
   if (!result) redirect("/login");
   if ("unavailable" in result) return <main className="account-content"><div className="empty-state"><h1>Your account is temporarily unavailable.</h1><p>We could not load your private profile. Your data has not been replaced with a demo.</p><Link className="button primary" href="/account">Try again</Link><Link className="text-button" href="/login">Back to sign in</Link></div></main>;
   return <AccountProfileEditor profile={result.profile} email={result.email} trust={result.trust} documents={result.documents} />;

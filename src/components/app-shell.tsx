@@ -12,25 +12,41 @@ import { toggleTheme } from "@/lib/theme";
 
 /** The admin pages, shown in the menu only to admins (the pages themselves check the role on the server). */
 const ADMIN_LINKS: { href: string; label: string; icon: IconName }[] = [
+  { href: "/admin", label: "Dashboard", icon: "overview" },
   { href: "/admin/claims", label: "Review proof", icon: "checks" },
   { href: "/admin/skill-checks", label: "Skill checks studio", icon: "spark" },
   { href: "/admin/interviews", label: "Project interviews", icon: "projects" },
   { href: "/admin/workshops", label: "Workshops & certificates", icon: "workshops" }
 ];
-/** Asks the database whether the signed-in person is an admin (only signed-in pages ask). */
+// Whether the signed-in person is an admin. Remembered for this tab (so the admin menu shows at once on the next
+// page) and confirmed by the server on every page (sign-in cookies are HttpOnly, so the server answers; admin
+// pages also check the role again themselves).
+const ADMIN_KEY = "careerforge-admin";
+const ADMIN_EVENT = "careerforge-admin";
+const readAdmin = () => { try { return sessionStorage.getItem(ADMIN_KEY) === "1"; } catch { return false; } };
+const subscribeAdmin = (callback: () => void) => { window.addEventListener(ADMIN_EVENT, callback); return () => window.removeEventListener(ADMIN_EVENT, callback); };
+function rememberAdmin(value: boolean | null) {
+  try { if (value === null) sessionStorage.removeItem(ADMIN_KEY); else sessionStorage.setItem(ADMIN_KEY, value ? "1" : "0"); } catch { /* no storage */ }
+  window.dispatchEvent(new Event(ADMIN_EVENT));
+}
 function useIsAdmin(signedIn: boolean) {
-  const [admin, setAdmin] = useState(false);
+  const admin = useSyncExternalStore(subscribeAdmin, readAdmin, () => false);
   useEffect(() => {
     if (!signedIn) return;
     let cancelled = false;
-    // Sign-in cookies are HttpOnly, so the server answers (and the admin pages check the role again themselves).
     fetch("/api/v1/admin/me", { cache: "no-store" }).then(response => response.ok ? response.json() : null).then(body => {
-      if (cancelled || !body) return;
-      setAdmin(body.admin === true);
+      if (!cancelled && body) rememberAdmin(body.admin === true);
     }, () => {});
     return () => { cancelled = true; };
   }, [signedIn]);
-  return admin;
+  return signedIn && admin;
+}
+async function adminSignOut() {
+  rememberAdmin(null);
+  await fetch("/api/v1/auth/logout", { method: "POST" }).catch(() => null);
+  // A full page load, so nothing from the admin session stays in memory.
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+  window.location.assign("/login");
 }
 
 // The icon set lives in app-icons.tsx; re-exported so existing imports from "./app-shell" keep working.
@@ -130,17 +146,18 @@ function SidebarNav({ mobile, pathname, items, privateAccount, applicationCount,
     <div className="app-sidebar-brand"><Link href="/" className="brand" aria-label="CareerForge home" onClick={onNavigate}><BrandMark /><span className="app-brand-name">CareerForge<span>.</span></span></Link>{mobile && <button className="shell-icon-button" aria-label="Close navigation" onClick={onNavigate}><AppIcon name="close" /></button>}</div>
     <nav aria-label="Main navigation" id={mobile ? "mobile-navigation" : "desktop-navigation"} ref={nav}>
       <span className="nav-lens" aria-hidden="true" />
-      <Link href="/features" aria-label="All features" title={nativeTitle("All features")} aria-current={pathname === "/features" ? "page" : undefined} className={`app-nav-item feature-directory-link ${pathname === "/features" ? "selected" : ""}`} onClick={onNavigate} {...tipProps("All features")}><NavIcon name="features" /><span className="app-nav-label">All features</span><span className="app-nav-label feature-directory-arrow" aria-hidden="true">&#8599;</span></Link>
-      {featureGroups.map(group => {
+      {!admin && <Link href="/features" aria-label="All features" title={nativeTitle("All features")} aria-current={pathname === "/features" ? "page" : undefined} className={`app-nav-item feature-directory-link ${pathname === "/features" ? "selected" : ""}`} onClick={onNavigate} {...tipProps("All features")}><NavIcon name="features" /><span className="app-nav-label">All features</span><span className="app-nav-label feature-directory-arrow" aria-hidden="true">&#8599;</span></Link>}
+      {!admin && featureGroups.map(group => {
         // Unfinished tools live in the "Coming soon" fold below, so every group shows only what works today.
         const ready = items.filter(item => item.group === group && !isPlanned(item));
         if (!ready.length) return null;
         return <div className="app-nav-group" key={group}><p className="app-nav-heading">{group}</p>{ready.map(item => <Link key={item.href} href={item.href} aria-label={item.label} aria-current={isActivePath(pathname, item.href) ? "page" : undefined} title={nativeTitle(item.label)} className={`app-nav-item ${isActivePath(pathname, item.href) ? "selected" : ""}`} onClick={onNavigate} {...tipProps(item.label)}><NavIcon name={item.icon} /><span className="app-nav-label">{item.label}</span>{item.href === "/applications" && applicationCount > 0 && <span className="app-nav-count">{applicationCount}</span>}</Link>)}</div>;
       })}
       {admin && <div className="app-nav-group app-nav-admin"><p className="app-nav-heading">Admin</p>{ADMIN_LINKS.map(item => <Link key={item.href} href={item.href} aria-label={item.label}
-        aria-current={isActivePath(pathname, item.href) ? "page" : undefined} title={nativeTitle(item.label)} className={`app-nav-item ${isActivePath(pathname, item.href) ? "selected" : ""}`} onClick={onNavigate}>
-        <NavIcon name={item.icon} /><span className="app-nav-label">{item.label}</span></Link>)}</div>}
-      {soon.length > 0 && <div className={`app-nav-soon ${soonOpen ? "is-open" : ""}`}>
+        aria-current={(item.href === "/admin" ? pathname === "/admin" : isActivePath(pathname, item.href)) ? "page" : undefined} title={nativeTitle(item.label)} className={`app-nav-item ${(item.href === "/admin" ? pathname === "/admin" : isActivePath(pathname, item.href)) ? "selected" : ""}`} onClick={onNavigate}>
+        <NavIcon name={item.icon} /><span className="app-nav-label">{item.label}</span></Link>)}
+        <button type="button" className="app-nav-item app-nav-signout" onClick={() => void adminSignOut()} aria-label="Sign out" title={nativeTitle("Sign out")}><NavIcon name="return" /><span className="app-nav-label">Sign out</span></button></div>}
+      {!admin && soon.length > 0 && <div className={`app-nav-soon ${soonOpen ? "is-open" : ""}`}>
         <button type="button" className={`app-nav-item app-nav-soon-toggle ${soonActive ? "selected" : ""}`} aria-expanded={soonOpen} aria-controls={`${mobile ? "m" : "d"}-coming-soon`} onClick={toggleSoon} title={nativeTitle(`Coming soon (${soon.length})`)} {...tipProps(`Coming soon · ${soon.length}`)}>
           <NavIcon name="grid" /><span className="app-nav-label">Coming soon</span><span className="app-nav-soon-count" aria-hidden="true">{soon.length}</span><span className="app-nav-soon-chevron" aria-hidden="true"><AppIcon name="chevron" /></span>
         </button>
@@ -190,7 +207,9 @@ export function AppShell({ children, pageTitle, displayName = "Your workspace", 
     return () => window.removeEventListener("keydown", onKey);
   }, [toggleSidebar]);
 
-  const admin = useIsAdmin(privateAccount);
+  // Admin pages check the role on the server, so on them the admin menu shows at once.
+  const admin = useIsAdmin(privateAccount) || (privateAccount && pathname.startsWith("/admin"));
+  useEffect(() => { if (admin && !pathname.startsWith("/admin")) router.replace("/admin"); }, [admin, pathname, router]);
   const navigationItems: NavItem[] = features.map(item => item.id === "profile" && !privateAccount ? { ...item, href: "/profile" } : item);
   const handleLabel = collapsed ? "Expand sidebar" : "Collapse sidebar";
   const closeDrawer = () => drawer.current?.close();

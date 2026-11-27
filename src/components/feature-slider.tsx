@@ -181,6 +181,12 @@ export function FeatureSlider({ items }: { items: readonly Feature[] }) {
         {items.map((item, index) => <li key={item.id} id={`fs-slide-${item.id}`} className="fs-slide" data-active={index === active || undefined} inert={index !== active || undefined}
           aria-roledescription="slide" aria-label={`${index + 1} of ${count}: ${item.title}`} style={{ "--tool": item.accent } as CSSProperties}>
           <div className="fs-copy">
+            {/* The tool's 3D emblem (CC0 3dicons), graphite, lit from below in the slide's colour. */}
+            <span className="fs-object" aria-hidden="true" style={{ "--obj": `url(/media/results/${item.id}.webp)` } as CSSProperties}>
+              {/* eslint-disable-next-line @next/next/no-img-element -- a 6 KB decorative WebP; no resizing service needed */}
+              <img src={`/media/results/${item.id}.webp`} alt="" width={320} height={320} loading={index === 0 ? "eager" : "lazy"} decoding="async" draggable={false} />
+              <i />
+            </span>
             <p className="fs-index"><span>{String(index + 1).padStart(2, "0")}</span> / {String(count).padStart(2, "0")} · {item.tab}</p>
             <h3>{item.title}</h3>
             <p className="fs-text">{item.text}</p>

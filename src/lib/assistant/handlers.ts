@@ -10,7 +10,7 @@ import type { ChatStore } from "./chats";
 const turn = z.object({ role: z.enum(["user", "assistant"]), content: z.string().trim().min(1).max(2000) }).strict();
 export const assistantRequestSchema = z.object({
   messages: z.array(turn).min(1).max(12).refine(list => list.length > 0 && list[list.length - 1].role === "user", { message: "The last message must be the user's." }),
-  context: z.object({ profile: z.boolean(), history: z.boolean(), careers: z.boolean() }).strict(),
+  context: z.object({ profile: z.boolean(), history: z.boolean(), careers: z.boolean(), jobs: z.boolean().optional() }).strict(),
   chatId: z.string().uuid().optional()
 }).strict();
 export type AssistantAccess = { data(): Promise<AssistantData>; runs: AiRunStore; chats?: ChatStore };

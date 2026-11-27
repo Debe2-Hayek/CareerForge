@@ -72,10 +72,10 @@
 /* The assistant's mark: a four-leaf clover (src/components/ai-clover.tsx) on a soft disc. Black on white;
    near-black leaves with a lime edge on dark. Turns slowly when live, breathes leaf by leaf while thinking. */
 .ai-clover { display: block; overflow: visible; }
-.clover-leaf { fill: light-dark(#111311, #0b0f0a); stroke: light-dark(#ffffff, #c6e49e); stroke-width: 1.3px; vector-effect: non-scaling-stroke; stroke-linejoin: round; transform-box: view-box; transform-origin: 50px 46px; }
+.clover-leaf { fill: light-dark(#111311, #0b0f0a); stroke: light-dark(#ffffff, #c6e49e); stroke-width: 1.3px; vector-effect: non-scaling-stroke; stroke-linejoin: round; transform-box: view-box; transform-origin: 50px 50px; }
 .clover-heart { fill: light-dark(#ffffff, #c6e49e); }
 .clover-stem { fill: none; stroke: light-dark(#111311, #c6e49e); stroke-width: 6; stroke-linecap: round; }
-.clover-turn { transform-box: view-box; transform-origin: 50px 46px; }
+.clover-turn { transform-box: view-box; transform-origin: 50px 50px; }
 .ai-clover.is-live .clover-turn { animation: clover-turn 40s linear infinite; }
 .ai-clover.is-thinking .clover-turn { animation-duration: 7s; }
 .ai-clover.is-thinking .clover-leaf { animation: clover-breathe 1.4s ease-in-out infinite; animation-delay: calc(var(--k) * .18s); }
@@ -230,3 +230,6 @@
 }
 
 .ai-orb .ai-clover { width: 74%; height: 74%; }
+
+/* Four sharing choices: let them wrap on wide screens instead of hiding the last one. */
+@media (min-width: 721px) { .chat-chips { flex-wrap: wrap; overflow: visible; row-gap: 6px; } }

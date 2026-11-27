@@ -17,7 +17,8 @@ const STARTERS: { text: string; hint: string; icon: IconName }[] = [
 const CONTEXT_LABELS: Record<keyof ContextChoice, { label: string; detail: string }> = {
   profile: { label: "Profile & skills", detail: "Headline, about you, skills and their trust badges" },
   history: { label: "Work & education", detail: "Your jobs and degrees with dates" },
-  careers: { label: "Career matches", detail: "Your three closest careers and scores" }
+  careers: { label: "Career matches", detail: "Your three closest careers and scores" },
+  jobs: { label: "Saved jobs", detail: "Jobs in your tracker, their status and the skills they ask for" }
 };
 const MAX = 2000;
 const newId = () => crypto.randomUUID();
@@ -74,7 +75,7 @@ const Svg = ({ name }: { name: keyof typeof Icon }) => <svg viewBox="0 0 24 24" 
 type Props = { service: string | null; firstName?: string; initialChats: ChatSummary[]; initialChat: ChatDetail | null; historyAvailable: boolean };
 
 export function CareerAssistant({ service, firstName = "", initialChats, initialChat, historyAvailable }: Props) {
-  const [choice, setChoice] = useState<ContextChoice>({ profile: true, history: true, careers: false });
+  const [choice, setChoice] = useState<ContextChoice>({ profile: true, history: true, careers: false, jobs: true });
   const [chats, setChats] = useState<ChatSummary[]>(initialChats);
   const [cache, setCache] = useState<Record<string, ChatMessage[]>>(() => initialChat ? { [initialChat.id]: initialChat.messages } : {});
   const [activeId, setActiveId] = useState(() => initialChat?.id ?? newId());

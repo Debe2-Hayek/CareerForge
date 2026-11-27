@@ -8,6 +8,7 @@ import { analyseCareers } from "../career-analysis/server";
 import { readClaimsOverview } from "../claims/server";
 import { chatProviderFromEnv } from "../ai/provider";
 import type { AssistantData } from "./context";
+import { trackerAccess } from "../tracker/server";
 
 export const assistantProvider = () => chatProviderFromEnv(process.env);
 
@@ -16,10 +17,11 @@ export async function readAssistantData(client: SupabaseClient, userId: string):
   const { data, error } = await client.from("profiles").select("full_name,headline,location,bio,education_summary,project_summary,self_reported_skills").eq("id", userId).single();
   if (error) throw new Error("Profile unavailable");
   const profile = profileFromRow(data);
-  const [history, items, snapshot] = await Promise.all([
+  const [history, items, snapshot, saved] = await Promise.all([
     historyAccess(client, userId).readAll(),
     readClaimsOverview(client, userId, profile.skills).catch(() => []),
-    readLearningSnapshot(client, userId).catch(() => null)
+    readLearningSnapshot(client, userId).catch(() => null),
+    trackerAccess(client, userId).list().catch(() => [])
   ]);
   const statusOf = new Map(items.filter(item => item.kind === "skill").map(item => [item.title.toLowerCase(), item.status]));
   const { ranked } = await analyseCareers(client, userId, profile, snapshot, null);
@@ -28,6 +30,7 @@ export async function readAssistantData(client: SupabaseClient, userId: string):
     skills: profile.skills.map(name => ({ name, status: statusOf.get(name.toLowerCase()) ?? "self_declared" })),
     experience: history.experience.map(record => ({ role: record.role, company: record.company, years: formatHistoryPeriod(record) })),
     education: history.education.map(record => ({ degree: record.degree, institution: record.institution, years: formatHistoryPeriod(record) })),
-    careers: ranked.slice(0, 3).map(career => ({ title: career.title, score: career.score, criticalDone: career.critical.done, criticalTotal: career.critical.total }))
+    careers: ranked.slice(0, 3).map(career => ({ title: career.title, score: career.score, criticalDone: career.critical.done, criticalTotal: career.critical.total })),
+    jobs: saved.slice(0, 8).map(entry => ({ title: entry.job.title, company: entry.job.company, status: entry.status, skills: entry.job.skills }))
   };
 }

@@ -69,8 +69,19 @@
 .chat-new-mini svg { width: 17px; height: 17px; }
 .chat-new-mini:hover { background: #1b2615; border-color: #6f9a40; }
 
-/* The assistant's mark: a wireframe globe drawn by src/components/ai-globe.tsx, on a soft disc. */
-.ai-globe { display: block; width: 100% !important; height: 100% !important; }
+/* The assistant's mark: a four-leaf clover (src/components/ai-clover.tsx) on a soft disc. Black on white;
+   near-black leaves with a lime edge on dark. Turns slowly when live, breathes leaf by leaf while thinking. */
+.ai-clover { display: block; overflow: visible; }
+.clover-leaf { fill: light-dark(#111311, #0b0f0a); stroke: light-dark(#ffffff, #c6e49e); stroke-width: 1.3px; vector-effect: non-scaling-stroke; stroke-linejoin: round; transform-box: view-box; transform-origin: 50px 46px; }
+.clover-heart { fill: light-dark(#ffffff, #c6e49e); }
+.clover-stem { fill: none; stroke: light-dark(#111311, #c6e49e); stroke-width: 6; stroke-linecap: round; }
+.clover-turn { transform-box: view-box; transform-origin: 50px 46px; }
+.ai-clover.is-live .clover-turn { animation: clover-turn 40s linear infinite; }
+.ai-clover.is-thinking .clover-turn { animation-duration: 7s; }
+.ai-clover.is-thinking .clover-leaf { animation: clover-breathe 1.4s ease-in-out infinite; animation-delay: calc(var(--k) * .18s); }
+@keyframes clover-turn { to { rotate: 360deg; } }
+@keyframes clover-breathe { 0%, 100% { scale: 1; opacity: 1; } 40% { scale: 1.08; opacity: .82; } }
+@media (prefers-reduced-motion: reduce) { .ai-clover .clover-turn, .ai-clover .clover-leaf { animation: none !important; } }
 .ai-orb { position: relative; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 50% 45%, light-dark(#ffffff, #1b2615), light-dark(#f1f1ef, #0c120a) 72%); box-shadow: inset 0 0 0 1px light-dark(#e1e1dc, #2c3a25), 0 0 18px light-dark(#c48a121a, #9fd35d33); }
 .ai-orb-small { width: 34px; height: 34px; }
 .ai-orb-large { width: 150px; height: 150px; background: radial-gradient(circle, light-dark(#fff8e8, #1d2a16) 0%, transparent 70%); box-shadow: none; }
@@ -217,3 +228,5 @@
   .chat::before, .ai-orb, .ai-orb-large, .ai-orb-large::before, .chat-welcome, .chat-starters button, .assistant-message, .chat-dots span, .chat-history-live, .chat-privacy p, .chat-loading span { animation: none !important; }
   .chat-side, .chat-scrim { transition: none; }
 }
+
+.ai-orb .ai-clover { width: 74%; height: 74%; }

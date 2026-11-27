@@ -10,6 +10,23 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Results built by light, a clover for the AI, a quicker slider
+- **Slider:** under each result a pad glows in the slide’s colour. When a slide opens a beam of light rises,
+  a line sweeps up while the result is built from the bottom up, sparks drift through the light, and the
+  finished document lifts off and floats; its lower edge stays lit with a soft reflection beneath. The small
+  pieces (for the portfolio: the phone version and "Live" pill) pop out of the beam. Slides now change every
+  4.5 seconds, and the hand cursor shows only while dragging.
+- **3D emblems:** each slide now opens with a real 3D object above its title (shield, check mark, map pin,
+  medal, document, briefcase, folder, chat bubble, computer), made graphite and lit from below in the slide’s
+  colour, rising and floating gently. They come from the free 3dicons library (CC0: free for commercial use),
+  9 small files of 56 KB in total. AI-made images were the first choice, but the OpenRouter account’s privacy
+  guardrail blocks every image model, so nothing was generated.
+- **AI assistant:** a new mark, an original black four-leaf clover (near-black with a lime edge in the dark
+  theme). It turns slowly while open and its leaves breathe while it is thinking; the menu icon is the same
+  clover as an outline. It replaces the wireframe globe everywhere.
+- **Where:** the homepage slider; the assistant page, menu and homepage.
+- **Status:** Ready (no database change).
+
 ## Homepage results that float, a fifth Forge step, and a background-only switch
 - **Slider:** no more photos. Each slide now shows only what CareerForge gives you, as floating documents on a
   quiet dotted stage that lean towards the mouse and drift gently: a checked-profile page, "SQL is now Verified",

@@ -43,7 +43,7 @@ try {
     await page.getByLabel("Email address").fill(user.email);
     await page.getByLabel("Password", { exact: true }).fill(user.password);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
-    await expect(page).toHaveURL(`${baseURL}/account`, { timeout: 30000 });
+    await expect(page).toHaveURL(new RegExp(`^${baseURL}/(account|admin)$`), { timeout: 30000 });
     if (name === "light") await page.evaluate(() => localStorage.setItem("careerforge-theme", "light"));
     await page.goto("/cv-analysis");
     await page.getByRole("tab", { name: "Paste a job" }).click();

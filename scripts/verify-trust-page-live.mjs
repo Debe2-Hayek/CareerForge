@@ -29,7 +29,7 @@ async function signIn(options = {}) {
   await page.getByLabel("Email address").fill(student.email);
   await page.getByLabel("Password", { exact: true }).fill(student.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page).toHaveURL(`${baseURL}/account`, { timeout: 30000 });
+  await expect(page).toHaveURL(new RegExp(`^${baseURL}/(account|admin)$`), { timeout: 30000 });
   return { context, page };
 }
 const noOverflow = async page => assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "no sideways scrolling");

@@ -10,6 +10,18 @@ part needs OpenRouter credits before it gives real answers.
 
 ---
 
+## Admin accounts get their own dashboard, and no student pages
+- **What:** signing in with an admin account now opens the **Admin dashboard** (`/admin`): how many things need
+  you, four numbers that open their page (proof waiting, with how many are flagged as edited or copied;
+  interviews to score; skill checks live, with attempts and pass rate; workshops open), the proof queue with the
+  newest uploads, each live skill check with its pass rate and any drafts, upcoming workshops, and three short
+  rules. The side menu for admins shows only Dashboard, Review proof, Skill checks studio, Project interviews,
+  Workshops & certificates and Sign out. Student pages send an admin back to the dashboard.
+- **Why:** this is the admin dashboard in the project report; an admin account is for running CareerForge, and a
+  separate student account is for testing it.
+- **Where:** `/admin` (admins only; other people get "not found").
+- **Status:** Ready (no database change).
+
 ## An Admin section in the menu
 - **What:** admins now see an **Admin** section at the bottom of the side menu: Review proof, Skill checks studio,
   Project interviews, Workshops & certificates. Before, admin pages could only be opened by typing their address.

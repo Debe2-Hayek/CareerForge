@@ -13,6 +13,7 @@ import "./profile.css";
 import "./slider.css";
 import "./checks.css";
 import "./forge.css";
+import "./admin.css";
 import { AmbientBackground } from "@/components/ambient-background";
 import { SelfDiagnoseProvider } from "@/components/self-diagnose-provider";
 import { siteOrigin } from "@/lib/site-url";
